@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 require('dotenv').config(__dirname + '/.env');
 const nunjucks = require('nunjucks');
 const path = require('path');
+const passport = require('passport');
 
 const app = express();
 
