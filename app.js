@@ -1,19 +1,28 @@
-const Koa = require('koa');
-const KoaRouter = require('koa-router');
-const json = require('koa-json');
-// Need a template engine still
+const express = require('express');
+const mongodb = require('mongodb');
+const mongoose = require('mongoose');
+require('dotenv').config(__dirname + '/.env');
+const nunjucks = require('nunjucks');
+const path = require('path');
 
-const app = new Koa();
-const router = new KoaRouter();
+const app = express();
 
-app.use(json());
+nunjucks.configure('views', {
+    autoescape: true,
+    express: app,
+});
 
-// Simple Middleware
-// app.use(async ctx => ctx.body = 'Hello');
+app.use(express.static('static'));
 
-router.get('/test', ctx => (ctx.body = 'Hello Test'));
+app.set('views', './views')
+app.set('view engine', 'html')
 
-// Router
-app.use(router.routes()).use(router.allowedMethods)
+app.get('/', (req, res) => {
+    res.render('index', {test: "This is not a test"})
+});
 
-app.listen(3000, () => console.log('Server Started...'));
+port = 5000
+app.listen(5000, (err) => {
+    if (err) return console.error(err);
+    console.log(`Port: ${port}, Server Running...`)
+});

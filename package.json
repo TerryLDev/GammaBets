@@ -1,20 +1,28 @@
 {
-  "name": "RustSiteJS",
+  "name": "rustsitejs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "nodemon app.js"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TerryLDev/rust-site-js.git"
+  },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "koa": "^2.13.3",
-    "koa-json": "^2.0.2",
-    "koa-router": "^10.1.1"
+  "bugs": {
+    "url": "https://github.com/TerryLDev/rust-site-js/issues"
   },
-  "devDependencies": {
-    "nodemon": "^2.0.13"
+  "homepage": "https://github.com/TerryLDev/rust-site-js#readme",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "helmet": "^4.6.0",
+    "mongodb": "^4.1.2",
+    "mongoose": "^6.0.8",
+    "nodemon": "^2.0.13",
+    "nunjucks": "^3.2.3"
   }
 }

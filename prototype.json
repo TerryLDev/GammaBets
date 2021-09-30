@@ -1,0 +1,63 @@
+
+{
+    "JackpotGames": "name",
+    "GameId": "string",
+    "TotalPotValue": "number",
+    "Players": ["steamid", ["skinid"]],
+    "Winner": "string",
+    "DateCreated": "date"
+}
+
+{
+    "CoinflipGames": "name",
+    "GameId": "string",
+    "TotalValue": "number",
+    "Players": ["steamid", ["skinid"]],
+    "Winner": "string",
+    "DateCreated": "date"
+}
+
+{
+    "User": "name",
+    "SteamID": "string",
+    "ProfilePictureURL": "string",
+    "Username": "string",
+    "TradeURL": "string",
+    "DateJoined": "date",
+    "Trades": ["list of trade ids"],
+    "Profit": "number",
+    "BetAmount": "number",
+    "GamesPlayed": [
+        {"GameId": "string", "Connclusion": ["Accepted", "Loss", "Pending Trade", "Send Trade"]}
+    ]
+}
+
+{
+    "Support": "name",
+    "SteamID": "string",
+    "Username": "string",
+    "TradeURL": "string",
+    "Gamemode": "string",
+    "GameId": "string",
+    "Comment": "string",
+    "DateCreated": "date"
+}
+
+{
+    "TradeHistory": "name",
+    "TradeID": "string",
+    "SteamID": "string",
+    "BotID": "string",
+    "Items": ["list of skinids"],
+    "Transactions": ["Deposit", "Withdraw"]
+}
+
+{
+    "MarketPrice": "name",
+    "SkinId": "string",
+    "SkinName": "string",
+    "SkinMarketplaceURL": "string",
+    "SkinPictureURL": "string",
+    "Value": "number",
+    "DateLogged": "date"
+}
