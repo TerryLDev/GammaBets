@@ -6,6 +6,7 @@ const passport = require('passport');
 const session = require('express-session');
 const passportSteam = require('passport-steam');
 const mongoose = require('mongoose');
+const MongoStore = require('connect-mongo');
 
 // Models
 const User = require('./models/user.model');
@@ -32,11 +33,14 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true })
 // Setting up cookies
 app.use(session({
     secret: 'this is gonna make people big poor',
-    name: 'name of session id',
+    store: MongoStore.create({
+        mongoUrl: mongo_uri,
+    }),
+    name: 'RustSite',
     resave: false,
     saveUninitialized: false,
     cookie : {
-        maxAge: 360000
+        maxAge: 1000 * 60 * 60 * 24 * 7
     }
 }));
 
@@ -44,7 +48,7 @@ app.use(session({
 port = 5000
 
 // Authentcation startegy for Passport
-const SteamStrat = passportSteam.Strategy;
+const SteamStrategy = passportSteam.Strategy;
 
 passport.serializeUser((user, done) => {
     done(null, user);
@@ -53,7 +57,7 @@ passport.deserializeUser((user, done) => {
     done(null, user);
 });
 
-passport.use(new SteamStrat({
+passport.use(new SteamStrategy({
     returnURL: `http://localhost:${port}/auth/steam/return`,
     realm: `http://localhost:${port}/`,
     apiKey: '04CC7E23FCFEEDED67B7928E6EAB2E58'
@@ -63,8 +67,6 @@ passport.use(new SteamStrat({
         profile.identifier = identifier;
         
         let user = profile['_json'];
-
-        console.log(user['steamid']);
 
         User.exists({SteamID: user["steamid"]})
             .then((result) =>{
@@ -97,7 +99,6 @@ passport.use(new SteamStrat({
                 console.error(err);
             });
 
-        console.log(profile['_json']);
         return done(null, profile);
     });
   }
@@ -112,7 +113,7 @@ nunjucks.configure('views', {
     express: app,
 });
 
-app.use(express.static('static'));
+app.use("/static", express.static('static'));
 
 app.set('views', './views')
 app.set('view engine', 'html')
@@ -127,7 +128,8 @@ app.get('/auth/steam',
 app.get('/auth/steam/return',
   passport.authenticate('steam', { failureRedirect: '/login' }),
   function(req, res) {
-    // Successful authentication, redirect home.
+    // Successful authentication, redirect home
+    req.session.isAuth = true;
     res.redirect('/');
   });
 

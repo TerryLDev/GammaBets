@@ -10,6 +10,8 @@ const coinFlipGameSchema = Schema({
     },
     TotalValue: Number,
     Players: Array,
+    Heads: String,
+    Tails: String,
     Winner: String,
     DateCreated: Date
 }, {

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const nunjucks = require('nunjucks');
 const express = require('express');
 const session = require('express-session');
+const mongoose = require('mongoose');
 
 const app = express();
 
@@ -17,6 +18,7 @@ nunjucks.configure('views', {
     express: app,
 });
 
+
 app.set('views', '../views')
 app.set('view engine', 'html')
 
@@ -26,7 +28,25 @@ router.use(function timeLog (req, res, next) {
 });
 
 router.get('/', (req, res) => {
-    res.render('index');
+    
+    req.session.isAuth = true;
+    let userProfile;
+
+    if (req.user == undefined || req.user == null) { 
+        userProfile = "welcome";
+        res.render('index.html', { user : userProfile });
+    }
+
+    else if (req.user != undefined || req.user != null) {
+        User.findOne({"SteamID": req.user["_json"]["steamid"]}, (err, data)=> {
+            if (err) userProfile = "welcome";
+            userProfile = data;
+            console.log(userProfile);
+            res.render('index.html', { user : userProfile });
+        });
+
+    }
+
 });
 
-module.exports = router
+module.exports = router;
