@@ -5,7 +5,7 @@ body {
 #sidebar {
     position: absolute;
     height: 100%;
-    width: 0px;
+    width: 300px;
     background-color: black;
     left: 0;
     top: 0;
@@ -18,10 +18,12 @@ body {
 #logo-login {
     background-color: aqua;
     text-align: center;
+    margin: 10px;
 }
 
 #chat {
     height: 80%;
+    margin: 10px;
 }
 
 #chat-frame {
@@ -33,19 +35,23 @@ body {
     height: 80%;
     overflow-y: scroll;
     background-color: white;
-    margin: 5px;
+    margin-bottom: 10px;
 }
 
 #top-nav {
     display: flex;
     flex-flow: row;
     align-items: center;
-    align-self: center;
     justify-content: space-between;
+    font-size: 20px;
+}
+
+#top-nav img {
+    max-height: 30px;
 }
 
 #main {
-    margin-left: 0px;
+    margin-left: 300px;
     padding: 10px;
 }
 
@@ -56,10 +62,40 @@ body {
 
 #profile-button {
     border: none;
+    padding: none;
     background: none;
+}
+
+#profile-button img {
+    max-height: 20px;
 }
 
 #new-message {
     margin: 3px;
     font-size: 14px;
+}
+
+#new-message a {
+    color: black;
+}
+
+#top-sign-in {
+    display: flex;
+    align-items: center;
+}
+
+#close-deposit {
+    border: none;
+    background-color: none;
+    font-size: 16px;
+}
+
+#deposit-menu {
+    height: 50%;
+    margin: auto;
+    width: 0%;
+    overflow: hidden;
+    display: fixed;
+    z-index: 1;
+    background-color: blue;
 }

@@ -28,13 +28,15 @@ const feed = document.getElementById('chat-feed');
 const messageOut = document.getElementById('chat-message-out');
 const chatSend = document.getElementById('send-message');
 const message = document.getElementById('message');
-const user = document.getElementById('user-message');
+const user = document.getElementById('user-message-name');
+const userProfile = document.getElementById('user-message-url');
 
 chatSend.addEventListener('click', function() {
     if (message.value != "") {
         socket.emit('chat', {
             message: message.value,
-            user: user.value
+            user: user.value,
+            userProfile: userProfile.value
         })
     
         message.value = "";
@@ -43,8 +45,11 @@ chatSend.addEventListener('click', function() {
 
 // Listen for messages
 socket.on('chat', function(messages) {
-    messageOut.innerHTML = "";
+    feed.innerHTML = "";
+    let newMessage = document.createElement('div');
+    
     messages.forEach(msg => {
-        messageOut.innerHTML += '<div id="new-message"><p><strong>' + msg.user + ':</strong> ' + msg.message + "</p></div>" 
+        newMessage.innerHTML += '<p id="new-message"><a href=' + msg.userProfile + '><strong>' + msg.user + '</a>: </strong>' + msg.message + "</p>";
     });
+    feed.appendChild(newMessage);
 });

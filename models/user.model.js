@@ -13,6 +13,7 @@ const userSchema = new Schema({
         required: true
     },
     ProfilePictureURL: String,
+    ProfileURL: String,
     TradeURL: String,
     DateJoined: {
         type: Date,

@@ -68,6 +68,7 @@ passport.use(new SteamStrategy({
         profile.identifier = identifier;
         
         let user = profile['_json'];
+        console.log(user);
 
         User.exists({SteamID: user["steamid"]})
             .then((result) =>{
@@ -76,6 +77,7 @@ passport.use(new SteamStrategy({
                         SteamID: user['steamid'],
                         Username: user['personaname'],
                         ProfilePictureURL: user['avatar'],
+                        ProfileURL: user['profileurl'],
                         DateJoined: Date.now()
                     })
                         .then((result) => {
@@ -156,4 +158,25 @@ io.on('connection', (socket) => {
         io.sockets.emit('chat', messages);
 
     });
+
+    socket.on('jackpot-deposit', (data) =>{
+        // add a function that sends a request to the bots to make a trade and return a trade link
+        // wait to see if the trade link is successful
+        // if so send the trade link
+        // else send an error message
+    });
+
+    socket.on('jackpot', (data) => {
+        io.sockets.emit('jackpot', data);
+    });
+
+    socket.on('addTradeURL', (data) => {
+
+        User.findOneAndUpdate({"SteamID" : data.steamID}, {"TradeURL" : data.trade}, {upsert: true}, function(err, data) {
+            if(err) console.error(err);
+            io.sockets.emit('addTradeURL', "big peepee");
+        });
+        // this still needs to pull their url and load the inventory 
+    })
+
 });
