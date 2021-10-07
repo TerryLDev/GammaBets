@@ -45,8 +45,15 @@ showDepositButton.addEventListener('click', function() {
 const deposit = document.getElementById('despoit-submit');
 const jackpotItem = document.getElementById('')
 
+const test = document.getElementById('tester');
+
 socket.on('getInventory', (data) => {
-    document.getElementById('tester').innerText = data;
+    console.log(data);
+    data.forEach(item => {
+        console.log(item['name'], item['id']);
+        test.innerHTML += "<img src='https://community.cloudflare.steamstatic.com/economy/image/" + item['icon_url'] + "' alt='" + item['name'] + "'>"
+
+    });
 });
 
 socket.on('jackpot', (data) => {

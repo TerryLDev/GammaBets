@@ -1,8 +1,8 @@
 {
   "name": "rustsitejs",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "base",
+  "main": "app.js",
   "scripts": {
     "start": "nodemon app.js"
   },
@@ -29,6 +29,7 @@
     "localtunnel": "^2.0.2",
     "mongodb": "^4.1.2",
     "mongoose": "^6.0.8",
+    "ngrok": "^4.2.2",
     "nodemon": "^2.0.13",
     "nunjucks": "^3.2.3",
     "passport": "^0.5.0",

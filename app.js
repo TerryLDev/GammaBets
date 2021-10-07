@@ -11,6 +11,9 @@ const MongoStore = require('connect-mongo');
 const socket = require('socket.io');
 const async = require('async');
 
+const ngrok = require('ngrok');
+const helmet = require('helmet');
+
 const app = express();
 
 // Models
@@ -61,7 +64,7 @@ app.use(session({
 }));
 
 // Localhost port
-port = 5000
+const port = 80;
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -163,7 +166,6 @@ const io = socket(server);
 const messages = []
 
 io.on('connection', (socket) => {
-    console.log('connected', socket.id);
     io.sockets.emit('chat', messages);
 
     socket.on('chat', (data) => {
@@ -200,7 +202,7 @@ io.on('connection', (socket) => {
         User.findOne({"SteamID": data.steamID}, (err, doc) => {
             if (err) return console.error(err);
 
-            community.getUserInventoryContents('76561198072093858', 252490, 2, true, (err, inv) => {
+            community.getUserInventoryContents(doc['SteamID'], 252490, 2, true, (err, inv) => {
                 
                 if (err) console.error(err);
                 
@@ -209,6 +211,10 @@ io.on('connection', (socket) => {
                 }
             });
         });
+    });
+
+    socket.on('makeJackpotDeposit', (data) => {
+
     });
 
 });

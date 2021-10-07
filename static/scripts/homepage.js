@@ -1,4 +1,4 @@
-const socket = io.connect('http://localhost:5000');
+const socket = io.connect('http://localhost:80');
 
 function sideBarToggle() {
     let sidebar = document.getElementById('sidebar');

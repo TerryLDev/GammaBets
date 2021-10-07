@@ -98,5 +98,5 @@ body {
     overflow: hidden;
     display: fixed;
     z-index: 2;
-    background-color: blue;
+    background-color: lightgray;
 }
