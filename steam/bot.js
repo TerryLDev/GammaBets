@@ -12,5 +12,15 @@ const manager = new TradeOfferManager({
 });
 
 const makeNewTrade = (steamid, items) => {
-    
+    return null
 }
+
+function getInventory(steamid, tradeURL, callback){
+	
+	community.getUserInventoryContents(steamid, 252490, 2, true, (err, inv) => {
+		if (err) return callback(err);
+		return callback(inv);
+	});
+}
+
+module.exports = {getInventory};

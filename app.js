@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
 
 const socket = require('socket.io');
+const async = require('async');
 
 const app = express();
 
@@ -23,6 +24,20 @@ const JackpotGame = require('./models/jackpotgame.model');
 // Router
 const gameRoutes = require('./routes/games');
 const supportRoutes = require('./routes/support');
+
+// SteamBot
+const SteamUser = require('steam-user');
+const SteamTotp = require('steam-totp');
+const SteamCommunity = require('steamcommunity');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+
+const client = new SteamUser();
+const community = new SteamCommunity();
+const manager = new TradeOfferManager({
+	steam: client,
+	community: community,
+	language: 'en'
+});
 
 mongo_uri = process.env.MONGO_URI;
 
@@ -178,5 +193,22 @@ io.on('connection', (socket) => {
         });
         // this still needs to pull their url and load the inventory 
     })
+
+    socket.on('getInventory', (data) => {
+        // sends a request for the bot to check their inventory from rust
+        
+        User.findOne({"SteamID": data.steamID}, (err, doc) => {
+            if (err) return console.error(err);
+
+            community.getUserInventoryContents('76561198072093858', 252490, 2, true, (err, inv) => {
+                
+                if (err) console.error(err);
+                
+                else { 
+                    io.sockets.emit('getInventory', inv)
+                }
+            });
+        });
+    });
 
 });

@@ -92,10 +92,11 @@ body {
 
 #deposit-menu {
     height: 50%;
+
     margin: auto;
     width: 0%;
     overflow: hidden;
     display: fixed;
-    z-index: 1;
+    z-index: 2;
     background-color: blue;
 }
