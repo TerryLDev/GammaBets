@@ -17,6 +17,8 @@ function addTradeURL() {
             steamID : steamID
         });
     }
+
+    window.location.reload()
 }
 
 // Add the users trade url
@@ -49,10 +51,20 @@ const test = document.getElementById('tester');
 
 socket.on('getInventory', (data) => {
     console.log(data);
-    data.forEach(item => {
-        console.log(item['name'], item['id']);
-        test.innerHTML += "<img src='https://community.cloudflare.steamstatic.com/economy/image/" + item['icon_url'] + "' alt='" + item['name'] + "'>"
+    const playerSkins = document.getElementById('player-skin-selection');
 
+    playerSkins.innerHTML = "";
+
+    data.forEach(item => {
+
+        console.log(item['name'], item['id']);
+
+        let skinItem = document.createElement('div');
+        skinItem.className = 'inventory-item';
+
+        skinItem.innerHTML = "<input type='checkbox' class='inventory-item' id='" + item['id'] + "' /><label for=" + item['id'] + "><img src='https://community.cloudflare.steamstatic.com/economy/image/" + item['icon_url'] + "' alt='" + item['name'] + "'><p>" + item['name'] + "</p><p>" + "Price:" + "</p></label>";
+
+        playerSkins.appendChild(skinItem);
     });
 });
 

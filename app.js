@@ -11,7 +11,6 @@ const MongoStore = require('connect-mongo');
 const socket = require('socket.io');
 const async = require('async');
 
-const ngrok = require('ngrok');
 const helmet = require('helmet');
 
 const app = express();

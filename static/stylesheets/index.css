@@ -100,3 +100,40 @@ body {
     z-index: 2;
     background-color: lightgray;
 }
+
+#player-skin-selection {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    
+}
+
+#player-skin-selection input[type='checkbox'] {
+    display: none;
+}
+
+.inventory-item {
+    align-items: center;
+    text-align: center;
+    margin: 10px;
+}
+
+.inventory-item img {
+    max-height: 50%;
+    max-width: 50%;
+}
+
+.inventory-item p {
+    font-size: 12px;
+}
+
+label:before {
+    border: 2px black solid;
+    border-radius: 5px;
+}
+
+:checked + label img {
+    border: 2px black solid;
+    border-radius: 5px;
+}
