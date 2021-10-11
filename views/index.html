@@ -60,38 +60,7 @@
             </div>
         </header>
         <main id="main">
-            <nav id="top-nav">
-                <button id="sidebar-button" onClick="sideBarToggle()">
-                    Close Chat
-                </button>
-                <a href="/">
-                    Jackpot
-                </a>
-                <img
-                    src="https://www.kenyons.com/wp-content/uploads/2017/04/default-image.jpg"
-                />
-                <a href="/coinflip">
-                    Coin Flip
-                </a>
-                {% if user == "welcome" %}
-                <a href="/auth/steam">
-                    <div id="top-sign-in">
-                    <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Steam_icon_logo.svg/512px-Steam_icon_logo.svg.png"
-                        alt="Sign in Through Steam"
-                    />
-                    <p>
-                    Sign In
-                    </p>
-                    </div>
-                </a>
-                {% else%}
-                <a href="" id="profile-button">
-                    {{ user.Username }}
-                    <img src="{{ user.ProfilePictureURL }}" />
-                </a>
-                {% endif %}
-            </nav>
+            {% include "parts/topnav.html" %}
 
             <div id="jackpot">
                 <div id="spinner"></div>
@@ -103,30 +72,10 @@
             </div>
         </main>
 
-        <div id="deposit-menu">
-            <button id="close-deposit" onclick="closeScreen()">X</button>
-            <div id="player-inventory">
-                <p>Please insert your Trade URL. you can find your Trade URL <a href="https://steamcommunity.com/profiles/{{ user.SteamID }}/tradeoffers/privacy" target="_blank">here</a></p>
-                <input id="url-steam-id" value="{{ user.SteamID }}" hidden>
-
-                <input type="text" id="tradeurl" name="tradeurl" 
-                {% if user.TradeURL != undefined %}
-                placeholder="{{ user.TradeURL}}"
-                {% else %}
-                placeholder="Please Insert TradeURL"
-                {% endif %}
-                >
-
-                <input type="submit" value="Add" onclick="addTradeURL()">
-                {% if user.TradeURL == undefined %}
-                <p>No Inventory Found</p>
-                {% else %}
-                <div id="player-skin-selection"></div>
-                {% endif %}
-            </div>
-        </div>
+        {% include "parts/deposit.html" %}
 
         <script src="/static/scripts/homepage.js"></script>
         <script src="/static/scripts/jackpot.js"></script>
+        <script src="/static/scripts/deposit.js"></script>
     </body>
 </html>

@@ -1,4 +1,5 @@
-const socket = io.connect('http://localhost:80');
+const socket = io.connect('http://localhost:5000');
+
 
 function sideBarToggle() {
     let sidebar = document.getElementById('sidebar');
@@ -41,15 +42,43 @@ chatSend.addEventListener('click', function() {
     
         message.value = "";
     }
+
+});
+
+message.addEventListener('keydown', (event) => {
+    
+    if (event.code == 'Enter') {
+
+        if (message.value != "") {
+            socket.emit('chat', {
+                message: message.value,
+                user: user.value,
+                userProfile: userProfile.value
+            })
+        
+            message.value = "";
+        }
+
+    }
 });
 
 // Listen for messages
 socket.on('chat', function(messages) {
+    
     feed.innerHTML = "";
+
     let newMessage = document.createElement('div');
     
     messages.forEach(msg => {
         newMessage.innerHTML += '<p id="new-message"><a href=' + msg.userProfile + '><strong>' + msg.user + '</a>: </strong>' + msg.message + "</p>";
     });
+
     feed.appendChild(newMessage);
+
+    feed.maxScrollTop = feed.scrollHeight - feed.offsetHeight;
+
+    if (feed.maxScrollTop - feed.scrollTop <= feed.offsetHeight) {
+        feed.scrollTop = feed.scrollHeight
+  
+      }
 });

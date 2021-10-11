@@ -1,0 +1,32 @@
+<div id="deposit-menu">
+            
+    <button id="close-deposit" onclick="closeScreen()">X</button>
+    <div id="player-inventory">
+        
+        <p>Please insert your Trade URL. you can find your Trade URL <a href="https://steamcommunity.com/profiles/{{ user.SteamID }}/tradeoffers/privacy" target="_blank">here</a></p>
+        <input id="url-steam-id" value="{{ user.SteamID }}" hidden>
+
+        <input type="text" id="tradeurl" name="tradeurl" 
+        {% if user.TradeURL != undefined %}
+        placeholder="{{ user.TradeURL}}"
+        value="{{ user.TradeURL}}"
+        {% else %}
+        placeholder="Please Insert TradeURL"
+        {% endif %}
+        >
+
+        <input type="submit" value="Add" onclick="addTradeURL()">
+        {% if user.TradeURL == undefined %}
+        <p>No Inventory Found</p>
+        {% else %}
+        
+        <div id="player-skin-selection"> 
+        </div>
+        <p>Total Skins: </p>
+        <p>Total Value: </p>
+        <input type="submit" value="Deposit Skins" id="deposit-skins">
+        
+        {% endif %}
+    </div>
+
+</div>

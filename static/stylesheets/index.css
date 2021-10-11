@@ -106,10 +106,9 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: space-around;
-    
 }
 
-#player-skin-selection input[type='checkbox'] {
+#player-skin-selection input[type="checkbox"] {
     display: none;
 }
 

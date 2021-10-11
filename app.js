@@ -63,7 +63,7 @@ app.use(session({
 }));
 
 // Localhost port
-const port = 80;
+const port = process.env.PORT;
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -175,13 +175,6 @@ io.on('connection', (socket) => {
 
     });
 
-    socket.on('jackpot-deposit', (data) =>{
-        // add a function that sends a request to the bots to make a trade and return a trade link
-        // wait to see if the trade link is successful
-        // if so send the trade link
-        // else send an error message
-    });
-
     socket.on('jackpot', (data) => {
         io.sockets.emit('jackpot', data);
     });
@@ -202,8 +195,19 @@ io.on('connection', (socket) => {
             if (err) return console.error(err);
 
             community.getUserInventoryContents(doc['SteamID'], 252490, 2, true, (err, inv) => {
-                
+
                 if (err) console.error(err);
+
+                else if (inv == undefined || inv == '') {
+                    
+                    community.getUserInventoryContents('76561198072093858', 252490, 2, true, (err, inv) => {
+                        if (err) console.error(err);
+
+                        else { 
+                            io.sockets.emit('getInventory', inv)
+                        }
+                    });
+                }
                 
                 else { 
                     io.sockets.emit('getInventory', inv)
@@ -213,7 +217,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('makeJackpotDeposit', (data) => {
-
+        console.log(data);
     });
 
 });
