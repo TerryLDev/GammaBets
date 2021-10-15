@@ -16,7 +16,10 @@ const tradeHistorySchema = Schema({
         required: true
     },
     Items: Array,
-    TransactionType: String
+    TransactionType: String,
+    State: String,
+    GameID: String,
+    DateCreated: Date
 },
 {timestamps: true});
 

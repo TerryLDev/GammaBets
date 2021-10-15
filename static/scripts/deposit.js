@@ -44,22 +44,26 @@ showDepositButton.addEventListener('click', function() {
 const playerSkins = document.getElementById('player-skin-selection');
 
 socket.on('getInventory', (data) => {
-    console.log(data);
-
+    let skinItem = document.createElement('div');
     playerSkins.innerHTML = "";
 
-    data.forEach(item => {
-
-        console.log(item['name'], item['id']);
-
-        let skinItem = document.createElement('div');
-
-        skinItem.className = 'inventory-item';
-
-        skinItem.innerHTML = "<input type='checkbox' class='inventory-item' id='" + item['id'] + "' /><label for=" + item['id'] + "><img src='https://community.cloudflare.steamstatic.com/economy/image/" + item['icon_url'] + "' alt='" + item['name'] + "'><p>" + item['name'] + "</p><p>" + "Price:" + "</p></label>";
-
+    if (data == '') {
+        skinItem.innerHTML = "<p>No Tradeable Skins Found</p>"
         playerSkins.appendChild(skinItem);
-    });
+    }
+    
+    else {
+        data.forEach(item => {
+
+            console.log(item['name'], item['id']);
+    
+            skinItem.className = 'inventory-item';
+    
+            skinItem.innerHTML = "<input type='checkbox' class='inventory-item' id='" + item['id'] + "' /><label for=" + item['id'] + "><img src='https://community.cloudflare.steamstatic.com/economy/image/" + item['icon_url'] + "' alt='" + item['name'] + "'><p>" + item['name'] + "</p><p>" + "Price:" + "</p></label>";
+    
+            playerSkins.appendChild(skinItem);
+        });
+    }
 });
 
 const depositSkins = document.getElementById('deposit-skins');
@@ -85,17 +89,17 @@ depositSkins.addEventListener('click', function() {
         }
     }
 
-    console.log(selectedSkinIDs);
+    if (selectedSkinIDs == ''){
+        console.log('No Skins Selected')
+    }
 
-    socket.emit('makeJackpotDeposit', {
-        user: steamID,
-        skins: selectedSkinIDs,
-        tradeURL: tradeURL
-    });
-
-});
-
-socket.on('makeJackpotDeposit', (data) => {
+    else {
+        socket.emit('makeJackpotDeposit', {
+            user: steamID,
+            skins: selectedSkinIDs,
+            tradeURL: tradeURL,
+        });
+    }
 
 });
 

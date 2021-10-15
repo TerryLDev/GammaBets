@@ -33,13 +33,12 @@ const SteamTotp = require('steam-totp');
 const SteamCommunity = require('steamcommunity');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-const client = new SteamUser();
-const community = new SteamCommunity();
-const manager = new TradeOfferManager({
-	steam: client,
-	community: community,
-	language: 'en'
-});
+const community = new SteamCommunity;
+const manager = new TradeOfferManager;
+const client = new SteamUser;
+
+const SteamBot = require("./steam/bot");
+const { response } = require('express');
 
 mongo_uri = process.env.MONGO_URI;
 
@@ -64,6 +63,14 @@ app.use(session({
 
 // Localhost port
 const port = process.env.PORT;
+
+// Set Up config for Steambots
+const bot = new SteamBot({
+    accountName: 'bigstonkdaddy',
+    password: 'If#219jZ1!',
+    twoFactorCode: SteamTotp.generateAuthCode("nDvhKfTBcAGGJyxCNSTYcaMh+0s="),
+
+});
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -163,27 +170,28 @@ const server = app.listen(port, (err) => {
 
 const io = socket(server);
 const messages = []
+let activateJackpotGame = []
 
 io.on('connection', (socket) => {
+
     io.sockets.emit('chat', messages);
+
+    // When someone enters the site it should pull up the activate jackpot game
+    io.sockets.emit('jackpotDeposit', activateJackpotGame);
 
     socket.on('chat', (data) => {
 
         messages.push(data);
 
-        io.sockets.emit('chat', messages);
+        io.emit('chat', messages);
 
-    });
-
-    socket.on('jackpot', (data) => {
-        io.sockets.emit('jackpot', data);
     });
 
     socket.on('addTradeURL', (data) => {
 
         User.findOneAndUpdate({"SteamID" : data.steamID}, {"TradeURL" : data.trade}, {upsert: true}, function(err, data) {
             if(err) console.error(err);
-            io.sockets.emit('addTradeURL', "big peepee");
+            socket.emit('addTradeURL', "big peepee");
         });
         // this still needs to pull their url and load the inventory 
     })
@@ -197,27 +205,46 @@ io.on('connection', (socket) => {
             community.getUserInventoryContents(doc['SteamID'], 252490, 2, true, (err, inv) => {
 
                 if (err) console.error(err);
-
-                else if (inv == undefined || inv == '') {
-                    
-                    community.getUserInventoryContents('76561198072093858', 252490, 2, true, (err, inv) => {
-                        if (err) console.error(err);
-
-                        else { 
-                            io.sockets.emit('getInventory', inv)
-                        }
-                    });
-                }
                 
                 else { 
-                    io.sockets.emit('getInventory', inv)
+                    socket.emit('getInventory', inv)
                 }
             });
         });
     });
 
     socket.on('makeJackpotDeposit', (data) => {
-        console.log(data);
+        bot.sendDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
     });
 
+});
+
+bot.client.on('loggedOn', () => {
+    console.log('Confirmed');
+});
+
+bot.client.on('tradeResponse', (steamID, response) => {
+    console.log(steamID);
+    console.log(response);
+});
+
+bot.manager.on('sentOfferChanged', (offer, oldState) => {
+    if (TradeOfferManager.ETradeOfferState[offer.state] == 'Declined') {
+        TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
+            if (err) return console.error(err);
+            console.log(offer.id + ' Trade was Declined');
+            io.sockets.emit('jackpotDeposit', 'declined');
+        });
+    }
+
+    else if (TradeOfferManager.ETradeOfferState[offer.state] == 'Accepted') {
+        TradeHistory.findOne({"TradeID": offer.id}, (err, doc) => {
+            if (err) return console.error(err);
+
+            else {
+                // Test to see if if this function works out of of io.on('connection)
+                io.emit('jackpotDeposit', doc);
+            }
+        });
+    }
 });
