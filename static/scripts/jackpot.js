@@ -4,6 +4,10 @@ socket.on('jackpotSpinner', (data) => {
 
 });
 
-socket.on('jackpotDeposit', (data) => {
-    playerBets.innerHTML = '<p>' + data + '</p>'
+socket.on('jackpotDepositAccepted', (data) => {
+    playerBets.innerHTML += '<p>' + data + '</p>'
+});
+
+socket.on('jackpotDepositDeclined', (data) => {
+
 });

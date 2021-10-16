@@ -42,6 +42,48 @@ class SteamBot {
 			this.community.startConfirmationChecker(10000, process.env.IDENTITY_SECRET);
 		})
 
+		// Function called to get the prices for all the skins in rust that are tradable on the market place
+
+		///////////////////////////
+		// REMEMBER TO UNCOMMENT //
+		///////////////////////////
+
+		/*
+		this.community.marketSearch({appid: 252490}, (err, items) => {
+			if (err) return console.error(err);
+
+			items.forEach(item => {
+
+				MarketPrice.exists({SkinName: item['market_hash_name']})
+					.then((result) => {
+
+						if (result) {
+							MarketPrice.findOneAndUpdate({SkinName: item['market_hash_name']}, {Value: item['price']}, {upsert: true}, (err, data) => {
+								if(err) return console.error(err);
+							});
+						}
+
+						else {
+
+							MarketPrice.create({
+								SkinName: item['market_hash_name'],
+								SkinPictureURL: item['image'],
+								Value: item['price'],
+								DateLogged: Date.now()
+							}, (err, data) => {
+								if(err) return console.error(err);
+							});
+						}
+					})
+
+					.catch((err) => {
+						return console.error(err);
+					});
+			});
+			
+		});
+		*/
+
 	}
 
 	sendDepositTradeOffer(steamid, itemArray, tradeurl, gameid) {
@@ -52,16 +94,18 @@ class SteamBot {
 			if (err) return console.error(err);
 
 			else {
+				let itemNames = []
 				itemArray.forEach(desired => {
 					const item = inv.find(item => item.assetid == desired);
 
 					if(item) {
 						offer.addTheirItem(item);
+						itemNames.push(item.market_hash_name)
 					}
 
 					else{
 						offer.cancel();
-						console.log('error');
+						return console.log('error');
 					}
 				})
 				offer.setMessage('Test trade');
@@ -81,17 +125,20 @@ class SteamBot {
 						SteamID: steamid,
 						BotID: '2',
 						Items: itemArray,
+						ItemNames: itemNames,
 						TransactionType: 'Deposit',
 						State: TradeOfferManager.ETradeOfferState[offer.state],
-						GameID: /* need to randomly generate one */ "Jackpot",
+						GameID: /* need to be randomly generated */ "Jackpot",
 						DateCreated: Date.now()
 					})
-					.then((result) => {
-						console.log(result);
-					})
-					.catch((err) => {
-						console.error(err);
-					});
+						.then((result) => {
+							User.updateOne({"SteamID": steamid}, {$push: {"Trades": offer.id} }, (err, doc) => {
+								if (err) return console.error(err);
+							});
+						})
+						.catch((err) => {
+							console.error(err);
+						});
 
 				});
 			}

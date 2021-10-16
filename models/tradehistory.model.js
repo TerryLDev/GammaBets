@@ -16,6 +16,7 @@ const tradeHistorySchema = Schema({
         required: true
     },
     Items: Array,
+    ItemNames: Array,
     TransactionType: String,
     State: String,
     GameID: String,

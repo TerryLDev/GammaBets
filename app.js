@@ -41,11 +41,18 @@ const SteamBot = require("./steam/bot");
 const { response } = require('express');
 
 mongo_uri = process.env.MONGO_URI;
+let skins;
 
-mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(console.log("Connected to MongoDB..."))
-    .catch(err => console.log(err.reason));
-
+mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+    if (err) throw err;
+    else {
+        console.log('Connected to MongoDB...')
+        MarketPrice.find({}, (err, skinsList) => {
+            if (err) throw err;
+            skins = skinsList;
+        });
+    }
+});
 
 // Setting up cookies
 app.use(session({
@@ -166,6 +173,7 @@ app.use('/support', supportRoutes);
 const server = app.listen(port, (err) => {
     if (err) return console.error(err);
     console.log(`Port: ${port}, Server Running...`)
+
 });
 
 const io = socket(server);
@@ -174,10 +182,10 @@ let activateJackpotGame = []
 
 io.on('connection', (socket) => {
 
-    io.sockets.emit('chat', messages);
+    socket.emit('chat', messages);
 
     // When someone enters the site it should pull up the activate jackpot game
-    io.sockets.emit('jackpotDeposit', activateJackpotGame);
+    socket.emit('jackpotDeposit', activateJackpotGame);
 
     socket.on('chat', (data) => {
 
@@ -206,8 +214,28 @@ io.on('connection', (socket) => {
 
                 if (err) console.error(err);
                 
-                else { 
-                    socket.emit('getInventory', inv)
+                else {
+
+                    let userInv = []
+                    
+                    inv.forEach(item => {
+
+                        skins.forEach(skin => {
+
+                            if (item['name'] == skin['SkinName']) {
+                                
+                                userInv.push({
+                                    name: item['name'],
+                                    id: item['id'],
+                                    price: skin['Value'],
+                                    imageURL: skin['SkinPictureURL']
+                                });
+                            }
+                            
+                        });
+                    });
+
+                    socket.emit('getInventory', userInv)
                 }
             });
         });
@@ -219,16 +247,14 @@ io.on('connection', (socket) => {
 
 });
 
-bot.client.on('loggedOn', () => {
-    console.log('Confirmed');
-});
-
+// SteamBot Events
 bot.client.on('tradeResponse', (steamID, response) => {
     console.log(steamID);
     console.log(response);
 });
 
 bot.manager.on('sentOfferChanged', (offer, oldState) => {
+    
     if (TradeOfferManager.ETradeOfferState[offer.state] == 'Declined') {
         TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
             if (err) return console.error(err);
@@ -239,12 +265,14 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
     else if (TradeOfferManager.ETradeOfferState[offer.state] == 'Accepted') {
         TradeHistory.findOne({"TradeID": offer.id}, (err, doc) => {
+            
             if (err) return console.error(err);
 
             else {
                 // Test to see if if this function works out of of io.on('connection)
                 io.emit('jackpotDeposit', doc);
             }
+
         });
     }
 });

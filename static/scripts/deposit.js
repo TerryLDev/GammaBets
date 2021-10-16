@@ -44,10 +44,10 @@ showDepositButton.addEventListener('click', function() {
 const playerSkins = document.getElementById('player-skin-selection');
 
 socket.on('getInventory', (data) => {
-    let skinItem = document.createElement('div');
     playerSkins.innerHTML = "";
 
     if (data == '') {
+        let skinItem = document.createElement('div');
         skinItem.innerHTML = "<p>No Tradeable Skins Found</p>"
         playerSkins.appendChild(skinItem);
     }
@@ -56,11 +56,15 @@ socket.on('getInventory', (data) => {
         data.forEach(item => {
 
             console.log(item['name'], item['id']);
+
+            let price = item['price'] / 100;
+
+            let skinItem = document.createElement('div');
     
             skinItem.className = 'inventory-item';
     
-            skinItem.innerHTML = "<input type='checkbox' class='inventory-item' id='" + item['id'] + "' /><label for=" + item['id'] + "><img src='https://community.cloudflare.steamstatic.com/economy/image/" + item['icon_url'] + "' alt='" + item['name'] + "'><p>" + item['name'] + "</p><p>" + "Price:" + "</p></label>";
-    
+            skinItem.innerHTML = "<input type='checkbox' class='inventory-item' id='" + item['id'] + "' /><label for=" + item['id'] + "><img src='" + item['imageURL'] + "' alt='" + item['name'] + "'><p>" + item['name'] + "</p><p>" + "Price: $" + price + "</p></label>";
+
             playerSkins.appendChild(skinItem);
         });
     }
