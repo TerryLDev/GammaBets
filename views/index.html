@@ -63,18 +63,25 @@
             {% include "parts/topnav.html" %}
 
             <div id="jackpot">
-                <div id="spinner">Spinner goes here</div>
+
+                <div id="spinner">Spinner goes here and Pot Value</div>
 
                 <div id="deposit">
+
                     <p>Join The Jackpot</p>
+                    
                     <button id="show-deposit-button" onclick="openScreen()">Deposit</button>
+
                 </div>
                 
-                <div id="player-bets"></div>
+                <div id="player-bets">Player Bets</div>
+
             </div>
+
+            {% include "parts/deposit.html" %}
+
         </main>
 
-        {% include "parts/deposit.html" %}
 
         <script src="/static/scripts/homepage.js"></script>
         <script src="/static/scripts/jackpot.js"></script>

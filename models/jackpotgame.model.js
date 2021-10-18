@@ -10,6 +10,7 @@ const jackpotGameSchema = Schema({
     },
     TotalPotValue: Number,
     Players: Array,
+    Status: Boolean,
     Winner: String,
     DateCreated: Date
 }, {

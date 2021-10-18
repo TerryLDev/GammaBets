@@ -128,7 +128,6 @@ class SteamBot {
 						ItemNames: itemNames,
 						TransactionType: 'Deposit',
 						State: TradeOfferManager.ETradeOfferState[offer.state],
-						GameID: /* need to be randomly generated */ "Jackpot",
 						DateCreated: Date.now()
 					})
 						.then((result) => {

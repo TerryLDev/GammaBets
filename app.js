@@ -41,15 +41,23 @@ const SteamBot = require("./steam/bot");
 const { response } = require('express');
 
 mongo_uri = process.env.MONGO_URI;
+
 let skins;
+let allUsers;
 
 mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) throw err;
     else {
         console.log('Connected to MongoDB...')
+
         MarketPrice.find({}, (err, skinsList) => {
             if (err) throw err;
             skins = skinsList;
+        });
+
+        User.find({}, (err, data) => {
+            if (err) throw err;
+            allUsers = data;
         });
     }
 });
@@ -178,14 +186,12 @@ const server = app.listen(port, (err) => {
 
 const io = socket(server);
 const messages = []
-let activateJackpotGame = []
+
+let activeJPGameID;
 
 io.on('connection', (socket) => {
 
     socket.emit('chat', messages);
-
-    // When someone enters the site it should pull up the activate jackpot game
-    socket.emit('jackpotDeposit', activateJackpotGame);
 
     socket.on('chat', (data) => {
 
@@ -206,6 +212,16 @@ io.on('connection', (socket) => {
 
     socket.on('getInventory', (data) => {
         // sends a request for the bot to check their inventory from rust
+
+        MarketPrice.find({}, (err, skinsList) => {
+            if (err) throw err;
+            skins = skinsList;
+        });
+
+        User.find({}, (err, data) => {
+            if (err) throw err;
+            allUsers = data;
+        });
         
         User.findOne({"SteamID": data.steamID}, (err, doc) => {
             if (err) return console.error(err);
@@ -245,6 +261,10 @@ io.on('connection', (socket) => {
         bot.sendDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
     });
 
+    socket.on('jackpotGame', (data) => {
+
+    });
+
 });
 
 // SteamBot Events
@@ -256,21 +276,92 @@ bot.client.on('tradeResponse', (steamID, response) => {
 bot.manager.on('sentOfferChanged', (offer, oldState) => {
     
     if (TradeOfferManager.ETradeOfferState[offer.state] == 'Declined') {
-        TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
-            if (err) return console.error(err);
-            console.log(offer.id + ' Trade was Declined');
-            io.sockets.emit('jackpotDeposit', 'declined');
-        });
+            TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
+                if (err) return console.error(err);
+                console.log(offer.id + ' Trade was Declined');
+                io.sockets.emit('jackpotDepositDeclined', doc);
+            });
     }
 
     else if (TradeOfferManager.ETradeOfferState[offer.state] == 'Accepted') {
-        TradeHistory.findOne({"TradeID": offer.id}, (err, doc) => {
+        
+        TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, doc) => {
             
             if (err) return console.error(err);
 
             else {
-                // Test to see if if this function works out of of io.on('connection)
-                io.emit('jackpotDeposit', doc);
+
+                JackpotGame.findOne({"Status": true}, (err, game) => {
+                    console.log(game);
+                    if (err) return console.error(err);
+                    
+                    else if(game == null) {
+
+                        activeJPGameID = Date.now();
+                        let gameId = String(activeJPGameID);
+
+                        let username;
+
+                        allUsers.forEach(user => {
+                            if (user['SteamID'] == doc.SteamID) {
+                                username = user['Username'];
+                            }
+                        });
+                        
+                        let userBet = {
+                            username: username,
+                            userSteamId: doc.SteamID,
+                            skins: doc.ItemNames,
+                            skinIDs: doc.Items
+                        };
+
+                        let fullBetList = [];
+
+                        fullBetList.push(userBet);
+
+                        JackpotGame.create({
+                            GameID: gameId,
+                            Players: fullBetList,
+                            Status: true
+                        }, (err, data) => {
+                            if (err) return console.error(err);
+
+                            else {
+                                io.emit('jackpotDepositAccepted', doc);
+                            }
+                        })
+                    }
+
+                    else {
+                        let username;
+
+                        allUsers.forEach(user => {
+                            if (user['SteamID'] == doc.SteamID) {
+                                username = user['Username'];
+                            }
+                        });
+                        
+                        let userBet = {
+                            username: username,
+                            userSteamId: doc.SteamID,
+                            skins: doc.ItemNames,
+                            skinIDs: doc.Items
+                        };
+
+                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {$push: {Players: userBet}}, (err, data) => {
+                            if (err) return console.error(err);
+                            else {
+                                io.emit('jackpotDepositAccepted', doc);
+                            }
+                        })
+
+                        // Update theri trade to show the gameId of the jackpot they joined
+
+                    }
+                });
+
+                console.log(offer.id + ' Trade was Accepted');
+
             }
 
         });

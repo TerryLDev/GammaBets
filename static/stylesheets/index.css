@@ -92,18 +92,20 @@ body {
 
 #deposit-menu {
     height: 50%;
-
+    position: fixed;
     margin: auto;
     width: 0%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: scroll;
     display: fixed;
-    z-index: 2;
+    z-index: 1;
     background-color: lightgray;
 }
 
 #player-skin-selection {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-around;
 }
@@ -135,4 +137,23 @@ label:before {
 :checked + label img {
     border: 2px black solid;
     border-radius: 5px;
+}
+
+#player-bets {
+    padding: 10px;
+    border: 2px black solid;
+    border-radius: 5px;
+    min-width: 100px;
+    min-height: 100px;
+    margin: 10px;
+    background-color: aquamarine;
+}
+
+.jackpot-bet {
+    padding: 10px;
+    border: 2px black solid;
+    border-radius: 5px;
+    margin: 10px;
+    background-color: aquamarine;
+    display: grid;
 }
