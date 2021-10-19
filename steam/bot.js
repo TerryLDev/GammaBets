@@ -86,7 +86,7 @@ class SteamBot {
 
 	}
 
-	sendDepositTradeOffer(steamid, itemArray, tradeurl, gameid) {
+	sendJPDepositTradeOffer(steamid, itemArray, tradeurl, gameid) {
 
 		const offer = this.manager.createOffer(steamid);
 
@@ -117,28 +117,32 @@ class SteamBot {
 
 				offer.send((err, status) => {
 					if (err) return console.error(err);
-					console.log(status, offer.id);
 
-					// Should log the trade offer to the server
-					TradeHistory.create({
-						TradeID: offer.id,
-						SteamID: steamid,
-						BotID: '2',
-						Items: itemArray,
-						ItemNames: itemNames,
-						TransactionType: 'Deposit',
-						State: TradeOfferManager.ETradeOfferState[offer.state],
-						DateCreated: Date.now()
-					})
-						.then((result) => {
-							User.updateOne({"SteamID": steamid}, {$push: {"Trades": offer.id} }, (err, doc) => {
-								if (err) return console.error(err);
-							});
+					else {
+						
+						console.log(status, offer.id);
+
+						// Should log the trade offer to the server
+						TradeHistory.create({
+							TradeID: offer.id,
+							SteamID: steamid,
+							BotID: '2',
+							Items: itemArray,
+							ItemNames: itemNames,
+							TransactionType: 'Deposit',
+							State: TradeOfferManager.ETradeOfferState[offer.state],
+							GameMode: "Jackpot",
+							DateCreated: Date.now()
 						})
-						.catch((err) => {
-							console.error(err);
-						});
-
+							.then((result) => {
+								User.updateOne({"SteamID": steamid}, {$push: {"Trades": offer.id} }, (err, doc) => {
+									if (err) return console.error(err);
+								});
+							})
+							.catch((err) => {
+								console.error(err);
+							});
+					}
 				});
 			}
 		})

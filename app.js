@@ -33,17 +33,20 @@ const SteamTotp = require('steam-totp');
 const SteamCommunity = require('steamcommunity');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
+const selectWinner = require('./serverScripts/jackpotwinner');
+
 const community = new SteamCommunity;
 const manager = new TradeOfferManager;
 const client = new SteamUser;
 
 const SteamBot = require("./steam/bot");
-const { response } = require('express');
 
 mongo_uri = process.env.MONGO_URI;
 
 let skins;
 let allUsers;
+
+let currentJPGame;
 
 mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) throw err;
@@ -58,6 +61,16 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
         User.find({}, (err, data) => {
             if (err) throw err;
             allUsers = data;
+        });
+
+        // Just in case of a shutdown
+        JackpotGame.findOne({Status: true}, (err, jpGame) => {
+            if(err) throw err;
+            currentJPGame = jpGame
+            countDown = jpGame.Status
+            setTimeout(function() {
+                selectWinner.takeJackpotProfit(jpGame, 'Terry', skins)
+            }, 2500)
         });
     }
 });
@@ -188,6 +201,7 @@ const io = socket(server);
 const messages = []
 
 let activeJPGameID;
+let countDown;
 
 io.on('connection', (socket) => {
 
@@ -200,6 +214,8 @@ io.on('connection', (socket) => {
         io.emit('chat', messages);
 
     });
+
+    socket.emit('jackpotLoader', currentJPGame);
 
     socket.on('addTradeURL', (data) => {
 
@@ -258,7 +274,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('makeJackpotDeposit', (data) => {
-        bot.sendDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
+        bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
     });
 
     socket.on('jackpotGame', (data) => {
@@ -266,6 +282,43 @@ io.on('connection', (socket) => {
     });
 
 });
+
+/*
+
+///////////////////
+// Work On Later //
+///////////////////
+
+// Deciding Jackpot Winner Prototype
+function decideJPWinner() {
+    JackpotGame.findOne({Status: true}, (err, game) => {
+        if(err) throw err;
+        selectWinner.jackpotWinner(game, (err, data) => {
+            if(err) return console.log(err);
+            else {
+                console.log(data)
+            }
+        });
+    });
+}
+
+decideJPWinner();
+
+*/
+
+// Jackpot Timer
+let jpTimer = 120;
+
+setInterval(function() {
+    if(countDown && jpTimer > 0) {
+        jpTimer -= 1;
+        io.emit('jackpotCountDown', jpTimer)
+    }
+
+    else {
+        io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
+    }
+}, 1000);
 
 // SteamBot Events
 bot.client.on('tradeResponse', (steamID, response) => {
@@ -279,13 +332,13 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
             TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
                 if (err) return console.error(err);
                 console.log(offer.id + ' Trade was Declined');
-                io.sockets.emit('jackpotDepositDeclined', doc);
+                io.sockets.emit('jackpotDepositDeclined', trade);
             });
     }
 
     else if (TradeOfferManager.ETradeOfferState[offer.state] == 'Accepted') {
         
-        TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, doc) => {
+        TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, trade) => {
             
             if (err) return console.error(err);
 
@@ -293,6 +346,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                 JackpotGame.findOne({"Status": true}, (err, game) => {
                     console.log(game);
+
                     if (err) return console.error(err);
                     
                     else if(game == null) {
@@ -301,19 +355,32 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         let gameId = String(activeJPGameID);
 
                         let username;
+                        let skinValues = [];
+                        let totalPot = 0;
 
                         allUsers.forEach(user => {
-                            if (user['SteamID'] == doc.SteamID) {
+                            if (user['SteamID'] == trade.SteamID) {
                                 username = user['Username'];
                             }
+                        });
+
+                        trade.ItemNames.forEach(skin => {
+                            skinValues.forEach(val => {
+                                if (skin == val['SkinName']) {
+                                    skinValues.push(val['Value']);
+                                    totalPot += val['Value'];
+                                }
+                            });
                         });
                         
                         let userBet = {
                             username: username,
-                            userSteamId: doc.SteamID,
-                            skins: doc.ItemNames,
-                            skinIDs: doc.Items
+                            userSteamId: trade.SteamID,
+                            skins: trade.ItemNames,
+                            skinValues: skinValues,
+                            skinIDs: trade.Items
                         };
+
 
                         let fullBetList = [];
 
@@ -322,40 +389,68 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         JackpotGame.create({
                             GameID: gameId,
                             Players: fullBetList,
-                            Status: true
-                        }, (err, data) => {
+                            TotalPotValue: totalPot,
+                            Status: false
+                        }, (err, jp) => {
+
                             if (err) return console.error(err);
 
                             else {
-                                io.emit('jackpotDepositAccepted', doc);
+                                io.emit('jackpotDepositAccepted', userBet);
+                                currentJPGame = jp;
+
+                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, (err, doc) => {
+                                    if (err) return console.error(err);     
+                                })
                             }
                         })
                     }
 
                     else {
+                        activeJPGameID = game['GameID']
                         let username;
+                        let skinValues = [];
+                        let totalPot = game['TotalPotValue'];
 
                         allUsers.forEach(user => {
                             if (user['SteamID'] == doc.SteamID) {
                                 username = user['Username'];
                             }
                         });
+
+                        trade.ItemNames.forEach(skin => {
+                            skinValues.forEach(val => {
+                                if (skin == val['SkinName']) {
+                                    skinValues.push(val['Value']);
+                                    totalPot += val['Value'];
+                                }
+                            });
+                        });
                         
                         let userBet = {
                             username: username,
-                            userSteamId: doc.SteamID,
-                            skins: doc.ItemNames,
-                            skinIDs: doc.Items
+                            userSteamId: trade.SteamID,
+                            skins: trade.ItemNames,
+                            skinValues: skinValues,
+                            skinIDs: trade.Items
                         };
 
-                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {$push: {Players: userBet}}, (err, data) => {
+                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {$push: {Players: userBet}, TotalPotValue: totalPot, Status: true}, (err, jp) => {
                             if (err) return console.error(err);
+                            
                             else {
-                                io.emit('jackpotDepositAccepted', doc);
+                                io.emit('jackpotDepositAccepted', userBet);
+                                currentJPGame = jp;
+
+                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, (err, doc) => {
+                                    if (err) return console.error(err);
+                                    
+                                })
+
+                                countDown = true;
+                                
                             }
                         })
-
-                        // Update theri trade to show the gameId of the jackpot they joined
 
                     }
                 });
