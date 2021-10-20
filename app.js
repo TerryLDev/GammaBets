@@ -92,7 +92,7 @@ app.use(session({
 }));
 
 // Localhost port
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 // Set Up config for Steambots
 const bot = new SteamBot({
