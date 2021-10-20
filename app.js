@@ -63,15 +63,17 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
             allUsers = data;
         });
 
-        // Just in case of a shutdown
-        JackpotGame.findOne({Status: true}, (err, jpGame) => {
-            if(err) throw err;
-            currentJPGame = jpGame
-            countDown = jpGame.Status
-            setTimeout(function() {
-                selectWinner.takeJackpotProfit(jpGame, 'Terry', skins)
-            }, 2500)
-        });
+        JackpotGame.findOne({Status: true}, (err, jp) => {
+            if (err) throw err;
+            
+            else if (jp != null) {
+                console.log(jp);
+                currentJPGame = jp;
+                activeJPGameID = jp.GameID;
+                countDown = true;
+            }
+        })
+
     }
 });
 
@@ -306,19 +308,6 @@ decideJPWinner();
 
 */
 
-// Jackpot Timer
-let jpTimer = 120;
-
-setInterval(function() {
-    if(countDown && jpTimer > 0) {
-        jpTimer -= 1;
-        io.emit('jackpotCountDown', jpTimer)
-    }
-
-    else {
-        io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
-    }
-}, 1000);
 
 // SteamBot Events
 bot.client.on('tradeResponse', (steamID, response) => {
@@ -399,7 +388,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                                 io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
 
-                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, (err, doc) => {
+                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);     
                                 })
                             }
@@ -435,19 +424,23 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             skinIDs: trade.Items
                         };
 
-                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {$push: {Players: userBet}, TotalPotValue: totalPot, Status: true}, (err, jp) => {
+                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
+                            $push: {Players: userBet},
+                            TotalPotValue: totalPot,
+                            Status: true
+                        }, {upsert: true}, (err, jp) => {
+
                             if (err) return console.error(err);
                             
                             else {
                                 io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
+                                countDown = true;
 
-                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, (err, doc) => {
+                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
                                     
                                 })
-
-                                countDown = true;
                                 
                             }
                         })
@@ -462,3 +455,20 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
         });
     }
 });
+
+// Jackpot Timer
+let jpTimer = 120;
+
+setInterval(function() {
+    
+    if(countDown && jpTimer > 0) {
+        jpTimer -= 1;
+        io.emit('jackpotCountDown', jpTimer)
+    }
+
+    else {
+        io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
+        jpTimer = 120
+    }
+
+}, 1000);
