@@ -113,9 +113,9 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `http://localhost:${port}/auth/steam/return`,
-    realm: `http://localhost:${port}/`,
-    apiKey: '04CC7E23FCFEEDED67B7928E6EAB2E58'
+    returnURL: `http://shielded-wildwood-60881.herokuapp.com:${port}/auth/steam/return`,
+    realm: `http://shielded-wildwood-60881.herokuapp.com:${port}/`,
+    apiKey: '501FB2DCF01EB6BB986E8B461A3F2A67'
   },
   function(identifier, profile, done) {
     process.nextTick(function () {

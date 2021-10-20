@@ -1,4 +1,4 @@
-const socket = io.connect('http://localhost:5000');
+const socket = io.connect('http://shielded-wildwood-60881.herokuapp.com');
 
 
 function sideBarToggle() {
