@@ -67,11 +67,12 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
             if (err) throw err;
             
             else if (jp != null) {
-                console.log(jp);
                 currentJPGame = jp;
                 activeJPGameID = jp.GameID;
-                countDown = true;
-                jpTimer = 10;
+
+                if (jp.Players.length > 1) {
+                    countDown = true;
+                }
             }
         })
 
@@ -114,9 +115,9 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `localhost:${port}/auth/steam/return`,
-    realm: `localhost:${port}/`,
-    apiKey: '501FB2DCF01EB6BB986E8B461A3F2A67'
+    returnURL: `http://localhost:5000/auth/steam/return`,
+    realm: `http://localhost:5000/`,
+    apiKey: '6C2B58ECDB5000F2F9D9829CDD103E6C'
   },
   function(identifier, profile, done) {
     process.nextTick(function () {
@@ -338,7 +339,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
             else {
 
-                JackpotGame.findOne({"Status": true}, (err, game) => {
+                JackpotGame.findOne({"Status" : true}, (err, game) => {
                     console.log(game);
 
                     if (err) return console.error(err);
@@ -384,7 +385,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             GameID: gameId,
                             Players: fullBetList,
                             TotalPotValue: totalPot,
-                            Status: false
+                            Status: true
                         }, (err, jp) => {
 
                             if (err) return console.error(err);
@@ -400,14 +401,14 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         })
                     }
 
-                    else {
+                    else if (game.Players.length >= 1) {
                         activeJPGameID = game['GameID']
                         let username;
                         let skinValues = [];
                         let totalPot = game['TotalPotValue'];
 
                         allUsers.forEach(user => {
-                            if (user['SteamID'] == doc.SteamID) {
+                            if (user['SteamID'] == trade.SteamID) {
                                 username = user['Username'];
                             }
                         });
@@ -434,7 +435,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             $set:
                             {
                                 TotalPotValue: totalPot,
-                                Status: true}
+                            }
                         }, {upsert: true}, (err, jp) => {
 
                             if (err) return console.error(err);
@@ -466,7 +467,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 });
 
 // Jackpot Timer
-let jpTimer;
+let jpTimer = 10;
 let readyToRoll = false;
 
 function jackpotTimer() {
@@ -484,24 +485,35 @@ function jackpotTimer() {
 
         readyToRoll = false
 
-        selectWinner.jackpotWinner(currentJPGame, (err, winner) => {
+        console.log(currentJPGame)
+
+        selectWinner.jackpotWinner(currentJPGame, (error, winner) => {
             
-            if (err) return console.log(err);
+            if (error) return console.log(error);
             
             else {
 
+                console.log(winner)
+
                 allUsers.forEach(user => {
+                    console.log(user)
 
                     if (user['SteamID'] == winner) {
-                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (err, data) => {
+
+                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (data, err) => {
+
                             if(err) console.error(err);
                             
                             else {
-                                console.log(data + "HIIIII");
+                                console.log(data);
+                                jpTimer = 120;
+                                countDown = false;
                             }
                         });
+
                     }
                 })
+
             }
         })
 
@@ -509,7 +521,6 @@ function jackpotTimer() {
 
     else {
         io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
-        clearInterval(serverJPTimer);
     }
 }
 

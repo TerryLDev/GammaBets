@@ -55,13 +55,15 @@ function jackpotWinner(game, callback) {
 function takeJackpotProfit(game, winner /* Please put in winner from DB */, allSkins, callback) {
 
     try {
-        console.log('here')
 
         let percent = 0;
 
-        if (winner.Username.includes('')) {
+        let username = winner.Username
+
+        if (username.includes('doggo')) {
             percent = 0.05
         }
+
         else {
             percent = 0.1
         }
@@ -241,4 +243,3 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
 }
 
 module.exports = {jackpotWinner, takeJackpotProfit}
-
