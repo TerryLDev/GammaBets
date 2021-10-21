@@ -115,8 +115,8 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `http://quetzil.com:${port}/auth/steam/return`,
-    realm: `http://quetzil.com:${port}/`,
+    returnURL: `http://www.quetzil.com:${port}/auth/steam/return`,
+    realm: `http://www.quetzil.com:${port}/`,
     apiKey: '7210EC11E76CDFD4D972E2EEAABE6859'
   },
   function(identifier, profile, done) {
