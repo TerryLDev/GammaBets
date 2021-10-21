@@ -71,6 +71,7 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
                 currentJPGame = jp;
                 activeJPGameID = jp.GameID;
                 countDown = true;
+                jpTimer = 10;
             }
         })
 
@@ -87,7 +88,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie : {
-        maxAge: 1000 * 60 * 60 * 24 * 7
+        maxAge: 1000 * 60 * 60 * 12
     }
 }));
 
@@ -113,8 +114,8 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `https://shielded-wildwood-60881.herokuapp.com:${port}/auth/steam/return`,
-    realm: `https://shielded-wildwood-60881.herokuapp.com:${port}/`,
+    returnURL: `localhost:${port}/auth/steam/return`,
+    realm: `localhost:${port}/`,
     apiKey: '501FB2DCF01EB6BB986E8B461A3F2A67'
   },
   function(identifier, profile, done) {
@@ -216,6 +217,10 @@ io.on('connection', (socket) => {
         io.emit('chat', messages);
 
     });
+
+    socket.on('jackpotWinner', (data) => {
+        console.log(data)
+    })
 
     socket.emit('jackpotLoader', currentJPGame);
 
@@ -426,8 +431,10 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                         JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
                             $push: {Players: userBet},
-                            TotalPotValue: totalPot,
-                            Status: true
+                            $set:
+                            {
+                                TotalPotValue: totalPot,
+                                Status: true}
                         }, {upsert: true}, (err, jp) => {
 
                             if (err) return console.error(err);
@@ -439,7 +446,9 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
-                                    
+                                    else {
+                                        console.log(doc);
+                                    }
                                 })
                                 
                             }
@@ -457,18 +466,55 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 });
 
 // Jackpot Timer
-let jpTimer = 120;
+let jpTimer;
+let readyToRoll = false;
 
-setInterval(function() {
-    
+function jackpotTimer() {
+
     if(countDown && jpTimer > 0) {
         jpTimer -= 1;
         io.emit('jackpotCountDown', jpTimer)
+
+        if (jpTimer == 0) {
+            readyToRoll = true;
+        }
+    }
+
+    else if (readyToRoll) {
+
+        readyToRoll = false
+
+        selectWinner.jackpotWinner(currentJPGame, (err, winner) => {
+            
+            if (err) return console.log(err);
+            
+            else {
+
+                allUsers.forEach(user => {
+
+                    if (user['SteamID'] == winner) {
+                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (err, data) => {
+                            if(err) console.error(err);
+                            
+                            else {
+                                console.log(data + "HIIIII");
+                            }
+                        });
+                    }
+                })
+            }
+        })
+
     }
 
     else {
         io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
-        jpTimer = 120
+        clearInterval(serverJPTimer);
     }
+}
 
-}, 1000);
+let serverJPTimer = setInterval(jackpotTimer, 1000);
+
+///////////////////////////////////////////////////////////////
+// Please for the love of god put this in a seperate JS file //
+///////////////////////////////////////////////////////////////

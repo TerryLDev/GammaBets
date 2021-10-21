@@ -1,9 +1,12 @@
 const playerBets = document.getElementById('player-bets');
 
-socket.on('jackpotCountDown', (time, ) => {
+let currentJP;
+
+socket.on('jackpotCountDown', (time) => {
     // this is a prototype for now
     let spinner = document.getElementById('spinner');
-    spinner.innerHTML = '<p>' + time + '</p>'
+    spinner.innerHTML = '<p>' + time + '</p>';
+
 })
 
 socket.on('jackpotSpinner', (data) => {
@@ -21,5 +24,6 @@ socket.on('jackpotDepositDeclined', (data) => {
 });
 
 socket.on('jackpotLoader',(data) => {
-    console.log(data);
+    currentJP = data
+    console.log(currentJP);
 });
