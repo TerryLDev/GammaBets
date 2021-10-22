@@ -117,7 +117,7 @@ passport.deserializeUser((user, done) => {
 passport.use(new SteamStrategy({
     returnURL: `https://www.quetzil.com:${port}/auth/steam/return`,
     realm: `https://www.quetzil.com:${port}/`,
-    apiKey: '7E3C0B5A0A7F2B5EC744D3D4D9B352ED'
+    apiKey: '3D933D236206D78C89D34304FE9EF648'
   },
   function(identifier, profile, done) {
     process.nextTick(function () {
@@ -485,18 +485,13 @@ function jackpotTimer() {
 
         readyToRoll = false
 
-        console.log(currentJPGame)
-
         selectWinner.jackpotWinner(currentJPGame, (error, winner) => {
             
             if (error) return console.log(error);
             
             else {
 
-                console.log(winner)
-
                 allUsers.forEach(user => {
-                    console.log(user)
 
                     if (user['SteamID'] == winner) {
 
@@ -505,7 +500,6 @@ function jackpotTimer() {
                             if(err) console.error(err);
                             
                             else {
-                                console.log(data);
                                 jpTimer = 120;
                                 countDown = false;
                             }
