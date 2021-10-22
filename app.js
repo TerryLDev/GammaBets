@@ -115,9 +115,9 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `http://www.quetzil.com:${port}/auth/steam/return`,
-    realm: `http://www.quetzil.com:${port}/`,
-    apiKey: '7210EC11E76CDFD4D972E2EEAABE6859'
+    returnURL: `https://www.quetzil.com:${port}/auth/steam/return`,
+    realm: `https://www.quetzil.com:${port}/`,
+    apiKey: '7E3C0B5A0A7F2B5EC744D3D4D9B352ED'
   },
   function(identifier, profile, done) {
     process.nextTick(function () {
@@ -350,7 +350,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         let gameId = String(activeJPGameID);
 
                         let username;
-                        let skinValues = [];
+                        let skinVals = [];
                         let totalPot = 0;
 
                         allUsers.forEach(user => {
@@ -360,9 +360,9 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         });
 
                         trade.ItemNames.forEach(skin => {
-                            skinValues.forEach(val => {
+                            skins.forEach(val => {
                                 if (skin == val['SkinName']) {
-                                    skinValues.push(val['Value']);
+                                    skinVals.push(val['Value']);
                                     totalPot += val['Value'];
                                 }
                             });
@@ -372,7 +372,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             username: username,
                             userSteamId: trade.SteamID,
                             skins: trade.ItemNames,
-                            skinValues: skinValues,
+                            skinValues: skinVals,
                             skinIDs: trade.Items
                         };
 
@@ -404,7 +404,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                     else if (game.Players.length >= 1) {
                         activeJPGameID = game['GameID']
                         let username;
-                        let skinValues = [];
+                        let skinVals = [];
                         let totalPot = game['TotalPotValue'];
 
                         allUsers.forEach(user => {
@@ -414,9 +414,9 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         });
 
                         trade.ItemNames.forEach(skin => {
-                            skinValues.forEach(val => {
+                            skins.forEach(val => {
                                 if (skin == val['SkinName']) {
-                                    skinValues.push(val['Value']);
+                                    skinVals.push(val['Value']);
                                     totalPot += val['Value'];
                                 }
                             });
@@ -426,7 +426,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             username: username,
                             userSteamId: trade.SteamID,
                             skins: trade.ItemNames,
-                            skinValues: skinValues,
+                            skinValues: skinVals,
                             skinIDs: trade.Items
                         };
 
