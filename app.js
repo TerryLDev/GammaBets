@@ -115,8 +115,8 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `https://www.quetzil.com:${port}/auth/steam/return`,
-    realm: `https://www.quetzil.com:${port}/`,
+    returnURL: `https://www.quetzil.com/auth/steam/return`,
+    realm: `https://www.quetzil.com/`,
     apiKey: '3D933D236206D78C89D34304FE9EF648'
   },
   function(identifier, profile, done) {
@@ -185,7 +185,7 @@ app.get('/auth/steam',
   });
 
 app.get('/auth/steam/return',
-  passport.authenticate('steam', { failureRedirect: '/login' }),
+  passport.authenticate('steam', { failureRedirect: '/' }),
   function(req, res) {
     // Successful authentication, redirect home
     req.session.isAuth = true;
