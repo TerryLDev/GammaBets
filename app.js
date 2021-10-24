@@ -262,7 +262,7 @@ io.on('connection', (socket) => {
                 
                 else {
 
-                    let userInv = []
+                    let userInv = [];
                     
                     inv.forEach(item => {
 
@@ -280,6 +280,8 @@ io.on('connection', (socket) => {
                             
                         });
                     });
+
+                    userInv.sort((a, b) => (a.price > b.price) ? 1 : -1);
 
                     socket.emit('getInventory', userInv)
                 }
