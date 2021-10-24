@@ -281,7 +281,7 @@ io.on('connection', (socket) => {
                         });
                     });
 
-                    userInv.sort((a, b) => (a.price > b.price) ? 1 : -1);
+                    userInv.sort((a, b) => (a.price < b.price) ? 1 : -1);
 
                     socket.emit('getInventory', userInv)
                 }
@@ -334,8 +334,15 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
     if (TradeOfferManager.ETradeOfferState[offer.state] == 'Declined') {
             TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
                 if (err) return console.error(err);
-                console.log(offer.id + ' Trade was Declined');
-                io.sockets.emit('jackpotDepositDeclined', trade);
+
+                else if (trade == null || trade.SteamID == null) {
+                    return console.error('Invalid TradeID Lookup or Manual Change')
+                }
+
+                else {
+                    console.log(offer.id + ' Trade was Declined');
+                    io.sockets.emit('jackpotDepositDeclined', trade);
+                }
             });
     }
 
@@ -344,6 +351,10 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
         TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, trade) => {
             
             if (err) return console.error(err);
+
+            else if (trade == null || trade.SteamID == null) {
+                return console.error('Invalid TradeID Lookup or Manual Change')
+            }
 
             else {
 
