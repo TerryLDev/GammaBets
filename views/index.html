@@ -17,6 +17,7 @@
             <div id="sidebar">
                 <div id="logo-login">
                     <h1>RustSite</h1>
+
                     {% if user == "welcome" %}
                     <a href="/auth/steam">
                         <img
@@ -70,7 +71,13 @@
 
                     <p>Join The Jackpot</p>
                     
-                    <button id="show-deposit-button" onclick="openScreen()">Deposit</button>
+                    {% if user == "welcome" %}
+                    <button id="show-deposit-button" onclick="openScreen()" disabled>Deposit</button>
+
+                    {% else %}
+                    <button id="show-deposit-button" onclick="openScreen()" disabled>Deposit</button>
+
+                    {% endif %}
 
                 </div>
                 

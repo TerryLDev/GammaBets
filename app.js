@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 120;
+let jpTimer = 10;
 let readyToRoll = false;
 let countDown = false;
 
@@ -229,7 +229,9 @@ io.on('connection', (socket) => {
         console.log(data)
     })
 
-    socket.emit('jackpotLoader', currentJPGame);
+    if (currentJPGame != null) {
+        socket.emit('jackpotLoader', currentJPGame);
+    }
 
     socket.on('addTradeURL', (data) => {
 
@@ -564,24 +566,24 @@ function jackpotTimer() {
         readyToRoll = false;
 
         selectWinner.jackpotWinner(currentJPGame, (winner, error) => {
-            
-            if (error) return console.log(error);
-            
+            if (error) console.error(error);
+
             else {
 
+                console.log(winner);
                 allUsers.forEach(user => {
 
                     if (user['SteamID'] == winner) {
 
-                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (data, err) => {
+                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (data, error) => {
 
-                            if(err) console.error(err);
+                            if (error) console.error(error);
                             
                             else {
+                                console.log("I'm here")
                                 jpTimer = 120;
                             }
                         });
-
                     }
                 })
 

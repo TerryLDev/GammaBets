@@ -31,8 +31,6 @@ function jackpotWinner(game, callback) {
 
         });
 
-        console.log(listOfPlayer)
-
         const shuffled = listOfPlayers.sort(() => Math.random - 0.5)
 
         let randomWinner = Math.floor(Math.random()*shuffled.length);
@@ -107,9 +105,11 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
 
 
         game.Players.forEach(player =>{
+
             player.skins.forEach(skin => {
                 listOfPlayerSkins.push(skin)
             })
+
         })
 
         for(let i = 1; i < 6; i++) {
@@ -200,9 +200,6 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
         }
         
         if (index == 0) {
-            console.log('first options');
-            console.log(attemptOne);
-            console.log(attemptOneVal);
 
             getWinnerSkins(listOfPlayerSkins, attemptOne, (error, data) => {
                 if (error) return callback(error)
@@ -213,9 +210,6 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
         }
 
         else if (index == 1) {
-            console.log('second options');
-            console.log(attemptTwo);
-            console.log(attemptTwoVal);
 
             getWinnerSkins(listOfPlayerSkins, attemptTwo, (error, data) => {
                 if (error) return callback(error)
@@ -226,9 +220,6 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
         }
 
         else if (index == 2) {
-            console.log('third options');
-            console.log(attemptThree);
-            console.log(attemptThreeVal);
 
             getWinnerSkins(listOfPlayerSkins, attemptThree, (error, data) => {
                 if (error) return callback(error)
@@ -239,9 +230,6 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
         }
 
         else if (index == 3) {
-            console.log('fourth options');
-            console.log(attemptFour);
-            console.log(attemptFourVal);
 
             getWinnerSkins(listOfPlayerSkins, attemptFour, (error, data) => {
                 if (error) return callback(error)
@@ -252,10 +240,6 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
         }
 
         else if (index == 4) {
-
-            console.log('third options');
-            console.log(attemptFive);
-            console.log(attemptFiveVal);
 
             getWinnerSkins(listOfPlayerSkins, attemptFive, (error, data) => {
                 if (error) return callback(error)
@@ -282,17 +266,10 @@ function getWinnerSkins (skinList, attempt, callback) {
     
     try {
 
-        console.log(skinList, "before");
-
         attempt.forEach(attemptSkin => {
-            for(let i = 0; i < skinList; i++) {
-                if(skinList[i] == attemptSkin) {
-                    skinList.splice(i, 1);
-                }
-            }
+            let i = skinList.indexOf(attemptSkin);
+            skinList.splice(i, 1);
         });
-
-        console.log(skinList, "after");
 
         return callback(skinList);
     }
