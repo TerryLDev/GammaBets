@@ -53,4 +53,4 @@ function jackpotTimer() {
 
 const serverJPTimer = setInterval(jackpotTimer, 1000);
 
-module.exports = {serverJPTimer, countDown};
+export {serverJPTimer, countDown};
