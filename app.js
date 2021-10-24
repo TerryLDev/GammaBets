@@ -41,8 +41,6 @@ const client = new SteamUser;
 
 const SteamBot = require("./steam/bot");
 
-const Timer = require('./serverScripts/timer');
-
 mongo_uri = process.env.MONGO_URI;
 
 // DB Pulls
@@ -52,8 +50,10 @@ let allUsers;
 // JP curretn game for server
 let currentJPGame;
 
-// JP timer
-let jpCountDown = Timer.countDown;
+// Jackpot Timer Setup
+let jpTimer = 120;
+let readyToRoll = false;
+let countDown = false;
 
 mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) throw err;
@@ -78,7 +78,7 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
                 activeJPGameID = jp.GameID;
 
                 if (jp.Players.length > 1) {
-                    jpCountDown = true;
+                    countDown = true;
                 }
             }
         })
@@ -449,7 +449,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
                                 io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
-                                jpCountDown = true;
+                                countDown = true;
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
@@ -505,7 +505,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
                                 io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
-                                jpCountDown = true;
+                                countDown = true;
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
@@ -528,4 +528,58 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
     }
 });
 
-Timer.serverJPTimer();
+// Jackpot Timer
+
+function jackpotTimer() {
+
+    if(countDown && jpTimer > 0) {
+        jpTimer -= 1;
+        io.emit('jackpotCountDown', jpTimer)
+
+        if (jpTimer == 0) {
+            readyToRoll = true;
+        }
+    }
+
+    else if (readyToRoll) {
+
+        JackpotGame.findOneAndUpdate({"GameID" : currentJPGame}, {"Status": false}, {upsert: true}, (err, doc) => {
+            if(err) return console.error(err);
+        })
+
+        countDown = false;
+        readyToRoll = false;
+
+        selectWinner.jackpotWinner(currentJPGame, (error, winner) => {
+            
+            if (error) return console.log(error);
+            
+            else {
+
+                allUsers.forEach(user => {
+
+                    if (user['SteamID'] == winner) {
+
+                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (data, err) => {
+
+                            if(err) console.error(err);
+                            
+                            else {
+                                jpTimer = 120;
+                            }
+                        });
+
+                    }
+                })
+
+            }
+        })
+
+    }
+
+    else {
+        io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
+    }
+}
+
+let serverJPTimer = setInterval(jackpotTimer, 1000);
