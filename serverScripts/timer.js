@@ -1,7 +1,7 @@
 // Jackpot Timer
-export let jpTimer = 10;
-export let readyToRoll = false;
-export let countDown = false;
+let jpTimer = 120;
+let readyToRoll = false;
+let countDown = false;
 
 function jackpotTimer() {
 
@@ -51,4 +51,6 @@ function jackpotTimer() {
     }
 }
 
-export const serverJPTimer = setInterval(jackpotTimer, 1000);
+const serverJPTimer = setInterval(jackpotTimer, 1000);
+
+module.exports = {serverJPTimer, countDown};
