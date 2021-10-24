@@ -31,6 +31,8 @@ function jackpotWinner(game, callback) {
 
         });
 
+        console.log(listOfPlayer)
+
         const shuffled = listOfPlayers.sort(() => Math.random - 0.5)
 
         let randomWinner = Math.floor(Math.random()*shuffled.length);

@@ -550,7 +550,7 @@ function jackpotTimer() {
         countDown = false;
         readyToRoll = false;
 
-        selectWinner.jackpotWinner(currentJPGame, (error, winner) => {
+        selectWinner.jackpotWinner(currentJPGame, (winner, error) => {
             
             if (error) return console.log(error);
             
