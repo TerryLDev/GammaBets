@@ -45,10 +45,15 @@ const Timer = require('./serverScripts/timer');
 
 mongo_uri = process.env.MONGO_URI;
 
+// DB Pulls
 let skins;
 let allUsers;
 
+// JP curretn game for server
 let currentJPGame;
+
+// JP timer
+let jpCountDown = Timer.countDown;
 
 mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (err) throw err;
@@ -73,7 +78,7 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
                 activeJPGameID = jp.GameID;
 
                 if (jp.Players.length > 1) {
-                    countDown = true;
+                    jpCountDown = true;
                 }
             }
         })
@@ -207,7 +212,6 @@ const io = socket(server);
 const messages = []
 
 let activeJPGameID;
-let countDown;
 
 io.on('connection', (socket) => {
 
@@ -445,7 +449,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
                                 io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
-                                countDown = true;
+                                jpCountDown = true;
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
@@ -501,7 +505,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
                                 io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
-                                countDown = true;
+                                jpCountDown = true;
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
@@ -523,3 +527,5 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
         });
     }
 });
+
+Timer.serverJPTimer();
