@@ -201,24 +201,52 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
             console.log('first options');
             console.log(attemptOne);
             console.log(attemptOneVal);
+
+            getWinnerSkins(listOfPlayerSkins, attemptOne, (error, data) => {
+                if (error) return callback(error)
+                else {
+                    return callback(data, winner)
+                }
+            });
         }
 
         else if (index == 1) {
             console.log('second options');
             console.log(attemptTwo);
             console.log(attemptTwoVal);
+
+            getWinnerSkins(listOfPlayerSkins, attemptTwo, (error, data) => {
+                if (error) return callback(error)
+                else {
+                    return callback(data, winner)
+                }
+            });
         }
 
         else if (index == 2) {
             console.log('third options');
             console.log(attemptThree);
             console.log(attemptThreeVal);
+
+            getWinnerSkins(listOfPlayerSkins, attemptThree, (error, data) => {
+                if (error) return callback(error)
+                else {
+                    return callback(data, winner)
+                }
+            });
         }
 
         else if (index == 3) {
             console.log('fourth options');
             console.log(attemptFour);
             console.log(attemptFourVal);
+
+            getWinnerSkins(listOfPlayerSkins, attemptFour, (error, data) => {
+                if (error) return callback(error)
+                else {
+                    return callback(data, winner)
+                }
+            });
         }
 
         else if (index == 4) {
@@ -226,13 +254,19 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
             console.log('third options');
             console.log(attemptFive);
             console.log(attemptFiveVal);
+
+            getWinnerSkins(listOfPlayerSkins, attemptFive, (error, data) => {
+                if (error) return callback(error)
+                else {
+                    return callback(data, winner)
+                }
+            });
         }
 
         else {
             console.log('No Profit')
         }
 
-        return callback(winner);
     }
 
     catch(error) {
@@ -240,6 +274,31 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
     }
 
     
+}
+
+function getWinnerSkins (skinList, attempt, callback) {
+    
+    try {
+
+        console.log(skinList, "before");
+
+        attempt.forEach(attemptSkin => {
+            for(let i = 0; i < skinList; i++) {
+                if(skinList[i] == attemptSkin) {
+                    skinList.splice(i, 1);
+                }
+            }
+        });
+
+        console.log(skinList, "after");
+
+        return callback(skinList);
+    }
+
+    catch(error) {
+        return callback(error);
+    }
+
 }
 
 module.exports = {jackpotWinner, takeJackpotProfit}

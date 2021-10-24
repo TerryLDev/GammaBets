@@ -41,6 +41,8 @@ const client = new SteamUser;
 
 const SteamBot = require("./steam/bot");
 
+const Timer = require('./serverScripts/timer');
+
 mongo_uri = process.env.MONGO_URI;
 
 let skins;
@@ -89,7 +91,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie : {
-        maxAge: 1000 * 60 * 60 * 12
+        maxAge: 1000 * 60 * 60 * 24
     }
 }));
 
@@ -370,7 +372,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         
                         let userBet = {
                             username: username,
-                            userSteamId: trade.SteamID,
+                            userSteamId: trade['SteamID'],
                             skins: trade.ItemNames,
                             skinValues: skinVals,
                             skinIDs: trade.Items
@@ -401,7 +403,63 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         })
                     }
 
-                    else if (game.Players.length >= 1) {
+                    else if (game.Players.length == 1) {
+                        activeJPGameID = game['GameID']
+                        let username;
+                        let skinVals = [];
+                        let totalPot = game['TotalPotValue'];
+
+                        allUsers.forEach(user => {
+                            if (user['SteamID'] == trade.SteamID) {
+                                username = user['Username'];
+                            }
+                        });
+
+                        trade.ItemNames.forEach(skin => {
+                            skins.forEach(val => {
+                                if (skin == val['SkinName']) {
+                                    skinVals.push(val['Value']);
+                                    totalPot += val['Value'];
+                                }
+                            });
+                        });
+                        
+                        let userBet = {
+                            username: username,
+                            userSteamId: trade.SteamID,
+                            skins: trade.ItemNames,
+                            skinValues: skinVals,
+                            skinIDs: trade.Items
+                        };
+
+                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
+                            $push: {Players: userBet},
+                            $set:
+                            {
+                                TotalPotValue: totalPot,
+                            }
+                        }, {upsert: true}, (err, jp) => {
+
+                            if (err) return console.error(err);
+                            
+                            else {
+                                io.emit('jackpotDepositAccepted', userBet);
+                                currentJPGame = jp;
+                                countDown = true;
+
+                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
+                                    if (err) return console.error(err);
+                                    else {
+                                        console.log(doc);
+                                    }
+                                })
+                                
+                            }
+                        })
+
+                    }
+
+                    else if (game.Players.length > 1) {
                         activeJPGameID = game['GameID']
                         let username;
                         let skinVals = [];
@@ -465,61 +523,3 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
         });
     }
 });
-
-// Jackpot Timer
-let jpTimer = 10;
-let readyToRoll = false;
-
-function jackpotTimer() {
-
-    if(countDown && jpTimer > 0) {
-        jpTimer -= 1;
-        io.emit('jackpotCountDown', jpTimer)
-
-        if (jpTimer == 0) {
-            readyToRoll = true;
-        }
-    }
-
-    else if (readyToRoll) {
-
-        readyToRoll = false
-
-        selectWinner.jackpotWinner(currentJPGame, (error, winner) => {
-            
-            if (error) return console.log(error);
-            
-            else {
-
-                allUsers.forEach(user => {
-
-                    if (user['SteamID'] == winner) {
-
-                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (data, err) => {
-
-                            if(err) console.error(err);
-                            
-                            else {
-                                jpTimer = 120;
-                                countDown = false;
-                            }
-                        });
-
-                    }
-                })
-
-            }
-        })
-
-    }
-
-    else {
-        io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
-    }
-}
-
-let serverJPTimer = setInterval(jackpotTimer, 1000);
-
-///////////////////////////////////////////////////////////////
-// Please for the love of god put this in a seperate JS file //
-///////////////////////////////////////////////////////////////
