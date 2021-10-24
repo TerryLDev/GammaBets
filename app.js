@@ -397,8 +397,8 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             if (err) return console.error(err);
 
                             else {
-                                io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
+                                io.emit('jackpotDepositAccepted', userBet);
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);     
@@ -543,7 +543,7 @@ function jackpotTimer() {
 
     else if (readyToRoll) {
 
-        JackpotGame.findOneAndUpdate({"GameID" : currentJPGame}, {"Status": false}, {upsert: true}, (err, doc) => {
+        JackpotGame.findOneAndUpdate({"GameID" : currentJPGame.GameID}, {"Status": false}, {upsert: true}, (err, doc) => {
             if(err) return console.error(err);
         })
 
