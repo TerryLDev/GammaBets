@@ -573,33 +573,30 @@ function jackpotTimer() {
 
                 console.log(winner);
 
-                let userPerson;
-
                 allUsers.forEach(user => {
 
                     if (user['SteamID'] == winner) {
-                        userPerson = user
+
+                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (skinList, error) => {
+
+                            if (error) console.error(error);
+                            
+                            else {
+                                console.log(skinList)
+        
+                                bot.sendWithdraw(skinList, user, (data, err) => {
+                                    if (err) console.error(err);
+        
+                                    else {
+                                        console.log(data);
+                                    }
+                                })
+                                jpTimer = 10;
+                            }
+                        });
                     }
 
                 })
-
-                selectWinner.takeJackpotProfit(currentJPGame, userPerson, skins, (skinList, error) => {
-
-                    if (error) console.error(error);
-                    
-                    else {
-                        console.log(skinList)
-
-                        bot.sendWithdraw(skinList, userPerson, (data, err) => {
-                            if (err) console.error(err);
-
-                            else {
-                                console.log(data);
-                            }
-                        })
-                        jpTimer = 10;
-                    }
-                });
 
             }
         })
