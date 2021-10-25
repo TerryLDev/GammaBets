@@ -82,11 +82,7 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
             });
         });
 
-        console.log(totalPot);
-
         const serverProfit = totalPot * percent;
-
-        console.log(serverProfit);
 
         let attemptOne = [];
         let attemptOneVal = 0;

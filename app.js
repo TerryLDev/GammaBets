@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 10;
+let jpTimer = 120;
 let readyToRoll = false;
 let countDown = false;
 
@@ -580,7 +580,6 @@ function jackpotTimer() {
                             if (error) console.error(error);
                             
                             else {
-                                console.log("I'm here")
                                 jpTimer = 120;
                             }
                         });
