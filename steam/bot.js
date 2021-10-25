@@ -199,7 +199,9 @@ class SteamBot {
 								});
 								console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
 
-								this.community.acceptConfirmationForObject(process.env.IDENTITY_SECRET, offer.id, (err) => {
+								let idSecret = process.env.IDENTITY_SECRET
+
+								this.community.acceptConfirmationForObject(idSecret, offer.id, (err) => {
 									if (err) return callback(err);
 
 									else {
