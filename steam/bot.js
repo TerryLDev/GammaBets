@@ -96,6 +96,7 @@ class SteamBot {
 
 			else {
 				let itemNames = []
+
 				itemArray.forEach(desired => {
 					const item = inv.find(item => item.assetid == desired);
 
@@ -109,14 +110,13 @@ class SteamBot {
 						return console.log('error');
 					}
 				})
-				offer.setMessage('Test trade');
 
 				let token = tradeurl.split('token=')[1]
-				console.log(token);
 
 				offer.setToken(token)
 
 				offer.send((err, status) => {
+
 					if (err) return console.error(err);
 
 					else {
@@ -148,6 +148,78 @@ class SteamBot {
 			}
 		})
 
+	}
+
+	sendWithdraw(skins, user, callback) {
+		const offer = this.manager.createOffer(steamid);
+
+		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
+
+			let skinIDs = [];
+			let skinNames = [];
+
+			skins.forEach(skin => {
+				const item = inv.find(item => item.market_hash_name == skin);
+
+				if (item) {
+					skinIDs.push(item.id);
+					skinNames.push(item.market_hash_name);
+					offer.addMyItem(item);
+				}
+
+				else {
+					offer.cancel();
+					return callback(`Could not find ${skin} in Bot Inventory`)
+				}
+
+				let token = tradeurl.split('token=')[1]
+
+				offer.setToken(token);
+
+				offer.send((err, status) => {
+
+					if (err) return callback(err);
+
+					else if (status == 'pending') {
+
+						TradeHistory.create({
+							TradeID: offer.id,
+							SteamID: user['SteamID'],
+							BotID: '2',
+							Items: skinIDs,
+							ItemNames: skinNames,
+							TransactionType: 'Withdraw',
+							State: TradeOfferManager.ETradeOfferState[offer.state],
+							GameMode: 'Jackpot',
+							DateCreated: Date.now()
+						})
+							.then((result) => {
+								User.updateOne({"SteamID": user.SteamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
+									if (err) return callback(err);
+								});
+								console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
+
+								this.community.acceptConfirmationForObject(process.env.IDENTITY_SECRET, offer.id, (err) => {
+									if (err) return callback(err);
+
+									else {
+										return callback(`Withdraw has been sent to ${user.Username}`)
+									}
+								})
+							})
+							.catch((err) => {
+								if(err) return callback(err);
+							});
+
+					}
+
+
+				})
+
+			});
+
+			
+		});
 	}
 
 }

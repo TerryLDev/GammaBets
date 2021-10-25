@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 120;
+let jpTimer = 10;
 let readyToRoll = false;
 let countDown = false;
 
@@ -524,9 +524,6 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
-                                    else {
-                                        console.log(doc);
-                                    }
                                 })
                                 
                             }
@@ -542,6 +539,10 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
         });
     }
 });
+
+bot.manager.on('newOffer', (offer) => {
+    console.log('yeet yeet ' + offer);
+})
 
 // Jackpot Timer
 
@@ -571,20 +572,34 @@ function jackpotTimer() {
             else {
 
                 console.log(winner);
+
+                let userPerson;
+
                 allUsers.forEach(user => {
 
                     if (user['SteamID'] == winner) {
-
-                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (data, error) => {
-
-                            if (error) console.error(error);
-                            
-                            else {
-                                jpTimer = 120;
-                            }
-                        });
+                        userPerson = user
                     }
+
                 })
+
+                selectWinner.takeJackpotProfit(currentJPGame, userPerson, skins, (skinList, error) => {
+
+                    if (error) console.error(error);
+                    
+                    else {
+                        console.log(skinList)
+
+                        bot.sendWithdraw(skinList, userPerson, (data, err) => {
+                            if (err) console.error(err);
+
+                            else {
+                                console.log(data);
+                            }
+                        })
+                        jpTimer = 10;
+                    }
+                });
 
             }
         })
