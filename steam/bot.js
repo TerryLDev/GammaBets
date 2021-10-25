@@ -172,7 +172,7 @@ class SteamBot {
 					return callback(`Could not find ${skin} in Bot Inventory`)
 				}
 
-				let token = tradeurl.split('token=')[1]
+				let token = user.TradeURL.split('token=')[1]
 
 				offer.setToken(token);
 
