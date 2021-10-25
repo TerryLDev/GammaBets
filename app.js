@@ -358,7 +358,8 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                 return console.error('Invalid TradeID Lookup or Manual Change')
             }
 
-            else {
+            // Not a perm solution
+            else if (trade.TransactionType == 'Deposit') {
 
                 JackpotGame.findOne({"Status" : true}, (err, game) => {
                     console.log(game);
@@ -574,30 +575,34 @@ function jackpotTimer() {
                 setTimeout(function() {
                     console.log(winner);
 
+                    let person;
+
                     allUsers.forEach(user => {
 
                         if (user['SteamID'] == winner) {
-
-                            selectWinner.takeJackpotProfit(currentJPGame, user, skins, (skinList, error) => {
-
-                                if (error) console.error(error);
-                                
-                                else {
-                                    console.log(skinList)
-            
-                                    bot.sendWithdraw(skinList, user, (data, err) => {
-                                        if (err) console.error(err);
-            
-                                        else {
-                                            console.log(data);
-                                        }
-                                    })
-                                    jpTimer = 10;
-                                }
-                            });
+                            person = user
                         }
 
                     })
+
+                    selectWinner.takeJackpotProfit(currentJPGame, person, skins, (skinList, error) => {
+
+                        if (error) console.error(error);
+                        
+                        else {
+                            console.log(skinList)
+    
+                            bot.sendWithdraw(skinList, person, (data, err) => {
+                                if (err) console.error(err);
+
+                                else {
+                                    console.log(data);
+                                }
+                            })
+                            jpTimer = 10;
+                        }
+                    });
+
                 }, 1000)
 
             }

@@ -3,7 +3,7 @@ const SteamTotp = require('steam-totp');
 const SteamCommunity = require('steamcommunity');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-require('dotenv').config(__dirname + '/config.env');
+require('dotenv').config({path : './config.env'});
 
 const User = require('../models/user.model');
 const TradeHistory = require('../models/tradehistory.model');
@@ -154,6 +154,7 @@ class SteamBot {
 		const offer = this.manager.createOffer(user.SteamID);
 
 		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
+			if (err) return console.error(err);
 
 			let skinIDs = [];
 			let skinNames = [];
@@ -172,54 +173,53 @@ class SteamBot {
 					return callback(`Could not find ${skin} in Bot Inventory`)
 				}
 
-				let token = user.TradeURL.split('token=')[1]
-
-				offer.setToken(token);
-
-				offer.send((err, status) => {
-
-					if (err) return callback(err);
-
-					else if (status == 'pending') {
-
-						TradeHistory.create({
-							TradeID: offer.id,
-							SteamID: user['SteamID'],
-							BotID: '2',
-							Items: skinIDs,
-							ItemNames: skinNames,
-							TransactionType: 'Withdraw',
-							State: TradeOfferManager.ETradeOfferState[offer.state],
-							GameMode: 'Jackpot',
-							DateCreated: Date.now()
-						})
-							.then((result) => {
-								User.updateOne({"SteamID": user.SteamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
-									if (err) return callback(err);
-								});
-								console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
-
-								let idSecret = process.env.IDENTITY_SECRET
-
-								this.community.acceptConfirmationForObject(idSecret, offer.id, (err) => {
-									if (err) return callback(err);
-
-									else {
-										return callback(`Withdraw has been sent to ${user.Username}`)
-									}
-								})
-							})
-							.catch((err) => {
-								if(err) return callback(err);
-							});
-
-					}
-
-
-				})
-
 			});
 
+			let token = user.TradeURL.split('token=')[1]
+
+			offer.setToken(token);
+
+			offer.send((err, status) => {
+
+				if (err) return callback(err);
+
+				else if (status == 'pending') {
+
+					TradeHistory.create({
+						TradeID: offer.id,
+						SteamID: user['SteamID'],
+						BotID: '2',
+						Items: skinIDs,
+						ItemNames: skinNames,
+						TransactionType: 'Withdraw',
+						State: TradeOfferManager.ETradeOfferState[offer.state],
+						GameMode: 'Jackpot',
+						DateCreated: Date.now()
+					})
+						.then((result) => {
+							User.updateOne({"SteamID": user.SteamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
+								if (err) return callback(err);
+							});
+							console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
+
+							let idSecret = 'zJmChq+L9Diofu786L8fm8I+EG4=';
+							console.log(idSecret + " IDK AHHHHHHHHHHHHHHHHHH");
+
+							this.community.acceptConfirmationForObject(idSecret, offer.id, (err) => {
+								if (err) return callback(err);
+
+								else {
+									return callback(`Withdraw has been sent to ${user.Username}`)
+								}
+							})
+						})
+						.catch((err) => {
+							if(err) return callback(err);
+						});
+
+				}
+
+			})
 			
 		});
 	}
