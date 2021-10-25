@@ -151,7 +151,7 @@ class SteamBot {
 	}
 
 	sendWithdraw(skins, user, callback) {
-		const offer = this.manager.createOffer(steamid);
+		const offer = this.manager.createOffer(user.SteamID);
 
 		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
 
