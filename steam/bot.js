@@ -160,11 +160,11 @@ class SteamBot {
 			let skinNames = [];
 
 			skins.forEach(skin => {
-				const item = inv.find(item => item.market_hash_name == skin);
+				const item = inv.find(item => item.name == skin);
 
 				if (item) {
 					skinIDs.push(item.id);
-					skinNames.push(item.market_hash_name);
+					skinNames.push(item.name);
 					offer.addMyItem(item);
 				}
 

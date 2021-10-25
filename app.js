@@ -590,6 +590,7 @@ function jackpotTimer() {
                         if (error) console.error(error);
                         
                         else {
+                            console.log('Start')
                             console.log(skinList)
     
                             bot.sendWithdraw(skinList, person, (data, err) => {
