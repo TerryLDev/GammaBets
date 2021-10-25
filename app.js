@@ -571,32 +571,34 @@ function jackpotTimer() {
 
             else {
 
-                console.log(winner);
+                setTimeout(function() {
+                    console.log(winner);
 
-                allUsers.forEach(user => {
+                    allUsers.forEach(user => {
 
-                    if (user['SteamID'] == winner) {
+                        if (user['SteamID'] == winner) {
 
-                        selectWinner.takeJackpotProfit(currentJPGame, user, skins, (skinList, error) => {
+                            selectWinner.takeJackpotProfit(currentJPGame, user, skins, (skinList, error) => {
 
-                            if (error) console.error(error);
-                            
-                            else {
-                                console.log(skinList)
-        
-                                bot.sendWithdraw(skinList, user, (data, err) => {
-                                    if (err) console.error(err);
-        
-                                    else {
-                                        console.log(data);
-                                    }
-                                })
-                                jpTimer = 10;
-                            }
-                        });
-                    }
+                                if (error) console.error(error);
+                                
+                                else {
+                                    console.log(skinList)
+            
+                                    bot.sendWithdraw(skinList, user, (data, err) => {
+                                        if (err) console.error(err);
+            
+                                        else {
+                                            console.log(data);
+                                        }
+                                    })
+                                    jpTimer = 10;
+                                }
+                            });
+                        }
 
-                })
+                    })
+                }, 1000)
 
             }
         })
