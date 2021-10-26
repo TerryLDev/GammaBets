@@ -361,13 +361,13 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
             // Not a perm solution
             else if (trade.TransactionType == 'Deposit') {
 
-                JackpotGame.findOne({"Status" : true}, (err, game) => {
-
-                    console.log('new game');
+                JackpotGame.findOne({"Status" : true}, (err, game) => {                    
 
                     if (err) return console.error(err);
                     
                     else if(game == null) {
+
+                        console.log('new game');
 
                         activeJPGameID = Date.now();
                         let gameId = String(activeJPGameID);
@@ -487,9 +487,6 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
-                                    else {
-                                        console.log(doc);
-                                    }
                                 })
                                 
                             }
@@ -555,7 +552,6 @@ function jackpotTimer() {
                         if (error) console.error(error);
                         
                         else {
-                            console.log('Start')
                             console.log(skinList)
     
                             bot.sendWithdraw(skinList, person, (data, err) => {
