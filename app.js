@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 1200;
+let jpTimer = 120;
 let readyToRoll = false;
 let countDown = false;
 
@@ -621,7 +621,7 @@ function jackpotTimer() {
                                     console.log(data);
                                 }
                             })
-                            jpTimer = 1200;
+                            jpTimer = 120;
                         }
                     });
 
