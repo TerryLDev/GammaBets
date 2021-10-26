@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 120;
+let jpTimer = 1200;
 let readyToRoll = false;
 let countDown = false;
 
@@ -417,7 +417,10 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                             else {
                                 currentJPGame = jp;
-                                io.emit('jackpotDepositAccepted', userBet);
+                                io.emit('jackpotDepositAccepted', {
+                                    bet: userBet,
+                                    game: jp
+                                });
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);     
@@ -471,8 +474,11 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             if (err) return console.error(err);
                             
                             else {
-                                io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
+                                io.emit('jackpotDepositAccepted', {
+                                    bet: userBet,
+                                    game: jp
+                                });
                                 countDown = true;
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
@@ -531,8 +537,11 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             if (err) return console.error(err);
                             
                             else {
-                                io.emit('jackpotDepositAccepted', userBet);
                                 currentJPGame = jp;
+                                io.emit('jackpotDepositAccepted', {
+                                    bet: userBet,
+                                    game: jp
+                                });
                                 countDown = true;
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
@@ -612,7 +621,7 @@ function jackpotTimer() {
                                     console.log(data);
                                 }
                             })
-                            jpTimer = 120;
+                            jpTimer = 1200;
                         }
                     });
 
