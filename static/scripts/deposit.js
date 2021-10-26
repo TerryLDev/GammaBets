@@ -57,7 +57,7 @@ socket.on('getInventory', (data) => {
 
             console.log(item['name'], item['id']);
 
-            let price = item['price'] / 100;
+            let price = (item['price'] / 100).toFixed(2);
 
             let skinItem = document.createElement('div');
     

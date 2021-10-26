@@ -373,6 +373,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                         let username;
                         let skinVals = [];
+                        let skinPics = [];
                         let totalPot = 0;
 
                         allUsers.forEach(user => {
@@ -384,6 +385,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         trade.ItemNames.forEach(skin => {
                             skins.forEach(val => {
                                 if (skin == val['SkinName']) {
+                                    skinPics.push(val['SkinPictureURL'])
                                     skinVals.push(val['Value']);
                                     totalPot += val['Value'];
                                 }
@@ -395,7 +397,8 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             userSteamId: trade['SteamID'],
                             skins: trade.ItemNames,
                             skinValues: skinVals,
-                            skinIDs: trade.Items
+                            skinIDs: trade.Items,
+                            skinPictures: skinPics
                         };
 
 
@@ -424,10 +427,13 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                     }
 
                     else if (game.Players.length == 1) {
+
                         activeJPGameID = game['GameID']
+
                         let username;
                         let skinVals = [];
-                        let totalPot = game['TotalPotValue'];
+                        let skinPics = [];
+                        let totalPot = 0;
 
                         allUsers.forEach(user => {
                             if (user['SteamID'] == trade.SteamID) {
@@ -438,6 +444,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         trade.ItemNames.forEach(skin => {
                             skins.forEach(val => {
                                 if (skin == val['SkinName']) {
+                                    skinPics.push(val['SkinPictureURL'])
                                     skinVals.push(val['Value']);
                                     totalPot += val['Value'];
                                 }
@@ -446,10 +453,11 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         
                         let userBet = {
                             username: username,
-                            userSteamId: trade.SteamID,
+                            userSteamId: trade['SteamID'],
                             skins: trade.ItemNames,
                             skinValues: skinVals,
-                            skinIDs: trade.Items
+                            skinIDs: trade.Items,
+                            skinPictures: skinPics
                         };
 
                         JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
@@ -481,9 +489,11 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                     else if (game.Players.length > 1) {
                         activeJPGameID = game['GameID']
+                        
                         let username;
                         let skinVals = [];
-                        let totalPot = game['TotalPotValue'];
+                        let skinPics = [];
+                        let totalPot = 0;
 
                         allUsers.forEach(user => {
                             if (user['SteamID'] == trade.SteamID) {
@@ -494,6 +504,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         trade.ItemNames.forEach(skin => {
                             skins.forEach(val => {
                                 if (skin == val['SkinName']) {
+                                    skinPics.push(val['SkinPictureURL'])
                                     skinVals.push(val['Value']);
                                     totalPot += val['Value'];
                                 }
@@ -502,10 +513,11 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         
                         let userBet = {
                             username: username,
-                            userSteamId: trade.SteamID,
+                            userSteamId: trade['SteamID'],
                             skins: trade.ItemNames,
                             skinValues: skinVals,
-                            skinIDs: trade.Items
+                            skinIDs: trade.Items,
+                            skinPictures: skinPics
                         };
 
                         JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
