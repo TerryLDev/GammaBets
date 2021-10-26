@@ -362,7 +362,8 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
             else if (trade.TransactionType == 'Deposit') {
 
                 JackpotGame.findOne({"Status" : true}, (err, game) => {
-                    console.log(game);
+
+                    console.log('new game');
 
                     if (err) return console.error(err);
                     
@@ -429,14 +430,14 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         })
                     }
 
-                    else if (game.Players.length == 1) {
+                    else if (game.Players.length >= 1) {
 
                         activeJPGameID = game['GameID']
 
                         let username;
                         let skinVals = [];
                         let skinPics = [];
-                        let totalPot = 0;
+                        let totalPot = game.TotalPotValue;
 
                         allUsers.forEach(user => {
                             if (user['SteamID'] == trade.SteamID) {
@@ -479,73 +480,16 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                                     bet: userBet,
                                     game: jp
                                 });
-                                countDown = true;
+
+                                if(countDown != true) {
+                                    countDown = true;
+                                }
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);
                                     else {
                                         console.log(doc);
                                     }
-                                })
-                                
-                            }
-                        })
-
-                    }
-
-                    else if (game.Players.length > 1) {
-                        activeJPGameID = game['GameID']
-                        
-                        let username;
-                        let skinVals = [];
-                        let skinPics = [];
-                        let totalPot = 0;
-
-                        allUsers.forEach(user => {
-                            if (user['SteamID'] == trade.SteamID) {
-                                username = user['Username'];
-                            }
-                        });
-
-                        trade.ItemNames.forEach(skin => {
-                            skins.forEach(val => {
-                                if (skin == val['SkinName']) {
-                                    skinPics.push(val['SkinPictureURL'])
-                                    skinVals.push(val['Value']);
-                                    totalPot += val['Value'];
-                                }
-                            });
-                        });
-                        
-                        let userBet = {
-                            username: username,
-                            userSteamId: trade['SteamID'],
-                            skins: trade.ItemNames,
-                            skinValues: skinVals,
-                            skinIDs: trade.Items,
-                            skinPictures: skinPics
-                        };
-
-                        JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
-                            $push: {Players: userBet},
-                            $set:
-                            {
-                                TotalPotValue: totalPot,
-                            }
-                        }, {upsert: true}, (err, jp) => {
-
-                            if (err) return console.error(err);
-                            
-                            else {
-                                currentJPGame = jp;
-                                io.emit('jackpotDepositAccepted', {
-                                    bet: userBet,
-                                    game: jp
-                                });
-                                countDown = true;
-
-                                TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
-                                    if (err) return console.error(err);
                                 })
                                 
                             }
@@ -621,6 +565,7 @@ function jackpotTimer() {
                                     console.log(data);
                                 }
                             })
+                            currentJPGame = null;
                             jpTimer = 120;
                         }
                     });

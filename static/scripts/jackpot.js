@@ -1,6 +1,8 @@
 const playerBetsSection = document.getElementById('player-bets');
 const potinfo = document.getElementById('total-pot-value');
 
+let waitingForSpinner = false;
+
 socket.on('jackpotCountDown', (time) => {
     // this is a prototype for now
     let spinner = document.getElementById('spinner');
@@ -24,7 +26,7 @@ socket.on('jackpotDepositAccepted', (data) => {
 
     let chanceID = "player";
 
-    playerInfo.innerHTML = "<h4>" + player.username + "</h4><p>$" + playerTotal + "</p><p id='" + chanceID + "'>" + chance + "%</p>"
+    playerInfo.innerHTML = "<h4>" + data.bet.username + "</h4><p>$" + playerTotal + "</p><p id='" + chanceID + "'>" + chance + "%</p>"
 
     newBet.appendChild(playerInfo)
 
