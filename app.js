@@ -301,30 +301,6 @@ io.on('connection', (socket) => {
 
 });
 
-/*
-
-///////////////////
-// Work On Later //
-///////////////////
-
-// Deciding Jackpot Winner Prototype
-function decideJPWinner() {
-    JackpotGame.findOne({Status: true}, (err, game) => {
-        if(err) throw err;
-        selectWinner.jackpotWinner(game, (err, data) => {
-            if(err) return console.log(err);
-            else {
-                console.log(data)
-            }
-        });
-    });
-}
-
-decideJPWinner();
-
-*/
-
-
 // SteamBot Events
 bot.client.on('tradeResponse', (steamID, response) => {
     console.log(steamID);
