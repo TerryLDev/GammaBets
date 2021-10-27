@@ -8,11 +8,13 @@ socket.on('jackpotCountDown', (time) => {
     let spinner = document.getElementById('spinner');
     spinner.innerHTML = '<p>' + time + '</p>';
 
+    if (time == 0) {
+        waitingForSpinner = true;
+    }
+
 })
 
 socket.on('jackpotDepositAccepted', (data) => {
-
-    let allPlayers = playerBetsSection.childNodes;
 
     let chance = getPlayerChance(data.game.TotalPotValue, data.bet.skinValues);
 
@@ -122,10 +124,11 @@ function getSkinValue(skinVal) {
 
 function changeAllJackpotValues(game) {
     
-    let count = 1;
+    let count = 0;
     let allPlayers = playerBetsSection.childNodes;
 
     game.Players.forEach(player => {
+
         let chanceID = document.getElementById(allPlayers[count].childNodes[0].childNodes[2].id)
 
         let chancePercent = getPlayerChance(game.TotalPotValue, player.skinValues);

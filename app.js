@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 1200;
+let jpTimer = 120;
 let readyToRoll = false;
 let countDown = false;
 
@@ -528,6 +528,8 @@ function jackpotTimer() {
 
                     })
 
+                    io.emit('jackpotCountDown', winner)
+
                     selectWinner.takeJackpotProfit(currentJPGame, person, skins, (skinList, error) => {
 
                         if (error) console.error(error);
@@ -543,7 +545,7 @@ function jackpotTimer() {
                                 }
                             })
                             currentJPGame = null;
-                            jpTimer = 1200;
+                            jpTimer = 120;
                         }
                     });
 
@@ -558,7 +560,5 @@ function jackpotTimer() {
         io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
     }
 }
-
-
 
 let serverJPTimer = setInterval(jackpotTimer, 1000);
