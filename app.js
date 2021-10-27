@@ -230,7 +230,13 @@ io.on('connection', (socket) => {
     })
 
     if (currentJPGame != null) {
-        socket.emit('jackpotLoader', currentJPGame);
+        JackpotGame.findOne({'Status' : true}, (err, game) => {
+            if (err) return console.error(err)
+            else {
+                currentJPGame = game;
+                socket.emit('jackpotLoader', game);
+            }
+        })
     }
 
     socket.on('addTradeURL', (data) => {
@@ -451,7 +457,6 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
 
                                 console.log(jp);
-                                currentJPGame = jp;
                                 io.emit('jackpotLoader', jp);
 
                                 if(countDown != true) {
@@ -491,7 +496,7 @@ function jackpotTimer() {
 
     else if (readyToRoll) {
 
-        JackpotGame.findOneAndUpdate({"GameID" : activeJPGameID}, {"Status": false}, {upsert: true}, (err, game) => {
+        JackpotGame.findOne({"GameID" : activeJPGameID}, {"Status": false}, {upsert: true}, (err, jpGame) => {
             
             if(err) return console.error(err);
 
@@ -500,7 +505,7 @@ function jackpotTimer() {
                 countDown = false;
                 readyToRoll = false;
 
-                selectWinner.jackpotWinner(game, (winner, error) => {
+                selectWinner.jackpotWinner(jpGame, (winner, error) => {
                     if (error) console.error(error);
 
                     else {
@@ -520,7 +525,7 @@ function jackpotTimer() {
 
                             io.emit('jackpotCountDown', winner)
 
-                            selectWinner.takeJackpotProfit(currentJPGame, person, skins, (skinList, error) => {
+                            selectWinner.takeJackpotProfit(jpGame, person, skins, (skinList, error) => {
 
                                 if (error) console.error(error);
                                 
