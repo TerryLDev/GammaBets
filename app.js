@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 120;
+let jpTimer = 1200;
 let readyToRoll = false;
 let countDown = false;
 
@@ -331,6 +331,13 @@ bot.client.on('tradeResponse', (steamID, response) => {
     console.log(response);
 });
 
+bot.client.on('disconnected', (eresult, msg) => {
+    console.log(eresult)
+    console.log(msg)
+
+    bot.logOn()
+})
+
 bot.manager.on('sentOfferChanged', (offer, oldState) => {
     
     if (TradeOfferManager.ETradeOfferState[offer.state] == 'Declined') {
@@ -417,6 +424,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             if (err) return console.error(err);
 
                             else {
+                                console.log(jp)
                                 currentJPGame = jp;
                                 io.emit('jackpotDepositAccepted', {
                                     bet: userBet,
@@ -475,6 +483,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             if (err) return console.error(err);
                             
                             else {
+                                console.log(jp);
                                 currentJPGame = jp;
                                 io.emit('jackpotDepositAccepted', {
                                     bet: userBet,
@@ -502,10 +511,6 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
         });
     }
 });
-
-bot.manager.on('newOffer', (offer) => {
-    console.log('yeet yeet ' + offer);
-})
 
 // Jackpot Timer
 
@@ -562,7 +567,7 @@ function jackpotTimer() {
                                 }
                             })
                             currentJPGame = null;
-                            jpTimer = 120;
+                            jpTimer = 1200;
                         }
                     });
 
@@ -577,5 +582,7 @@ function jackpotTimer() {
         io.emit('jackpotCountDown', 'Waiting for Next Jackpot Game To Start');
     }
 }
+
+
 
 let serverJPTimer = setInterval(jackpotTimer, 1000);

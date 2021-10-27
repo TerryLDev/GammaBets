@@ -37,12 +37,12 @@ socket.on('jackpotDepositAccepted', (data) => {
 
         let value = getSkinValue(data.bet.skinValues[i]);
 
-        skinSpot.innerHTML = "<img src='https://www.kenyons.com/wp-content/uploads/2017/04/default-image-620x600.jpg' alt=" + data.bet.skins[i] + "/><ps>" + data.bet.skins[i] + "</ps><p>$" + value + "</p>"
+        skinSpot.innerHTML = "<img src='" + data.bet.skinPicture + "' alt=" + data.bet.skins[i] + "/><ps>" + data.bet.skins[i] + "</ps><p>$" + value + "</p>"
 
         newBet.appendChild(skinSpot);
     }
 
-    playerBetsSection.appendChild(newBet);
+    playerBetsSection.insertBefore(newBet, playerBetsSection.firstChild);
 
     changeAllJackpotValues(data.game);
 });
@@ -85,7 +85,7 @@ socket.on('jackpotLoader',(data) => {
             newBet.appendChild(skinSpot);
         }
     
-        playerBetsSection.appendChild(newBet);
+        playerBetsSection.insertBefore(newBet, playerBetsSection.firstChild);
 
         count++;
     })
