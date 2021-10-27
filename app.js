@@ -496,11 +496,17 @@ function jackpotTimer() {
 
     else if (readyToRoll) {
 
-        JackpotGame.findOne({"GameID" : activeJPGameID}, {"Status": false}, {upsert: true}, (err, jpGame) => {
+        JackpotGame.findOne({"GameID" : activeJPGameID}, (err, jpGame) => {
             
             if(err) return console.error(err);
 
             else {
+
+                JackpotGame.findOneAndUpdate({"GameID" : activeJPGameID}, {"Status": false}, {upsert: true}, (err, jpGame) => {
+
+                    if (err) console.error(err)
+
+                });
 
                 countDown = false;
                 readyToRoll = false;
