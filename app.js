@@ -350,8 +350,6 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                     
                     else if(game == null) {
 
-                        console.log('new game');
-
                         activeJPGameID = Date.now();
                         let gameId = String(activeJPGameID);
 
@@ -400,9 +398,9 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             if (err) return console.error(err);
 
                             else {
-                                console.log(jp)
                                 currentJPGame = jp;
                                 io.emit('jackpotLoader', jp);
+                                console.log('New Jackpot Game');
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);     
@@ -411,7 +409,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                         })
                     }
 
-                    else if (game.Players.length >= 1) {
+                    else {
 
                         let username;
                         let skinVals = [];
@@ -445,15 +443,13 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                         JackpotGame.findOneAndUpdate({'GameID': game['GameID']}, {
                             $push: {Players: userBet},
-                            $set:
-                            {
-                                TotalPotValue: totalPot,
-                            }
+                            $set: {TotalPotValue: totalPot}
                         }, {upsert: true}, (err, jp) => {
 
                             if (err) return console.error(err);
                             
                             else {
+
                                 console.log(jp);
                                 currentJPGame = jp;
                                 io.emit('jackpotLoader', jp);
