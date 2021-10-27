@@ -402,10 +402,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
                                 console.log(jp)
                                 currentJPGame = jp;
-                                io.emit('jackpotDepositAccepted', {
-                                    bet: userBet,
-                                    game: jp
-                                });
+                                io.emit('jackpotLoader', jp);
 
                                 TradeHistory.findOneAndUpdate({"TradeID": trade['TradeID']}, {GameID: activeJPGameID}, {upsert: true}, (err, doc) => {
                                     if (err) return console.error(err);     
@@ -415,8 +412,6 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                     }
 
                     else if (game.Players.length >= 1) {
-
-                        activeJPGameID = game['GameID']
 
                         let username;
                         let skinVals = [];
@@ -461,10 +456,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                             else {
                                 console.log(jp);
                                 currentJPGame = jp;
-                                io.emit('jackpotDepositAccepted', {
-                                    bet: userBet,
-                                    game: jp
-                                });
+                                io.emit('jackpotLoader', jp);
 
                                 if(countDown != true) {
                                     countDown = true;
@@ -503,54 +495,57 @@ function jackpotTimer() {
 
     else if (readyToRoll) {
 
-        JackpotGame.findOneAndUpdate({"GameID" : currentJPGame.GameID}, {"Status": false}, {upsert: true}, (err, doc) => {
+        JackpotGame.findOneAndUpdate({"GameID" : activeJPGameID}, {"Status": false}, {upsert: true}, (err, game) => {
+            
             if(err) return console.error(err);
-        })
-
-        countDown = false;
-        readyToRoll = false;
-
-        selectWinner.jackpotWinner(currentJPGame, (winner, error) => {
-            if (error) console.error(error);
 
             else {
 
-                setTimeout(function() {
-                    console.log(winner);
+                countDown = false;
+                readyToRoll = false;
 
-                    let person;
+                selectWinner.jackpotWinner(game, (winner, error) => {
+                    if (error) console.error(error);
 
-                    allUsers.forEach(user => {
+                    else {
 
-                        if (user['SteamID'] == winner) {
-                            person = user
-                        }
+                        setTimeout(function() {
+                            console.log(winner);
 
-                    })
+                            let person;
 
-                    io.emit('jackpotCountDown', winner)
+                            allUsers.forEach(user => {
 
-                    selectWinner.takeJackpotProfit(currentJPGame, person, skins, (skinList, error) => {
-
-                        if (error) console.error(error);
-                        
-                        else {
-                            console.log(skinList)
-    
-                            bot.sendWithdraw(skinList, person, (data, err) => {
-                                if (err) console.error(err);
-
-                                else {
-                                    console.log(data);
+                                if (user['SteamID'] == winner) {
+                                    person = user
                                 }
+
                             })
-                            currentJPGame = null;
-                            jpTimer = 120;
-                        }
-                    });
 
-                }, 1000)
+                            io.emit('jackpotCountDown', winner)
 
+                            selectWinner.takeJackpotProfit(currentJPGame, person, skins, (skinList, error) => {
+
+                                if (error) console.error(error);
+                                
+                                else {
+                                    console.log(skinList)
+            
+                                    bot.sendWithdraw(skinList, person, (data, err) => {
+                                        if (err) console.error(err);
+
+                                        else {
+                                            console.log(data);
+                                        }
+                                    })
+                                    currentJPGame = null;
+                                    jpTimer = 120;
+                                }
+                            });
+
+                        }, 1000)
+                    }
+                })
             }
         })
 

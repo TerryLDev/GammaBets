@@ -14,41 +14,6 @@ socket.on('jackpotCountDown', (time) => {
 
 })
 
-socket.on('jackpotDepositAccepted', (data) => {
-
-    let chance = getPlayerChance(data.game.TotalPotValue, data.bet.skinValues);
-
-    let playerTotal = getPlayerTotal(data.bet.skinValues);
-
-    let newBet = document.createElement('div');
-    newBet.className = 'jackpot-bet';
-
-    let playerInfo = document.createElement('div');
-    playerInfo.className = 'player-bet-info'
-
-    let chanceID = "player";
-
-    playerInfo.innerHTML = "<h4>" + data.bet.username + "</h4><p>$" + playerTotal + "</p><p id='" + chanceID + "'>" + chance + "%</p>"
-
-    newBet.appendChild(playerInfo)
-
-    for (let i = 0; i < data.bet.skins.length; i++) {
-
-        let skinSpot = document.createElement('div');
-        skinSpot.className = 'skin-spot';
-
-        let value = getSkinValue(data.bet.skinValues[i]);
-
-        skinSpot.innerHTML = "<img src='" + data.bet.skinPicture + "' alt=" + data.bet.skins[i] + "/><ps>" + data.bet.skins[i] + "</ps><p>$" + value + "</p>"
-
-        newBet.appendChild(skinSpot);
-    }
-
-    playerBetsSection.insertBefore(newBet, playerBetsSection.firstChild);
-
-    changeAllJackpotValues(data.game);
-});
-
 socket.on('jackpotDepositDeclined', (data) => {
     console.log(data);
 });
@@ -82,7 +47,7 @@ socket.on('jackpotLoader',(data) => {
 
             let value = getSkinValue(player.skinValues[i]);
     
-            skinSpot.innerHTML = "<img src='https://www.kenyons.com/wp-content/uploads/2017/04/default-image-620x600.jpg' alt=" + player.skins[i] + "/><ps>" + player.skins[i] + "</ps><p>$" + value + "</p>"
+            skinSpot.innerHTML = "<img src='" + player.skinPictures[i] + "' alt=" + player.skins[i] + "/><ps>" + player.skins[i] + "</ps><p>$" + value + "</p>"
     
             newBet.appendChild(skinSpot);
         }
@@ -120,7 +85,6 @@ function getSkinValue(skinVal) {
     return skinVal
 
 }
-
 
 function changeAllJackpotValues(game) {
     
