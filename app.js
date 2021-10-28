@@ -308,16 +308,32 @@ io.on('connection', (socket) => {
 });
 
 // SteamBot Events
+
+
+bot.client.on('steamGuard', (domain, callback, lastCodeWrong) => {
+    console.log(domain);
+
+    setTimeout(function() {
+        if (lastCodeWrong) {
+            console.log("Wrong Code for Bot 1")
+            let code = SteamTotp.getAuthCode(process.env.IDENTITY_SECRET)
+            callback(code);
+        }
+    }, 1500)
+})
+
 bot.client.on('tradeResponse', (steamID, response) => {
     console.log(steamID);
     console.log(response);
 });
 
 bot.client.on('disconnected', (eresult, msg) => {
-    console.log(eresult)
-    console.log(msg)
+    setTimeout(function() {
+        console.log(eresult)
+        console.log(msg)
 
-    bot.logOn()
+        bot.logOn()
+    }, 1500)
 })
 
 bot.manager.on('sentOfferChanged', (offer, oldState) => {

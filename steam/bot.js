@@ -3,7 +3,7 @@ const SteamTotp = require('steam-totp');
 const SteamCommunity = require('steamcommunity');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-require('dotenv').config({path : './config.env'});
+require('dotenv').config(__dirname + '/.env');
 
 const User = require('../models/user.model');
 const TradeHistory = require('../models/tradehistory.model');
@@ -39,7 +39,7 @@ class SteamBot {
 			this.manager.setCookies(cookies);
 
 			this.community.setCookies(cookies)
-			this.community.startConfirmationChecker(10000, process.env.IDENTITY_SECRET);
+			this.community.startConfirmationChecker(3000, process.env.IDENTITY_SECRET);
 		})
 
 		// Function called to get the prices for all the skins in rust that are tradable on the market place
@@ -202,7 +202,7 @@ class SteamBot {
 							});
 							console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
 
-							let idSecret = 'zJmChq+L9Diofu786L8fm8I+EG4=';
+							let idSecret = process.env.IDENTITY_SECRET;
 
 							this.community.acceptConfirmationForObject(idSecret, offer.id, (err) => {
 								if (err) return callback(err);
