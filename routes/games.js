@@ -45,6 +45,13 @@ router.get('/', (req, res) => {
 
     }
 
+    else {
+
+        userProfile = "welcome";
+        res.render('index.html', { user : userProfile });
+
+    }
+
 });
 
 router.get('/coinflip', (req, res) => {
@@ -53,14 +60,22 @@ router.get('/coinflip', (req, res) => {
 
     if (req.user == undefined || req.user == null) { 
         userProfile = "welcome";
-        res.render('index.html', { user : userProfile });
+        res.render('coinflip.html', { user : userProfile });
     }
 
     else if (req.user != undefined || req.user != null) {
+        
         User.findOne({"SteamID": req.user["_json"]["steamid"]}, (err, data)=> {
-            if (err) userProfile = "welcome";
-            userProfile = data;
-            res.render('coinflip.html', { user : userProfile });
+            if (err) {
+                userProfile = "welcome";
+                res.render('coinflip.html', { user : userProfile });
+            }
+
+            else {
+                userProfile = data;
+                res.render('coinflip.html', { user : userProfile });
+            }
+
         });
 
     }

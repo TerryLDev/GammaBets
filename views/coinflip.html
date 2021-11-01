@@ -1,1 +1,87 @@
-<p>{{ user.Username}} {{ user.SteamID }} {{ user.ProfilePictureURL}}</p>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GammaBets</title>
+        <script
+            src="https://cdn.socket.io/4.2.0/socket.io.min.js"
+            integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
+            crossorigin="anonymous"
+        ></script>
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/index.css"
+            type="text/css"
+        />
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/deposit.css"
+            type="text/css"
+        />
+    </head>
+    <body>
+        <header>
+            <div id="sidebar">
+                <div id="logo-login">
+                    <h1>RustSite</h1>
+
+                    {% if user == "welcome" %}
+                    <a href="/auth/steam">
+                        <img
+                            src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
+                            alt="Sign in Through Steam"
+                        />
+                    </a>
+                    {% else %}
+                    <h2>Welcome, <a id="this should pull up their website profile">{{ user.Username }}</a></h2>
+                    {% endif %}
+                </div>
+
+                <div id="chat">
+                    <div id="chat-feed">
+                        <div id="chat-message-out"></div>
+                    </div>
+                    <div id="chat-options">
+                        <input
+                            id="user-message-name"
+                            style="display: none"
+                            ;
+                            value="{{ user.Username }}"
+                        />
+                        <input
+                            id="user-message-url"
+                            style="display: none"
+                            ;
+                            value="{{ user.ProfileURL }}"
+                        />
+                        {% if user == "welcome" %}
+                        <input id="message" type="text" name="message" placeholder="Sign In To Chat" disabled/>
+                        <input type="button" id="send-message" disabled value="Send" />
+                        
+                        {% else %}
+                        <input id="message" type="text" name="message" />
+                        <input type="button" id="send-message" value="Send" />
+                        {% endif %}
+                        <a href="">Support</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main>
+
+            {% include "parts/deposit.html" %}
+
+            {% if user == "welcome" %}
+            <p>Test</p>
+
+            {% else %}
+            <p>{{user}}</p>
+            <p>{{ user.Username}} {{ user.SteamID }} {{ user.ProfilePictureURL}}</p>
+            {% endif %}
+        </main>
+
+        <script src="/static/scripts/homepage.js"></script>
+        <script src="/static/scripts/deposit.js"></script>
+
+    </body>
+</html>

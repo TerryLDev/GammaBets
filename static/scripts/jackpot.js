@@ -1,3 +1,5 @@
+var socket = io('https://quetzil.com/')
+
 const playerBetsSection = document.getElementById('player-bets');
 const potinfo = document.getElementById('total-pot-value');
 
@@ -5,11 +7,14 @@ let waitingForSpinner = false;
 
 socket.on('jackpotCountDown', (time) => {
     // this is a prototype for now
+
     let spinner = document.getElementById('spinner');
     spinner.innerHTML = '<p>' + time + '</p>';
 
     if (time == 0) {
+
         waitingForSpinner = true;
+
     }
 
 })

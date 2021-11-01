@@ -51,7 +51,7 @@ let allUsers;
 let currentJPGame;
 
 // Jackpot Timer Setup
-let jpTimer = 120;
+let jpTimer = 10;
 let readyToRoll = false;
 let countDown = false;
 
@@ -336,14 +336,24 @@ bot.client.on('disconnected', (eresult, msg) => {
     }, 1500)
 })
 
+bot.client.on('error', (err) =>{
+    console.log(err);
+})
+
 bot.manager.on('sentOfferChanged', (offer, oldState) => {
     
     if (TradeOfferManager.ETradeOfferState[offer.state] == 'Declined') {
-            TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
+            
+        TradeHistory.findOneAndUpdate({"TradeID": offer.id}, {"State": TradeOfferManager.ETradeOfferState[offer.state]}, {upsert: true}, (err, data) => {
+
                 if (err) return console.error(err);
 
                 else if (trade == null || trade.SteamID == null) {
-                    return console.error('Invalid TradeID Lookup or Manual Change')
+                    return console.log('Invalid TradeID Lookup or Manual Change')
+                }
+
+                else if (trade.TransactionType == 'Withdraw') {
+                    console.log(`Withdraw Trade: ${offer.id} was declined, Please notify user ${trade.SteamID}`);
                 }
 
                 else {
@@ -498,6 +508,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 });
 
 // Jackpot Timer
+let setIntervalDelay = 1000;
 
 function jackpotTimer() {
 
@@ -532,41 +543,38 @@ function jackpotTimer() {
 
                     else {
 
-                        setTimeout(function() {
-                            console.log(winner);
+                        console.log(winner);
 
-                            let person;
+                        let person;
 
-                            allUsers.forEach(user => {
+                        allUsers.forEach(user => {
 
-                                if (user['SteamID'] == winner) {
-                                    person = user
-                                }
+                            if (user['SteamID'] == winner) {
+                                person = user
+                            }
 
-                            })
+                        })
 
-                            io.emit('jackpotCountDown', winner)
+                        io.emit('jackpotCountDown', person.Username)
 
-                            selectWinner.takeJackpotProfit(jpGame, person, skins, (skinList, error) => {
+                        selectWinner.takeJackpotProfit(jpGame, person, skins, (skinList, error) => {
 
-                                if (error) console.error(error);
-                                
-                                else {
-                                    console.log(skinList)
-            
-                                    bot.sendWithdraw(skinList, person, (data, err) => {
-                                        if (err) console.error(err);
+                            if (error) console.error(error);
+                            
+                            else {
+        
+                                bot.sendWithdraw(skinList, person, (data, err) => {
+                                    if (err) console.error(err);
 
-                                        else {
-                                            console.log(data);
-                                        }
-                                    })
-                                    currentJPGame = null;
-                                    jpTimer = 120;
-                                }
-                            });
+                                    else {
+                                        console.log(data);
+                                    }
+                                })
+                                currentJPGame = null;
+                                jpTimer = 120;
+                            }
+                        });
 
-                        }, 1000)
                     }
                 })
             }
@@ -579,4 +587,4 @@ function jackpotTimer() {
     }
 }
 
-let serverJPTimer = setInterval(jackpotTimer, 1000);
+let serverJPTimer = setInterval(jackpotTimer, setIntervalDelay);
