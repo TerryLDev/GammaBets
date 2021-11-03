@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>GammaBets</title>
+        <title>GammaBets | Coin Flip</title>
         <script
             src="https://cdn.socket.io/4.2.0/socket.io.min.js"
             integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
@@ -15,6 +15,11 @@
         <link
             rel="stylesheet"
             href="/static/stylesheets/deposit.css"
+            type="text/css"
+        />
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/coinflip.css"
             type="text/css"
         />
     </head>
@@ -67,21 +72,40 @@
             </div>
         </header>
 
-        <main>
+        <main id="main">
 
-            {% include "parts/deposit.html" %}
+            {% include "parts/topnav.html" %}
 
-            {% if user == "welcome" %}
-            <p>Test</p>
+            <div class="main-section">
 
-            {% else %}
-            <p>{{user}}</p>
-            <p>{{ user.Username}} {{ user.SteamID }} {{ user.ProfilePictureURL}}</p>
-            {% endif %}
+                {% if user == "welcome" %}
+                <p>Test</p>
+
+                {% else %}
+                <p>{{user}}</p>
+                <p>{{ user.Username}} {{ user.SteamID }} {{ user.ProfilePictureURL}}</p>
+                {% endif %}
+
+                <div id="coinflip-area">
+                    <div id="create-cf-game">
+                        <p>Create a New Coin Flip</p>
+                        <button id="new-cf-game-menu" onclick="openFirstMenu()">Create Game</button>
+                    </div>
+
+                    <div id="active-cf-games">
+
+                    </div>
+                </div>
+
+                {% include "parts/coinflipmenu.html" %}
+
+            </div>
+
         </main>
 
         <script src="/static/scripts/homepage.js"></script>
         <script src="/static/scripts/deposit.js"></script>
+        <script src="/static/scripts/coinflip.js"></script>
 
     </body>
 </html>

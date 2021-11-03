@@ -1,4 +1,4 @@
-var socket = io();
+const socket = io();
 
 function sideBarToggle() {
     let sidebar = document.getElementById('sidebar');

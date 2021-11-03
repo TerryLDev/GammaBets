@@ -1,5 +1,3 @@
-var socket = io('https://quetzil.com/')
-
 const playerBetsSection = document.getElementById('player-bets');
 const potinfo = document.getElementById('total-pot-value');
 

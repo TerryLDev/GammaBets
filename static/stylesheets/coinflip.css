@@ -1,0 +1,72 @@
+#coinflip-menu {
+    z-index: 10;
+    display: fixed;
+    width: 0px;
+    max-height: 50%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    margin: auto;
+    background-color: lightcoral;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+#coin-info-select {
+    display: flex;
+    flex-direction: row;
+}
+
+#side-select {
+    width: 0px;
+    overflow-x: hidden;
+}
+
+#coin-flex {
+    display: flex;
+    flex-direction: row;
+}
+
+#coin-flex input[type="checkbox"] {
+    display: none;
+}
+
+#coin-flex input[type="checkbox"] + label {
+    display: inline-block;
+    cursor: pointer;
+}
+
+#coin-flex input[type="checkbox"]:checked + label {
+    border: 1px solid black;
+}
+
+.coin {
+    width: 150px;
+    height: 150px;
+}
+
+#cf-skin-selection {
+    width: 0px;
+    display: none;
+    overflow-x: hidden;
+}
+
+@keyframes change-width {
+    from {
+        padding: 0px;
+        width: 0px;
+    }
+    to {
+        padding: 10px;
+        width: 50%;
+    }
+}
+
+.show-menu {
+    animation-name: change-width;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}

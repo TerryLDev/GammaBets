@@ -105,10 +105,9 @@ const port = process.env.PORT || 5000;
 
 // Set Up config for Steambots
 const bot = new SteamBot({
-    accountName: 'bigstonkdaddy',
-    password: 'If#219jZ1!',
-    twoFactorCode: SteamTotp.generateAuthCode("nDvhKfTBcAGGJyxCNSTYcaMh+0s="),
-
+    accountName: process.env.USERNAME,
+    password: process.env.PASSWORD,
+    twoFactorCode: SteamTotp.generateAuthCode(process.env.SHARED_SECRET),
 });
 
 // Authentcation startegy for Passport
@@ -301,10 +300,6 @@ io.on('connection', (socket) => {
         bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
     });
 
-    socket.on('jackpotGame', (data) => {
-
-    });
-
 });
 
 // SteamBot Events
@@ -316,7 +311,7 @@ bot.client.on('steamGuard', (domain, callback, lastCodeWrong) => {
     setTimeout(function() {
         if (lastCodeWrong) {
             console.log("Wrong Code for Bot 1")
-            let code = SteamTotp.getAuthCode(process.env.IDENTITY_SECRET)
+            let code = SteamTotp.generateAuthCode(process.env.SHARED_SECRET)
             callback(code);
         }
     }, 1500)
@@ -332,12 +327,20 @@ bot.client.on('disconnected', (eresult, msg) => {
         console.log(eresult)
         console.log(msg)
 
-        bot.logOn()
+        bot.logOn({
+            accountName: process.env.USERNAME,
+            password: process.env.PASSWORD,
+            twoFactorCode: SteamTotp.generateAuthCode(process.env.SHARED_SECRET)
+        })
     }, 1500)
 })
 
 bot.client.on('error', (err) =>{
-    console.log(err);
+
+    if (err == "Error: RateLimitExceeded") {
+        console.log('Bot 1 has exceeded its rate limit');
+        bot.client.logOff();
+    }
 })
 
 bot.manager.on('sentOfferChanged', (offer, oldState) => {
@@ -463,7 +466,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
                                 }
                             });
                         });
-                        
+
                         let userBet = {
                             username: username,
                             userSteamId: trade['SteamID'],
