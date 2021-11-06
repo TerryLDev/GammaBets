@@ -101,7 +101,7 @@ app.use(session({
 }));
 
 // Localhost port
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 
 // Set Up config for Steambots
 const bot = new SteamBot({
@@ -121,9 +121,9 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `https://www.quetzil.com/auth/steam/return`,
-    realm: `https://www.quetzil.com/`,
-    apiKey: '3D933D236206D78C89D34304FE9EF648'
+    returnURL: `https://www.gammabets.com/auth/steam/return`,
+    realm: `https://www.gammabets.com/`,
+    apiKey: process.env.API_KEY
   },
   function(identifier, profile, done) {
     process.nextTick(function () {

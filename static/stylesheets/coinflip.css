@@ -29,20 +29,7 @@
     flex-direction: row;
 }
 
-#coin-flex input[type="checkbox"] {
-    display: none;
-}
-
-#coin-flex input[type="checkbox"] + label {
-    display: inline-block;
-    cursor: pointer;
-}
-
-#coin-flex input[type="checkbox"]:checked + label {
-    border: 1px solid black;
-}
-
-.coin {
+#coin-flex img {
     width: 150px;
     height: 150px;
 }

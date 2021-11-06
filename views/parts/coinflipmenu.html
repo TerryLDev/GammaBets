@@ -7,26 +7,19 @@
         </div>
 
         <div id="coin-flex">
-            <input type="checkbox" value="heads" id="coinflip-heads"><label for="heads"><img class="coin" src="/static/images/headsSample.png" alt="heads"></label>
 
-            <input type="checkbox" value="tails" id="coinflip-heads"><label for="heads"><img class="coin" src="/static/images/tailsSample.png" alt="heads"></label>
+            <input type="checkbox" value="heads" id="coin-side-heads" onclick="changeTails()"><label for="heads"><img class="coin-img" src="/static/images/headsSample.png" alt="heads"></label>
+
+            <input type="checkbox" value="tails" id="coin-side-tails" onclick="changeHeads()"><label for="tails"><img class="coin-img" src="/static/images/tailsSample.png" alt="heads"></label>
+
         </div>
 
         <button>Choose Skins</button>
     </div>
 
     <div id="cf-skin-selection">
-        <p>Pick the skins you would like to wager</p>
-
-        <div id="cf-player-inventory">
-
-        </div>
-
-        <div id="cf-wager-info">
-            <p>Total Skins: </p>
-            <p>Total Value: </p>
-            <button id="confirm-cf-button">Submit</button>
-        </div>
+        
+        {% include /parts/deposit.html %}
 
     </div>
 

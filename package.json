@@ -4,7 +4,8 @@
   "description": "base",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "start": "node app.js"
   },
   "keywords": [
     "example",
@@ -47,5 +48,8 @@
   },
   "engines": {
     "node": "14.x"
+  },
+  "devDependencies": {
+    "kill-port": "^1.6.1"
   }
 }
