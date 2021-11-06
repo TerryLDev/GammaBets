@@ -121,8 +121,8 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `https://www.gammabets.com/auth/steam/return`,
-    realm: `https://www.gammabets.com/`,
+    returnURL: `http://www.gammabets.com/auth/steam/return`,
+    realm: `http://www.gammabets.com/`,
     apiKey: process.env.API_KEY
   },
   function(identifier, profile, done) {
