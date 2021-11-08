@@ -43,12 +43,12 @@
     font-size: 12px;
 }
 
-label:before {
+#player-skin-selection label:before {
     border: 2px black solid;
     border-radius: 5px;
 }
 
-:checked + label img {
+#player-skin-selection :checked + label img {
     border: 2px black solid;
     border-radius: 5px;
 }
