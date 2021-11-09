@@ -78,18 +78,18 @@
 
             <div class="main-section">
 
-                {% if user == "welcome" %}
-                <p>Test</p>
-
-                {% else %}
-                <p>{{user}}</p>
-                <p>{{ user.Username}} {{ user.SteamID }} {{ user.ProfilePictureURL}}</p>
-                {% endif %}
-
                 <div id="coinflip-area">
+                    
                     <div id="create-cf-game">
+
                         <p>Create a New Coin Flip</p>
+                        {% if user == "welcome" %}
                         <button id="new-cf-game-menu" onclick="openFirstMenu()">Create Game</button>
+
+                        {% else %}
+                        <button id="new-cf-game-menu" onclick="openFirstMenu()">Create Game</button>
+
+                        {% endif %}
                     </div>
 
                     <div id="active-cf-games">
@@ -97,11 +97,11 @@
                     </div>
                 </div>
 
-                {% include "parts/coinflipmenu.html" %}
-
             </div>
 
         </main>
+
+        {% include "parts/coinflipmenu.html" %}
 
         <script src="/static/scripts/homepage.js"></script>
         <script src="/static/scripts/deposit.js"></script>

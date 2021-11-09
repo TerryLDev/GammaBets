@@ -296,6 +296,10 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('createNewCoinFlipGame', (data) => {
+        console.log(data);
+    })
+
     socket.on('makeJackpotDeposit', (data) => {
         bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
     });
@@ -306,7 +310,6 @@ io.on('connection', (socket) => {
 
 
 bot.client.on('steamGuard', (domain, callback, lastCodeWrong) => {
-    console.log(domain);
 
     setTimeout(function() {
         if (lastCodeWrong) {

@@ -1,25 +1,63 @@
 <div id="coinflip-menu">
 
+    <div id="new-game-info" hidden>
+        <input id="user-steamid" value="{{ user.SteamID }}" hidden>
+        <input id="user-tradeurl" value="{{ user.TradeURL }}" hidden>
+    </div>
+
     <div id="side-select">
-        <div id="coin-info-select">
-            <button onclick="closeMenu()">X</button>
-            <p>Pick a Side of the Coin</p>
+
+        <button onclick="closeMenu()" class="item1">X</button>
+        <p class="item2">Pick a Side of the Coin</p>
+
+        <div class="item3">
+            <input type="checkbox" value="heads" id="coin-side-heads" onclick="changeTails()"><label for="heads" name="heads"><img class="coin-img" src="/static/images/headsSample.png" alt="heads"></label>
         </div>
 
-        <div id="coin-flex">
-
-            <input type="checkbox" value="heads" id="coin-side-heads" onclick="changeTails()"><label for="heads"><img class="coin-img" src="/static/images/headsSample.png" alt="heads"></label>
-
-            <input type="checkbox" value="tails" id="coin-side-tails" onclick="changeHeads()"><label for="tails"><img class="coin-img" src="/static/images/tailsSample.png" alt="tails"></label>
-
+        <div class="item4">
+            <input type="checkbox" value="tails" id="coin-side-tails" onclick="changeHeads()"><label for="tails" name="tails"><img class="coin-img" src="/static/images/tailsSample.png" alt="tails"></label>
         </div>
 
-        <button>Choose Skins</button>
+        <button class="item5" onclick="cfDepositMenu()">Choose Skins</button>
+
     </div>
 
     <div id="cf-skin-selection">
+
+        <div id="deposit-topbar">
+
+            <button onclick="closeDepoMenu()" style="float: left;">X</button>
+            <p>Select Skins You Would Like to Deposit</p>
+
+        </div>
+
+        <div id="player-inventory">
         
-        {% include "parts/deposit.html" %}
+            <p>Please insert your Trade URL. you can find your Trade URL <a href="https://steamcommunity.com/profiles/{{ user.SteamID }}/tradeoffers/privacy" target="_blank">here</a></p>
+            <input id="url-steam-id" value="{{ user.SteamID }}" hidden>
+    
+            <input type="text" id="tradeurl" name="tradeurl" 
+            {% if user.TradeURL != undefined %}
+            placeholder="{{ user.TradeURL}}"
+            value="{{ user.TradeURL}}"
+            {% else %}
+            placeholder="Please Insert TradeURL"
+            {% endif %}
+            >
+    
+            <input type="submit" value="Add" onclick="addTradeURL()">
+            {% if user.TradeURL == undefined %}
+            <p>No Inventory Found</p>
+            {% else %}
+            
+            <div id="player-skin-selection"> 
+            </div>
+            <p>Total Skins: </p>
+            <p>Total Value: </p>
+            <input type="submit" value="Deposit Skins" id="deposit-skins" onclick="closeScreen()">
+            
+            {% endif %}
+        </div>
 
     </div>
 

@@ -97,7 +97,38 @@ depositSkins.addEventListener('click', function() {
         console.log('No Skins Selected')
     }
 
+    else if (document.getElementById('new-game-info').contains(document.getElementById('new-game-id'))) {
+
+        console.log('new coin flip game')
+
+        let cfSteamID = document.getElementById('user-steamid').value;
+        let cfTradeURL = document.getElementById('user-tradeurl').value;
+        let cfSide;
+        let cfGameId = document.getElementById('new-game-id').value;
+
+        const heads = document.getElementById('coin-side-heads');
+        const tails = document.getElementById('coin-side-tails');
+
+        if (heads.checked) {
+            cfSide = 'heads';
+        }
+
+        else if (tails.checked) {
+            cfSide = 'tails';
+        }
+
+        socket.emit("createNewCoinFlipGame", {
+            user: cfSteamID,
+            skins: selectedSkinIDs,
+            tradeURL: cfTradeURL,
+            side: cfSide,
+            gameID: cfGameId
+        });
+    }
+
     else {
+        console.log('new jackpot game')
+
         socket.emit('makeJackpotDeposit', {
             user: steamID,
             skins: selectedSkinIDs,
@@ -107,5 +138,4 @@ depositSkins.addEventListener('click', function() {
 
 });
 
-// Build a function that gets all the prices for the skins in their inventory
 // also when the select the skins update the value they are putting in and amount of skins they are depositing

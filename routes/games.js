@@ -55,6 +55,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/coinflip', (req, res) => {
+
     req.session.isAuth = true;
     let userProfile;
 
