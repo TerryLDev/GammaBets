@@ -301,7 +301,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on('makeJackpotDeposit', (data) => {
-        bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL, 'j');
+        bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL);
     });
 
 });

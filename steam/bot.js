@@ -87,7 +87,7 @@ class SteamBot {
 
 	}
 
-	sendJPDepositTradeOffer(steamid, itemArray, tradeurl, gameid) {
+	sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
 
 		const offer = this.manager.createOffer(steamid);
 
