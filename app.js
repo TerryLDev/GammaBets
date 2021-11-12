@@ -121,9 +121,9 @@ passport.deserializeUser((user, done) => {
 });
 
 passport.use(new SteamStrategy({
-    returnURL: `http://www.gammabets.com/auth/steam/return`,
-    realm: `http://www.gammabets.com/`,
-    apiKey: process.env.API_KEY
+    returnURL: process.env.DEV_ENV == "true" ? "http://localhost:3000/auth/steam/return" : `http://www.gammabets.com/auth/steam/return`,
+    realm: process.env.DEV_ENV == "true" ? "http://localhost:3000" : `http://www.gammabets.com/`,
+    apiKey: process.env.DEV_ENV == "true" ? process.env.API_KEY_DEV : process.env.API_KEY_PRO
   },
   function(identifier, profile, done) {
     process.nextTick(function () {
@@ -297,7 +297,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('createNewCoinFlipGame', (data) => {
-        console.log(data);
+        bot.sendCoinFlipTradeOffer(data.user, data.skins, data.tradeURL, data.side, data.gameID);
     })
 
     socket.on('makeJackpotDeposit', (data) => {
@@ -380,7 +380,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
             }
 
             // Not a perm solution
-            else if (trade.TransactionType == 'Deposit') {
+            else if (trade.TransactionType == 'Deposit' && trade.GameMode == 'Jackpot') {
 
                 JackpotGame.findOne({"Status" : true}, (err, game) => {                    
 

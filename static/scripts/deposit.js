@@ -3,11 +3,22 @@ function openScreen() {
 }
 
 function closeScreen() {
-    document.getElementById('deposit-menu').style = "width:0%";
+    if (document.body.contains(document.getElementById('deposit-menu'))){
+        document.getElementById('deposit-menu').style = "width:0%";
+    }
 }
 
-const steamID = document.getElementById('url-steam-id').value;
-const tradeURL = document.getElementById('tradeurl').value;
+let steamID;
+
+if (document.body.contains(document.getElementById('url-steam-id'))) {
+    steamID = document.getElementById('url-steam-id').value;
+}
+
+let tradeURL;
+
+if (document.body.contains(document.getElementById('tradeurl'))) {
+    tradeURL = document.getElementById('tradeurl').value;
+}
 
 function addTradeURL() {
     let tradeURL = document.getElementById('tradeurl');

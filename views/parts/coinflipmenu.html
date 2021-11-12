@@ -18,7 +18,7 @@
             <input type="checkbox" value="tails" id="coin-side-tails" onclick="changeHeads()"><label for="tails" name="tails"><img class="coin-img" src="/static/images/tailsSample.png" alt="tails"></label>
         </div>
 
-        <button class="item5" onclick="cfDepositMenu()">Choose Skins</button>
+        <button class="item5" id="show-deposit-button" onclick="cfDepositMenu()">Choose Skins</button>
 
     </div>
 
@@ -44,12 +44,12 @@
             placeholder="Please Insert TradeURL"
             {% endif %}
             >
-    
             <input type="submit" value="Add" onclick="addTradeURL()">
+
             {% if user.TradeURL == undefined %}
             <p>No Inventory Found</p>
-            {% else %}
             
+            {% else %}
             <div id="player-skin-selection"> 
             </div>
             <p>Total Skins: </p>

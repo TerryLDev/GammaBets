@@ -29,13 +29,20 @@ function closeDepoMenu() {
     cfDepoScreen.classList.remove("show-depo-class");
     tails.checked = false;
     heads.checked = false;
-    document.getElementById('new-game-id').remove();
+    
+    if (document.body.contains(document.getElementById('new-game-id'))) {
+        document.getElementById('new-game-id').remove();
+    }
 
 }
 
 function closeMenu() {
     coinflipMenu.classList.remove('show-menu');
-    document.getElementById('new-game-id').remove;
+
+    if (document.body.contains(document.getElementById('new-game-id'))) {
+        document.getElementById('new-game-id').remove();
+    }
+
     tails.checked = false;
     heads.checked = false;
 }

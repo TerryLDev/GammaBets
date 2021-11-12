@@ -46,6 +46,7 @@ body {
     flex-flow: row;
     align-items: center;
     justify-content: space-around;
+    padding: 10px;
     font-size: 20px;
     background-color: #ffe4c4;
 }
