@@ -42,49 +42,6 @@ class SteamBot {
 			this.community.startConfirmationChecker(3000, process.env.IDENTITY_SECRET);
 		})
 
-		// Function called to get the prices for all the skins in rust that are tradable on the market place
-
-		///////////////////////////
-		// REMEMBER TO UNCOMMENT //
-		///////////////////////////
-
-		/*
-		
-		this.community.marketSearch({appid: 252490}, (err, items) => {
-			if (err) return console.error(err);
-
-			items.forEach(item => {
-
-				MarketPrice.exists({SkinName: item['market_hash_name']})
-					.then((result) => {
-
-						if (result) {
-							MarketPrice.findOneAndUpdate({SkinName: item['market_hash_name']}, {Value: item['price']}, {upsert: true}, (err, data) => {
-								if(err) return console.error(err);
-							});
-						}
-
-						else {
-
-							MarketPrice.create({
-								SkinName: item['market_hash_name'],
-								SkinPictureURL: item['image'],
-								Value: item['price'],
-								DateLogged: Date.now()
-							}, (err, data) => {
-								if(err) return console.error(err);
-							});
-						}
-					})
-
-					.catch((err) => {
-						return console.error(err);
-					});
-			});
-			
-		});
-		*/
-
 	}
 
 	sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
@@ -207,64 +164,69 @@ class SteamBot {
 						})
 						.then((result) => {
 							
-							User.updateOne({"SteamID": steamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
+							User.findOneAndUpdate({"SteamID": steamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
 								
 								if (err) return console.error(err);
 
 								else if (isActiveGame) {
-									
-									let query;
 
 									if (side == 'heads') {
-										
-										query = {
+
+										CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
 											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
 											Heads: steamID,
-										}
+										}, {upsert: true}, (err, doc) => {
+											if (err) console.log(err);
+										})
 
 									}
 
 									else {
 
-										query = {
+										CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
 											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
 											Tails: steamID,
-										}
+										}, {upsert: true}, (err, doc) => {
+											if (err) console.log(err);
+										})
 
 									}
-
-									CoinFlipGame.findOneAndUpdate({GameID: gameID}, query, {upsert: true}, (err, doc) => {
-										if (err) console.log(err);
-									})
 								}
 
 								else {
-									let query;
 
 									if (side == 'heads') {
-										query = {
+										CoinFlipGame.create({
 											GameID: gameID,
 											PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
 											Heads: steamID,
 											Status: true,
 											DateCreated: Date.now()
-										}
+										})
+										.then((result) => {
+											console.log('New Coin Flip game activated Game ID: ' + gameID)
+										})
+										.catch((err) => {
+											if (err) console.error(err);
+										});
+
 									}
 
 									else {
-										query = {
+										CoinFlipGame.create({
 											GameID: gameID,
 											PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
 											Tails: steamID,
 											Status: true,
 											DateCreated: Date.now()
-										}
+										})
+										.then((result) => {
+											console.log('New Coin Flip game activated Game ID: ' + gameID)
+										})
+										.catch((err) => {
+											if (err) console.error(err);
+										});
 									}
-
-									CoinFlipGame.create(query)
-									.catch((err) => {
-										if (err) console.error(err);
-									});
 
 								}
 							});
@@ -295,6 +257,10 @@ class SteamBot {
 			}
 		})
 
+	}
+
+	async cancelCoinFlipGame(cfGame) {
+		
 	}
 
 	sendWithdraw(skins, user, callback) {
@@ -344,9 +310,12 @@ class SteamBot {
 						DateCreated: Date.now()
 					})
 						.then((result) => {
-							User.updateOne({"SteamID": user.SteamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
+
+							User.findOneAndUpdate({"SteamID": user.SteamID}, {$push: {"Trades": offer.id} }, 
+							(err, doc) => {
 								if (err) return callback(err);
 							});
+
 							console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
 
 							let idSecret = process.env.IDENTITY_SECRET;

@@ -3,6 +3,7 @@ const nunjucks = require('nunjucks');
 const express = require('express');
 const session = require('express-session');
 const mongoose = require('mongoose');
+const socket = require('socket.io');
 
 const app = express();
 
@@ -21,7 +22,7 @@ nunjucks.configure('views', {
 app.set('views', '../views')
 app.set('view engine', 'html')
 
-router.use(function timeLog (req, res, next) {
+router.use(function timeLog(req, res, next) {
     console.log('Time: ', Date.now())
     next()
 });

@@ -1,3 +1,5 @@
+const { Socket } = require("socket.io");
+
 const coinflipMenu = document.getElementById('coinflip-menu');
 const sideSelect = document.getElementById('side-select');
 const cfDepoScreen = document.getElementById('cf-skin-selection');
@@ -78,4 +80,14 @@ function cfDepositMenu() {
     }
 
 }
+
+socket.on('coinFlipLoader', games => {
+
+    // games is going to be an array of all the cf games from the external json file
+
+})
+
+socket.on('newCoinFlipGame', cf => {
+    return null
+})
 
