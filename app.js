@@ -768,13 +768,29 @@ setInterval(async function() {
 // im going to lose my mind it cant call this fucking function
 
 const callUpdate = async () => {
-    let data = await coinFlipUpdater.coinFlipUpdates()
 
-    console.log(data)
+    try {
+
+        let modify = await coinFlipUpdater.coinFlipUpdates();
+
+        console.log(modify)
+
+        io.emit("coinFlipLoader", modify);
+
+    }
+
+    catch(e) {
+        console.log(e)
+    }
+
 }
 
-let coinFlipTimer = setInterval(function() {
+const coinFlipTimer = setInterval(function() {
 
     callUpdate()
 
 }, 1000)
+
+const checkDBCoinFlips = setInterval(function() {
+    
+}, 2000)

@@ -94,85 +94,76 @@ async function addNewActiveGame(cfGame) {
 // IT FUCKING WORKSSSSSSS FUCKING FINALLY
 function coinFlipUpdates() {
 
-    let modify;
+    try {
 
-    fs.readFile(`${__dirname}/cfgames.json`, "utf-8", (err, data) => {
+        let json = fs.readFileSync(`${__dirname}/cfgames.json`, {encoding: "utf-8"})
 
-        if(err) return console.error(err)
+        modify = JSON.parse(json);
 
-        else {
+        modify.forEach(gameObj => {
 
-            modify = JSON.parse(data);
+            if(gameObj.gameState == true) {
 
-            return modify;
+                // checks if an opponent was sent a trade
+                if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "sent" && gameObj["timer"] === false) {
+                    gameObj["timer"] = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
+                }
 
-            modify.forEach(gameObj => {
+                // changes the timer while waiting for the opponent to join
+                else if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "sent" && gameObj["timer"] >= 1) {
+                    gameObj["timer"] = gameObj["timer"] - 1;
 
-                if(gameObj.gameState == true) {
-    
-                    // checks if an opponent was sent a trade
-                    if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "sent" && gameObj["timer"] === false) {
-                        gameObj["timer"] = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
-                    }
-    
-                    // changes the timer while waiting for the opponent to join
-                    else if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "sent" && gameObj["timer"] >= 1) {
-                        gameObj["timer"] = gameObj["timer"] - 1;
-    
-                    }
-    
-                    // should send a request to the server and website that the opponent failed ot accept the trade in time
-                    else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "sent" && gameObj.timer == 0) {
-                        console.log(`Canel opponent's trade with GameID: ${gameObj.gameID}`)
-                    }
-    
-                    // change the timer from a countdown for the trade to about to flip
-                    else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && gameObj.timer > 0) {
-                        gameObj.timer = `Flipping in... ${process.env.COIN_FLIP_COUNTDOWN_TIME}`;
-                    }
-                    
-                    // change the flipping timer
-                    else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
-    
-                        let currentFlipTimer = "Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1)
-    
-                        gameObj.timer = currentFlipTimer;
-                        
-                    }
-    
-                    // this should send a request to the server and website that it's time ot flip
-                    else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0) {
-    
-                        console.log("Flipping!!!" + gameObj.gameID)
-    
-                        let gameIndex = modify.findIndex(obj => {
-                            if (obj.gameID == gameObj.gameID) {
-                                return obj
-                            }
-                        })
-    
-                        modify.splice(gameIndex, 1);
-    
-                        // call a function that decides a winner
-                        decideCoinFlipWinner(gameObj.gameID)
-    
-                    }
+                }
+
+                // should send a request to the server and website that the opponent failed ot accept the trade in time
+                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "sent" && gameObj.timer == 0) {
+                    console.log(`Canel opponent's trade with GameID: ${gameObj.gameID}`)
+                }
+
+                // change the timer from a countdown for the trade to about to flip
+                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && gameObj.timer > 0) {
+                    gameObj.timer = `Flipping in... ${process.env.COIN_FLIP_COUNTDOWN_TIME}`;
+                }
+                
+                // change the flipping timer
+                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
+
+                    let currentFlipTimer = "Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1)
+
+                    gameObj.timer = currentFlipTimer;
                     
                 }
-            })
-    
-            fs.writeFile(`${__dirname}/cfgames.json`, JSON.stringify(modify), (err) => {
-                if (err) return console.error(err);
 
-                else {
-                    console.log(modify);
-                    return modify;
+                // this should send a request to the server and website that it's time ot flip
+                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0) {
+
+                    console.log("Flipping!!!" + gameObj.gameID)
+
+                    let gameIndex = modify.findIndex(obj => {
+                        if (obj.gameID == gameObj.gameID) {
+                            return obj
+                        }
+                    })
+
+                    modify.splice(gameIndex, 1);
+
+                    // call a function that decides a winner
+                    decideCoinFlipWinner(gameObj.gameID)
+
                 }
-            })
+                
+            }
+        })
 
-        }
-        
-    })
+        fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify))
+
+        return modify;
+
+    }
+
+    catch (err) {
+        return err
+    }
 
 }
 
