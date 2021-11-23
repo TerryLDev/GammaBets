@@ -47,11 +47,11 @@ class SteamBot {
 
 	}
 
-	async sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
+	sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
 
 		const offer = this.manager.createOffer(steamid);
 
-		await this.manager.getUserInventoryContents(steamid, 252490, 2, true, (err, inv) => {
+		this.manager.getUserInventoryContents(steamid, 252490, 2, true, (err, inv) => {
 			if (err) return console.error(err);
 
 			else {
@@ -118,9 +118,9 @@ class SteamBot {
 // trade gets sent but it doesn't get logged to the server, also it does create a new coinflip game in the CoinFlipGame db
 // brain brokey come back to this later
 
-	async sendCoinFlipTradeOffer(steamID, skins, tradeURL, side, gameID) {
+	sendCoinFlipTradeOffer(steamID, skins, tradeURL, side, gameID) {
 
-		const isActiveGame = await this.checkForActiveCFGame(gameID);
+		const isActiveGame = this.checkForActiveCFGame(gameID);
 
 		const offer = this.manager.createOffer(steamID);
 
@@ -264,9 +264,9 @@ class SteamBot {
 		})
 	}
 
-	async checkForActiveCFGame(cfGameID) {
+	checkForActiveCFGame(cfGameID) {
 
-		await CoinFlipGame.find({GameID: cfGameID}, (err, doc) => {
+		CoinFlipGame.find({GameID: cfGameID}, (err, doc) => {
 			if (err) return console.error(err);
 
 			else {
@@ -283,9 +283,9 @@ class SteamBot {
 	}
 
 	// called from where?
-	async cancelOpponentCoinFlipTradeOffer(cfGame) {
+	cancelOpponentCoinFlipTradeOffer(cfGame) {
 
-		await CoinFlipGame.findOne({"GameID": cfGame.gameID}, (err, game) => {
+		CoinFlipGame.findOne({"GameID": cfGame.gameID}, (err, game) => {
 			if (err) return console.error(err)
 
 			else {
@@ -309,10 +309,10 @@ class SteamBot {
 	}
 
 	// fix this mess, make it async
-	async sendWithdraw(skins, user, callback) {
+	sendWithdraw(skins, user, callback) {
 		const offer = this.manager.createOffer(user.SteamID);
 
-		await this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
+		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
 			if (err) return console.error(err);
 
 			let skinIDs = [];
