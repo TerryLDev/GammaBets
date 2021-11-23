@@ -3,19 +3,13 @@ const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo');
 const async = require('async');
 
-const socket = require('socket.io');
-
 // Models
 const User = require('../models/user.model');
-const TradeHistory = require('../models/tradehistory.model');
-const Support = require('../models/support.model');
 const MarketPrice = require('../models/marketprice.model');
 const CoinFlipGame = require('../models/coinflipgame.model');
-const JackpotGame = require('../models/jackpotgame.model');
 
 // SteamBot
 const SteamUser = require('steam-user');
-const SteamTotp = require('steam-totp');
 const SteamCommunity = require('steamcommunity');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
@@ -27,72 +21,162 @@ const SteamBot = require("../steam/bot");
 
 const fs = require('fs');
 
-function decideCoinFlipWinner(cfGammID, callback) {
+function decideCoinFlipWinner(cfGammID) {
+
+    try {
+
+        CoinFlipGame.findOne({"GameID": cfGammID}, (err, cf) => {
+            if (err) return console.error(err)
     
-    CoinFlipGame.findOne({"GameID": cfGammID}, (err, cf) => {
-        if (err) return console.error(err)
+            else {
+    
+                try {
 
-        else {
-
-            try {
-                let listOfPlayers = []
-                
-                cf.Players.forEach(player => { 
+                    let listOfPlayers = []
                     
-                    let playerTotalVal = 0;
-        
-                    player['skinValues'].forEach(val => {
-                        playerTotalVal += val
-                    })
-        
-                    for(let i = 0; i < playerTotalVal; i++){
-                        listOfPlayers.push(player.userSteamId);
-                    }
-        
-                });
-        
-                const shuffled = listOfPlayers.sort(() => Math.random - 0.5)
-        
-                let randomWinner = Math.floor(Math.random()*shuffled.length);
-        
-                return callback(shuffled[randomWinner])
+                    cf.Players.forEach(player => { 
+                        
+                        let playerTotalVal = 0;
+            
+                        player['skinValues'].forEach(val => {
+                            playerTotalVal += val
+                        })
+            
+                        for(let i = 0; i < playerTotalVal; i++){
+                            listOfPlayers.push(player.userSteamId);
+                        }
+            
+                    });
+            
+                    const shuffled = listOfPlayers.sort(() => Math.random - 0.5)
+            
+                    let randomWinner = Math.floor(Math.random()*shuffled.length);
+            
+                    return shuffled[randomWinner]
+
+                }
+            
+                catch (error) {
+                    return error
+                }
             }
-        
-            catch (error) {
-                return callback(error)
-            }
-        }
-    });
+        });
+    }
+    catch(e) {
+        return e
+    }
 }
 
-async function addNewActiveGame(cfGame) {
-    let activeGames;
+function addNewActiveGame(cfGame) {
 
-    let newEntry = {
-        gameID: cfGame.GameID,
-        playerOneState: cfGame.PlayerOneTradeState,
-        playerTwoState: "none",
-        timer: false,
-        gameState: cfGame.Status,
+    try {
+
+        let activeGames;
+
+        let newEntry = {
+            gameID: cfGame.GameID,
+            playerOneState: cfGame.PlayerOneTradeState,
+            playerTwoState: "none",
+            timer: false,
+            gameState: cfGame.Status,
+            winner: "none",
+            wait: process.env.COIN_FLIP_ENDING_WAIT_TIME
+        }
+
+        let json = fs.readFileSync(`${__dirname}/cfgames.json`, {encoding:"utf-8"})
+
+        activeGames = JSON.parse(json)
+
+        activeGames.push(newEntry)
+
+        fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(activeGames));
+
     }
 
-    fs.readFile(`${__dirname}/cfgames.json`, "utf-8", (err, data) => {
-        if (err) console.log(err)
+    catch(e) {
+        console.log(e)
+    }
+}
 
-        else {
-            activeGames = JSON.parse(data)
-
-            activeGames.push(newEntry)
-
-            fs.writeFile("./test.json", JSON.stringify(activeGames), (err) => {
-                if(err) console.log(err);
-            });
+/*
+let newEntry = {
+            gameID: cfGame.GameID,
+            playerOneState: cfGame.PlayerOneTradeState,
+            playerTwoState: "none",
+            timer: false,
+            gameState: cfGame.Status,
+            winner: "none",
+            wait: 10
         }
-    })
+*/
+
+// changes playerTwoState form "none" to "sent" or changes it to "Accepted"
+async function opponentChangeStateCFGame(cfGame) {
+
+    try {
+
+        let json = await fs.readFileSync(`${__dirname}/cfgames.json`, {encoding: "utf-8"})
+
+        let modify = JSON.parse(json)
+
+        modify.forEach(obj => {
+            if (obj.gameID == cfGame.GameID) {
+                obj.playerTwoState = cfGame.PlayerTwoTradeState;
+            }
+        })
+
+        fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify))
+    }
+
+    catch(err) {
+        return console.log(err)
+    }
+
+}
+
+// changes playerTwoState form "sent" to "none" if the user declined the trade offer sent to them
+async function opponentDeclinedTrade(cfGame) {
+
+    try {
+
+        let json = await fs.readFileSync(`${__dirname}/cfgames.json`, {encoding: "utf-8"})
+
+        modify = JSON.parse(json)
+
+        modify.forEach(obj => {
+            if (obj.gameID == cfGame.GameID) {
+                obj.playerTwoState = "none";
+                obj.timer = false;
+            }
+        })
+
+        fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify))
+    }
+
+    catch(err) {
+        return console.log(err)
+    }
+
+}
+
+// changes playerTwoState from "sent" to "none" if the user has ran of time to accept the trade sent to them
+// have the bot cancel the trade that was sent to the person
+function tradeCountDownExpired(cfGame) {
+
+    // call a function that cancels the trade
+
+
+}
+
+// after a certain amount of time a user can cancel their active game 
+// 5 mins?
+// worry about this later tbh
+function requestCancelActiveCFGame(cfGame) {
+
 }
 
 // IT FUCKING WORKSSSSSSS FUCKING FINALLY
-function coinFlipUpdates() {
+const coinFlipUpdates = async () => {
 
     try {
 
@@ -118,6 +202,9 @@ function coinFlipUpdates() {
                 // should send a request to the server and website that the opponent failed ot accept the trade in time
                 else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "sent" && gameObj.timer == 0) {
                     console.log(`Canel opponent's trade with GameID: ${gameObj.gameID}`)
+
+                    gameObj.timer = false;
+                    gameObj.playerTwoState = "cancel";
                 }
 
                 // change the timer from a countdown for the trade to about to flip
@@ -126,7 +213,7 @@ function coinFlipUpdates() {
                 }
                 
                 // change the flipping timer
-                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
+                else if(parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
 
                     let currentFlipTimer = "Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1)
 
@@ -135,21 +222,39 @@ function coinFlipUpdates() {
                 }
 
                 // this should send a request to the server and website that it's time ot flip
-                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0) {
+                // this decides the winner
+                else if(parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0) {
 
                     console.log("Flipping!!!" + gameObj.gameID)
 
-                    let gameIndex = modify.findIndex(obj => {
-                        if (obj.gameID == gameObj.gameID) {
+                    // call a function that decides a winner
+                    let cfWinner = decideCoinFlipWinner(gameObj.gameID)
+
+                    gameObj.winner = cfWinner;
+
+                    gameObj.gameState = false;
+
+                }
+
+
+                else if (gameObj.winner != "none" && gameObj.wait <= process.env.COIN_FLIP_ENDING_WAIT_TIME && gameObj.wait != 0) {
+                    gameObj.wait -= 1;
+                }
+
+                else if (gameObj.wait == 0) {
+
+                    let gameIndex = modify.findIndex(slicer => {
+                        if (slicer.gameID == gameObj.gameID) {
                             return obj
                         }
                     })
 
                     modify.splice(gameIndex, 1);
 
-                    // call a function that decides a winner
-                    decideCoinFlipWinner(gameObj.gameID)
+                }
 
+                else if (gameObj.playerTwoState == "cancel") {
+                    gameObj.playerTwoState = "none";
                 }
                 
             }
@@ -167,4 +272,4 @@ function coinFlipUpdates() {
 
 }
 
-module.exports = {decideCoinFlipWinner, addNewActiveGame, coinFlipUpdates}
+module.exports = {decideCoinFlipWinner, addNewActiveGame, coinFlipUpdates, opponentChangeStateCFGame, opponentDeclinedTrade}

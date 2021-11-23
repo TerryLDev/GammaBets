@@ -12,6 +12,9 @@ const MarketPrice = require('../models/marketprice.model');
 const CoinFlipGame = require('../models/coinflipgame.model');
 const JackpotGame = require('../models/jackpotgame.model');
 
+const coinFlipUpdater = require('../serverScripts/coinflipgame');
+const e = require('express');
+
 
 class SteamBot {
 
@@ -44,17 +47,22 @@ class SteamBot {
 
 	}
 
-	sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
+	async sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
 
 		const offer = this.manager.createOffer(steamid);
 
-		this.manager.getUserInventoryContents(steamid, 252490, 2, true, (err, inv) => {
+		await this.manager.getUserInventoryContents(steamid, 252490, 2, true, (err, inv) => {
 			if (err) return console.error(err);
 
 			else {
 				let itemNames = []
 
 				itemArray.forEach(desired => {
+					// might break
+
+					////////////////////////////////
+					// double check this in future// 
+					////////////////////////////////
 					const item = inv.find(item => item.assetid == desired);
 
 					if(item) {
@@ -63,8 +71,9 @@ class SteamBot {
 					}
 
 					else{
-						offer.cancel();
-						return console.log('error');
+						offer.cancel((err) => {
+							if (err) return console.log(err)
+						});
 					}
 				})
 
@@ -84,7 +93,7 @@ class SteamBot {
 						TradeHistory.create({
 							TradeID: offer.id,
 							SteamID: steamid,
-							BotID: '2',
+							BotID: '1',
 							Items: itemArray,
 							ItemNames: itemNames,
 							TransactionType: 'Deposit',
@@ -109,9 +118,9 @@ class SteamBot {
 // trade gets sent but it doesn't get logged to the server, also it does create a new coinflip game in the CoinFlipGame db
 // brain brokey come back to this later
 
-	sendCoinFlipTradeOffer(steamID, skins, tradeURL, side, gameID) {
+	async sendCoinFlipTradeOffer(steamID, skins, tradeURL, side, gameID) {
 
-		const isActiveGame = this.checkForActiveCFGame(gameID);
+		const isActiveGame = await this.checkForActiveCFGame(gameID);
 
 		const offer = this.manager.createOffer(steamID);
 
@@ -133,8 +142,9 @@ class SteamBot {
 					}
 
 					else{
-						offer.cancel();
-						return console.log('error');
+						offer.cancel((err) => {
+							if (err) return console.log(err)
+						});
 					}
 
 				})
@@ -174,9 +184,14 @@ class SteamBot {
 
 										CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
 											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+											PlayerTwoTradeID: offer.id,
 											Heads: steamID,
 										}, {upsert: true}, (err, doc) => {
-											if (err) console.log(err);
+											if (err) return console.log(err);
+
+											else {
+												coinFlipUpdater.opponentChangeStateCFGame(cf);
+											}
 										})
 
 									}
@@ -185,9 +200,14 @@ class SteamBot {
 
 										CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
 											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+											PlayerTwoTradeID: offer.id,
 											Tails: steamID,
 										}, {upsert: true}, (err, doc) => {
-											if (err) console.log(err);
+											if (err) return console.log(err);
+
+											else {
+												coinFlipUpdater.opponentChangeStateCFGame(cf);
+											}
 										})
 
 									}
@@ -199,6 +219,7 @@ class SteamBot {
 										CoinFlipGame.create({
 											GameID: gameID,
 											PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+											PlayerOneTradeID: offer.id,
 											Heads: steamID,
 											Status: true,
 											DateCreated: Date.now()
@@ -216,6 +237,7 @@ class SteamBot {
 										CoinFlipGame.create({
 											GameID: gameID,
 											PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+											PlayerOneTradeID: offer.id,
 											Tails: steamID,
 											Status: true,
 											DateCreated: Date.now()
@@ -242,12 +264,13 @@ class SteamBot {
 		})
 	}
 
-	checkForActiveCFGame(cfGameID) {
+	async checkForActiveCFGame(cfGameID) {
 
-		CoinFlipGame.find({GameID: cfGameID}, (err, doc) => {
+		await CoinFlipGame.find({GameID: cfGameID}, (err, doc) => {
 			if (err) return console.error(err);
 
 			else {
+
 				if (doc != null) {
 					return true
 				}
@@ -259,14 +282,37 @@ class SteamBot {
 
 	}
 
-	async cancelCoinFlipGame(cfGame) {
-		
+	// called from where?
+	async cancelOpponentCoinFlipTradeOffer(cfGame) {
+
+		await CoinFlipGame.findOne({"GameID": cfGame.gameID}, (err, game) => {
+			if (err) return console.error(err)
+
+			else {
+				this.manager.getOffer(game.PlayerTwoTradeID, (err, offer) => {
+					if (err) return console.log(err)
+
+					else {
+						offer.cancel((err) => {
+							if (err) return console.error(err)
+
+							else {
+								CoinFlipGame.updateOne({"GameID": cfGame.GameID}, {$set: {PlayerTwoTradeState: undefined, PlayerTwoTradeID: undefined}}, { runValidators: true })
+
+								TradeHistory.updateOne({"TradeID": offer.id}, {$set: {State: TradeOfferManager.ETradeOfferState[offer.state]}})
+							}
+						})
+					}
+				})
+			}
+		})
 	}
 
-	sendWithdraw(skins, user, callback) {
+	// fix this mess, make it async
+	async sendWithdraw(skins, user, callback) {
 		const offer = this.manager.createOffer(user.SteamID);
 
-		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
+		await this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
 			if (err) return console.error(err);
 
 			let skinIDs = [];
@@ -282,7 +328,10 @@ class SteamBot {
 				}
 
 				else {
-					offer.cancel();
+					offer.cancel((err) => {
+						if (err) return callback(err)
+					});
+
 					return callback(`Could not find ${skin} in Bot Inventory`)
 				}
 

@@ -89,3 +89,8 @@ function getSkinValue(skinVal) {
     return skinVal
 
 }
+
+// this should be a function that refreshes the jackpot to the next jackpot
+function gameRefresher() {
+    return null
+}
