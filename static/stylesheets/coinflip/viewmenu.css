@@ -1,0 +1,100 @@
+#all-cf-views {
+    z-index: 5;
+}
+
+.display-none {
+    display: none;
+}
+
+#view-menu-background {
+    margin: 0;
+    position: absolute;
+    z-index: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 100%;
+    height: 100%;
+}
+
+.view-menu {
+    z-index: 5;
+    flex-direction: column;
+    position: absolute;
+    text-align: center;
+    border: 5px solid black;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.view-players-and-coin {
+    display: flex;
+    flex-direction: row;
+}
+
+.view-player {
+}
+
+.view-player img {
+}
+
+.view-player p {
+}
+
+.view-middle-section {
+}
+
+.view-join-button {
+}
+
+.view-both-player-skins {
+}
+
+/* make this a div */
+.view-player-skins {
+    display: flex;
+}
+/* this thing */
+
+.view-skin {
+}
+
+.view-skin p {
+}
+
+.view-skin img {
+}
+
+@keyframes view-menu-fade-in {
+    from {
+        opacity: 0;
+        left: 0%;
+    }
+    to {
+        opacity: 1;
+        left: 50%;
+    }
+}
+
+@keyframes fade-view-background {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.fade-view-background {
+    animation-name: fade-view-background;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+
+.show-selected-view-menu {
+    animation-name: view-menu-fade-in;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}

@@ -2,10 +2,6 @@ const coinflipMenu = document.getElementById('coinflip-menu');
 const sideSelect = document.getElementById('side-select');
 const cfDepoScreen = document.getElementById('cf-skin-selection');
 
-const gameArea = document.getElementById('');
-
-let allCFGames = [];
-
 function openFirstMenu() {
     coinflipMenu.className = "show-menu";
 }
@@ -51,7 +47,7 @@ function closeMenu() {
     heads.checked = false;
 }
 
-const gameInfo = document.getElementById('new-game-info')
+const gameInfo = document.getElementById('new-game-info');
 
 function cfDepositMenu() {
 
@@ -80,48 +76,5 @@ function cfDepositMenu() {
         }
 
     }
-
-}
-
-socket.on('coinFlipLoader', games => {
-
-    // "games" is going to be an array of all the cf games from the external json file
-
-})
-
-socket.on('newCoinFlipGame', cf => {
-    allCFGames.push(cf)
-
-    console.log(cf)
-
-    let cfGameSidePic;
-    let cfGameSideName;
-
-    let newCFGame = document.createElement('div')
-
-    if (cf.Heads != null) {
-        cfGameSideName = "Heads";
-    }
-
-    else {
-        cfGameSideName = "Tails";
-    }
-
-    newCFGame.className = "cf-game-div"
-
-    newCFGame.innerHTML = "<div class='cf-game-user-info'><image src='" + cf.Players[0].userPic + "' alt='" + cf.Players[0].username + "'/> <h4>" + cf.Players[0].username + "</h4> <h2>" + cf.TotalValue + "</h2></div><div class='cf-game-buttons'><button onclick='viewActiveGame' class='cf-view-button'>View</button> <button class='cf-join-button' id='" + cf.GameID + "'>Join</button></div>"
-
-    gameArea.append(newCFGame)
-})
-
-function viewActiveGame() {
-    // this should show the cf game that user click on to
-    // in the menu that pops up they should see the side was chosen and the skins of they deposited
-
-}
-
-function joinActiveGame() {
-
-    // bring user opponent ot the deposit screen of the coinflip
 
 }

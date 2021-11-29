@@ -56,16 +56,12 @@ function takeJackpotProfit(game, winner /* Please put in winner from DB */, allS
 
     try {
 
-        let percent = 0;
+        let percent = 0.1;
 
         let username = winner.Username
 
-        if (username.includes('doggo')) {
+        if (username.includes('gammabets')) {
             percent = 0.05
-        }
-
-        else {
-            percent = 0.1
         }
 
         listOfPlayerSkins = []

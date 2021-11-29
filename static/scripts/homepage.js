@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io()
 
 function sideBarToggle() {
     let sidebar = document.getElementById('sidebar');
@@ -81,3 +81,19 @@ socket.on('chat', function(messages) {
   
       }
 });
+
+socket.on("connect", () => {
+
+    const steamID = document.getElementById("user-steam-id")
+    let userID = steamID.value;
+    
+    let data ={
+        steamID: userID
+    }
+
+    socket.emit("join", data)
+});
+
+socket.on("tradeLink", (msg) => {
+    console.log(msg)
+})

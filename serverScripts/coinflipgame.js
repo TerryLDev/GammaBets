@@ -20,6 +20,7 @@ const client = new SteamUser;
 const SteamBot = require("../steam/bot");
 
 const fs = require('fs');
+const e = require('express');
 
 function decideCoinFlipWinner(cfGammID) {
 
@@ -67,29 +68,65 @@ function decideCoinFlipWinner(cfGammID) {
     }
 }
 
-function addNewActiveGame(cfGame) {
+async function addNewActiveGame(cfID) {
 
     try {
 
-        let activeGames;
+        CoinFlipGame.findOne({"GameID": cfID}, (err, cfGame) => {
+            
+            if (err) return console.log(err);
 
-        let newEntry = {
-            gameID: cfGame.GameID,
-            playerOneState: cfGame.PlayerOneTradeState,
-            playerTwoState: "none",
-            timer: false,
-            gameState: cfGame.Status,
-            winner: "none",
-            wait: process.env.COIN_FLIP_ENDING_WAIT_TIME
-        }
+            else {
 
-        let json = fs.readFileSync(`${__dirname}/cfgames.json`, {encoding:"utf-8"})
+                let json = fs.readFileSync(`${__dirname}/cfgames.json`, {encoding:"utf-8"})
 
-        activeGames = JSON.parse(json)
+                let activeGames = JSON.parse(json)
 
-        activeGames.push(newEntry)
+                let newEntry = {
+                    gameID: cfGame.GameID,
+                    playerOneUser: cfGame.Players[0].username,
+                    playerOneId: cfGame.Players[0].userSteamId,
+                    playerOnePicture: cfGame.Players[0].userPicture,
+                    playerOneSkins: cfGame.Players[0].skins,
+                    playerOneSkinValues: cfGame.Players[0].skinValues,
+                    playerOneSkinPictures: cfGame.Players[0].skinPictures,
+                    playerOneState: cfGame.PlayerOneTradeState,
+                    playerOneSide: "none",
+                    playerTwoUser: "none",
+                    playerTwoId: "none",
+                    playerTwoPicture: "none",
+                    playerTwoSkins: "none",
+                    playerTwoSkinValues: "none",
+                    playerTwoSkinPictures: "none",
+                    playerTwoState: "none",
+                    playerTwoSide: 'none',
+                    totalValue: cfGame.TotalValue,
+                    timer: false,
+                    gameState: cfGame.Status,
+                    winner: "none",
+                    wait: parseInt(process.env.COIN_FLIP_ENDING_WAIT_TIME),
+                    slicerDelay: 3
+                }
 
-        fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(activeGames));
+                if (cfGame.Heads == "" || cfGame.Heads == undefined) {
+
+                    newEntry.playerOneSide = "tails";
+                    newEntry.playerTwoSide = "heads";
+
+                }
+
+                else {
+                    newEntry.playerOneSide = "heads";
+                    newEntry.playerTwoSide = "tails";
+                }
+
+                activeGames.push(newEntry)
+                // check if game alreayd exist 
+
+                fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(activeGames));
+
+            }
+        })
 
     }
 
@@ -98,19 +135,7 @@ function addNewActiveGame(cfGame) {
     }
 }
 
-/*
-let newEntry = {
-            gameID: cfGame.GameID,
-            playerOneState: cfGame.PlayerOneTradeState,
-            playerTwoState: "none",
-            timer: false,
-            gameState: cfGame.Status,
-            winner: "none",
-            wait: 10
-        }
-*/
-
-// changes playerTwoState form "none" to "sent" or changes it to "Accepted"
+// changes playerTwoState form "none" to "Active" or changes it to "Accepted"
 async function opponentChangeStateCFGame(cfGame) {
 
     try {
@@ -121,6 +146,11 @@ async function opponentChangeStateCFGame(cfGame) {
 
         modify.forEach(obj => {
             if (obj.gameID == cfGame.GameID) {
+                obj.playerTwoUser = cfGame.Players[1].username;
+                obj.playerTwoPicture = cfGame.Players[1].userPicture;
+                obj.playerTwoSkins = cfGame.Players[1].skins;
+                obj.playerTwoSkinValues = cfGame.Players[1].skinValues;
+                obj.playerTwoSkinPictures = cfGame.Players[1].skinPictures;
                 obj.playerTwoState = cfGame.PlayerTwoTradeState;
             }
         })
@@ -175,6 +205,105 @@ function requestCancelActiveCFGame(cfGame) {
 
 }
 
+async function sendWithdrawAndTakeProfit (jsonGame, winnerId, botId) {
+    // should return a list of what skins go to the winner
+    try {
+        await MarketPrice.find({}, (err, dbSkins) => {
+            if (err) return console.log(err);
+
+            let username;
+            let percent = 0.1;
+
+            if (jsonGame.playerOneId = winnerId) {
+                username = jsonGame.playerOneUser;
+            }
+            else {
+                username = jsonGame.playerTwoUser;
+            }
+
+            if (username.includes("gammabets")) {
+                percent = 0.05;
+            }
+
+            let listOfPlayerSkins = [];
+            let listOfSkinsValues = [];
+
+            let totalValue = 0;
+
+            jsonGame.playerTwoSkins.forEach(skin => {
+                dbSkins.forEach(dbSkin => {
+                    if (dbSkin.SkinName == skin) {
+                        listOfPlayerSkins.push(dbSkin.SkinName);
+                        listOfSkinsValues.push(dbSkin.Value);
+                        totalValue += dbSkin.Value;
+                    }
+                })
+            })
+
+            let maxProfit = totalValue * percent;
+
+            let profitAttempts = [];
+
+            /* let attempt = {"value of attempt": [list of skins]} */
+            
+            for(let x = 0; x < 50; x++) {
+                let shuffledList = listOfPlayerSkins.sort(() => Math.random - 0.5)
+
+                let newAttempt = [];
+                let attemptValue;
+
+                shuffledList.forEach(shuffleSkin => {
+                    dbSkins.forEach(dbSkin => {
+                        if (dbSkin.SkinName == shuffleSkin) {
+
+                            attemptValue += dbSkin.Value
+
+                            if(attemptValue <= maxProfit) {
+
+                                newAttempt.push(shuffleSkin);
+
+                            }
+
+                            else {
+                                attemptValue -= dbSkin.Value;
+                            }
+                        }
+                    })
+                })
+
+                valueRatio = totalValue / newAttempt.length;
+
+                let attemptEntry = {
+                    valueRatio: valueRatio,
+                    skins: newAttempt,
+                }
+
+                profitAttempts.push(attemptEntry)
+            }
+
+            let withdrawSkins;
+            let currentHigh = 0;
+            let valueRatio = 0;
+
+            profitAttempts.forEach(attempt => {
+
+                if(attempt.total > currentHigh) {
+                    
+                    withdrawSkins = attempt.skins;
+                    currentHigh = attempt.total;
+
+                }
+
+            });
+
+            return withdrawSkins
+        });
+    }
+    catch (err) {
+        return console.log(err)
+    }
+}
+
 // IT FUCKING WORKSSSSSSS FUCKING FINALLY
 const coinFlipUpdates = async () => {
 
@@ -189,18 +318,18 @@ const coinFlipUpdates = async () => {
             if(gameObj.gameState == true) {
 
                 // checks if an opponent was sent a trade
-                if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "sent" && gameObj["timer"] === false) {
-                    gameObj["timer"] = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
+                if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "Active" && gameObj["timer"] === false) {
+                    gameObj["timer"] = parseInt(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
                 }
 
                 // changes the timer while waiting for the opponent to join
-                else if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "sent" && gameObj["timer"] >= 1) {
+                else if(gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "Active" && gameObj["timer"] >= 1) {
                     gameObj["timer"] = gameObj["timer"] - 1;
 
                 }
 
                 // should send a request to the server and website that the opponent failed ot accept the trade in time
-                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "sent" && gameObj.timer == 0) {
+                else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Active" && gameObj.timer == 0) {
                     console.log(`Canel opponent's trade with GameID: ${gameObj.gameID}`)
 
                     gameObj.timer = false;
@@ -213,27 +342,30 @@ const coinFlipUpdates = async () => {
                 }
                 
                 // change the flipping timer
-                else if(parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
-
-                    let currentFlipTimer = "Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1)
-
-                    gameObj.timer = currentFlipTimer;
+                else if (typeof(gameObj.timer) == "string"){
                     
-                }
+                    if(parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
 
-                // this should send a request to the server and website that it's time ot flip
-                // this decides the winner
-                else if(parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0) {
-
-                    console.log("Flipping!!!" + gameObj.gameID)
-
-                    // call a function that decides a winner
-                    let cfWinner = decideCoinFlipWinner(gameObj.gameID)
-
-                    gameObj.winner = cfWinner;
-
-                    gameObj.gameState = false;
-
+                        let currentFlipTimer = "Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1)
+    
+                        gameObj.timer = currentFlipTimer;
+                        
+                    }
+    
+                    // this should send a request to the server and website that it's time ot flip
+                    // this decides the winner
+                    else if(parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0) {
+    
+                        console.log("Flipping!!!" + gameObj.gameID)
+    
+                        // call a function that decides a winner
+                        let cfWinner = decideCoinFlipWinner(gameObj.gameID)
+    
+                        gameObj.winner = cfWinner;
+    
+                        gameObj.gameState = false;
+    
+                    }
                 }
 
 
@@ -243,20 +375,40 @@ const coinFlipUpdates = async () => {
 
                 else if (gameObj.wait == 0) {
 
+                    gameObj.gameState = false;
+
+                }
+
+                // need to check this out for canceling trades
+                else if (gameObj.playerTwoState == "cancel") {
+
+                    gameObj.playerTwoUser = "none";
+                    gameObj.playerTwoPicture = "none";
+                    gameObj.playerTwoSkins = "none";
+                    gameObj.playerTwoSkinValues = "none";
+                    gameObj.playerTwoSkinPictures = "none";
+                    gameObj.playerTwoState = "none";
+
+                }
+                
+            }
+
+            else {
+
+                if (gameObj.slicerDelay > 0) {
+                    gameObj.slicerDelay -= 1;
+                }
+
+                else {
+
                     let gameIndex = modify.findIndex(slicer => {
                         if (slicer.gameID == gameObj.gameID) {
-                            return obj
+                            return slicer
                         }
                     })
 
                     modify.splice(gameIndex, 1);
-
                 }
-
-                else if (gameObj.playerTwoState == "cancel") {
-                    gameObj.playerTwoState = "none";
-                }
-                
             }
         })
 

@@ -51,7 +51,7 @@ mongo_uri = process.env.MONGO_URI;
 let skins;
 let allUsers;
 
-// JP curretn game for server
+// JP current game for server
 let currentJPGame;
 
 // Jackpot Timer Setup
@@ -91,16 +91,28 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
             console.log("done: JP")
         })
 
+        CoinFlipGame.find({}, (err, cfGames) => {
+            if (err) console.log(err);
+
+            else {
+                cfGames.forEach(cf => {
+                    coinFlipUpdater.addNewActiveGame(cf.GameID);
+                })
+            }
+
+            console.log("done: CF");
+        })
+
     }
 });
 
 // Setting up cookies
 app.use(session({
-    secret: 'this is gonna make people big poor',
+    secret: 'this is gonna be kinda funny ya know',
     store: MongoStore.create({
         mongoUrl: mongo_uri,
     }),
-    name: 'RustSite',
+    name: 'GammaBets',
     resave: false,
     saveUninitialized: false,
     cookie : {
@@ -222,7 +234,19 @@ const messages = []
 
 let activeJPGameID;
 
+async function RemoveUserRoom(steamID) {
+
+}
+
 io.on('connection', (socket) => {
+
+    socket.on("join", function(data) {
+
+        console.log(data);
+
+        socket.join(data.steamID);
+        
+    })
 
     socket.emit('chat', messages);
 
@@ -273,36 +297,44 @@ io.on('connection', (socket) => {
         User.findOne({"SteamID": data.steamID}, (err, doc) => {
             if (err) return console.error(err);
 
-            community.getUserInventoryContents(doc['SteamID'], 252490, 2, true, (err, inv) => {
+            else if(doc["SteamID"] == null || doc["SteamID"] == undefined) {
+                console.log('You need to log this user to the db my guy')
+            }
 
-                if (err) console.error(err);
-                
-                else {
+            else {
 
-                    let userInv = [];
+                community.getUserInventoryContents(doc['SteamID'], 252490, 2, true, (err, inv) => {
+
+                    if (err) console.error(err);
                     
-                    inv.forEach(item => {
-
-                        skins.forEach(skin => {
-
-                            if (item['name'] == skin['SkinName']) {
+                    else {
+    
+                        let userInv = [];
+                        
+                        inv.forEach(item => {
+    
+                            skins.forEach(skin => {
+    
+                                if (item['name'] == skin['SkinName']) {
+                                    
+                                    userInv.push({
+                                        name: item['name'],
+                                        id: item['id'],
+                                        price: skin['Value'],
+                                        imageURL: skin['SkinPictureURL']
+                                    });
+                                }
                                 
-                                userInv.push({
-                                    name: item['name'],
-                                    id: item['id'],
-                                    price: skin['Value'],
-                                    imageURL: skin['SkinPictureURL']
-                                });
-                            }
-                            
+                            });
                         });
-                    });
+    
+                        userInv.sort((a, b) => (a.price < b.price) ? 1 : -1);
+    
+                        socket.emit('getInventory', userInv)
+                    }
+                });
 
-                    userInv.sort((a, b) => (a.price < b.price) ? 1 : -1);
-
-                    socket.emit('getInventory', userInv)
-                }
-            });
+            }
         });
     });
 
@@ -605,18 +637,18 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                         fullBetList.push(userBet);
 
-                        CoinFlipGame.findOneAndUpdate({"GameID": activeCFGame.GameID}, {
+                        CoinFlipGame.findOneAndUpdate({"GameID": activeCFGame.GameID}, { $set : {
                             Players: fullBetList,
                             TotalValue: totalVal,
                             PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state]
-                        }, (err, cf) => {
+                        }}, (err, cf) => {
 
                             if (err) return console.error(err);
 
                             else {
                                 console.log("New Coin Flip game was created: " + cf.GameID)
-                                io.emit('newCoinFlipGame', cf);
-                                coinFlipUpdater.addNewActiveGame(cf)
+
+                                coinFlipUpdater.addNewActiveGame(cf.GameID)
                             }
                         })
                     }
@@ -675,7 +707,7 @@ bot.manager.on('sentOfferChanged', (offer, oldState) => {
 
                             else {
 
-                                console.log("Opponent " + username + " Joined: " + cf.GameID)
+                                console.log(username + " Joined: " + cf.GameID)
 
                                 coinFlipUpdater.opponentChangeStateCFGame(cf);
                                 
@@ -810,14 +842,26 @@ const coinFlipTimer = setInterval(async function() {
 
     updates = await callCoinFlipUpdate()
 
-    console.log(updates)
-
     updates.forEach(gameObj => {
-        if (gameObj.playerTwoState == cancel) {
+        if (gameObj.playerTwoState == "cancel") {
             bot.cancelOpponentCoinFlipTradeOffer()
         }
     })
 
 }, 1000)
+
+const sendMsg = (steamID, msg) => {
+    io.to(steamID).emit("tradeLink", msg)
+};
+
+
+setInterval(function() {
+
+    let steamID = "76561198072093858"
+    let msg = "Test was successful"
+
+    sendMsg(steamID, msg);
+    
+}, 10000)
 
 //////////////////////////////////////////////////////////////

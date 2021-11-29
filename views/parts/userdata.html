@@ -1,0 +1,10 @@
+<div style="display: none;">
+    {% if user %}
+    <data id="user-steam-id" value="{{user.SteamID}}" hidden>{{user.SteamID}}</data>>
+    <data id="user-steam-username" value="{{user.Username}}" hidden>{{user.Username}}</data>
+    <data id="user-profile-picture" value="{{user.ProfilePicture}}">{{user.ProfilePicture}}</data>
+    <data id="user-trade-url" value="{{user.TradeURL}}" hidden>{{user.TradeURL}}</data>
+    {% else %}
+    <data id="user-trade-url" value="none" hidden>none</data>
+    {% endif %}
+</div>

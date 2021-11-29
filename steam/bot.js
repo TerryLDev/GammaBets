@@ -153,7 +153,7 @@ class SteamBot {
 
 				offer.setToken(token)
 
-				offer.send(err, status => {
+				offer.send((err, status) => {
 					if (err) return console.error(err);
 
 					else {
@@ -172,91 +172,91 @@ class SteamBot {
 							GameID: gameID,
 							DateCreated: Date.now()
 						})
-						.then((result) => {
-							
-							User.findOneAndUpdate({"SteamID": steamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
+							.then((result) => {
 								
-								if (err) return console.error(err);
+								User.findOneAndUpdate({"SteamID": steamID}, {$push: {"Trades": offer.id} }, (err, doc) => {
+									
+									if (err) return console.error(err);
 
-								else if (isActiveGame) {
+									else if (isActiveGame) {
 
-									if (side == 'heads') {
+										if (side == 'heads') {
 
-										CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
-											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
-											PlayerTwoTradeID: offer.id,
-											Heads: steamID,
-										}, {upsert: true}, (err, doc) => {
-											if (err) return console.log(err);
+											CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
+												PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+												PlayerTwoTradeID: offer.id,
+												Heads: steamID,
+											}, {upsert: true}, (err, doc) => {
+												if (err) return console.log(err);
 
-											else {
-												coinFlipUpdater.opponentChangeStateCFGame(cf);
-											}
-										})
+												else {
+													coinFlipUpdater.opponentChangeStateCFGame(cf);
+												}
+											})
 
+										}
+
+										else {
+
+											CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
+												PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+												PlayerTwoTradeID: offer.id,
+												Tails: steamID,
+											}, {upsert: true}, (err, doc) => {
+												if (err) return console.log(err);
+
+												else {
+													coinFlipUpdater.opponentChangeStateCFGame(cf);
+												}
+											})
+
+										}
 									}
 
 									else {
 
-										CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
-											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
-											PlayerTwoTradeID: offer.id,
-											Tails: steamID,
-										}, {upsert: true}, (err, doc) => {
-											if (err) return console.log(err);
+										if (side == 'heads') {
+											CoinFlipGame.create({
+												GameID: gameID,
+												PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+												PlayerOneTradeID: offer.id,
+												Heads: steamID,
+												Status: true,
+												DateCreated: Date.now()
+											})
+											.then((result) => {
+												console.log('New Coin Flip game activated Game ID: ' + gameID)
+											})
+											.catch((err) => {
+												if (err) console.error(err);
+											});
 
-											else {
-												coinFlipUpdater.opponentChangeStateCFGame(cf);
-											}
-										})
+										}
+
+										else {
+											CoinFlipGame.create({
+												GameID: gameID,
+												PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+												PlayerOneTradeID: offer.id,
+												Tails: steamID,
+												Status: true,
+												DateCreated: Date.now()
+											})
+											.then((result) => {
+												console.log('New Coin Flip game activated Game ID: ' + gameID)
+											})
+											.catch((err) => {
+												if (err) console.error(err);
+											});
+										}
 
 									}
-								}
+								});
 
-								else {
-
-									if (side == 'heads') {
-										CoinFlipGame.create({
-											GameID: gameID,
-											PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
-											PlayerOneTradeID: offer.id,
-											Heads: steamID,
-											Status: true,
-											DateCreated: Date.now()
-										})
-										.then((result) => {
-											console.log('New Coin Flip game activated Game ID: ' + gameID)
-										})
-										.catch((err) => {
-											if (err) console.error(err);
-										});
-
-									}
-
-									else {
-										CoinFlipGame.create({
-											GameID: gameID,
-											PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
-											PlayerOneTradeID: offer.id,
-											Tails: steamID,
-											Status: true,
-											DateCreated: Date.now()
-										})
-										.then((result) => {
-											console.log('New Coin Flip game activated Game ID: ' + gameID)
-										})
-										.catch((err) => {
-											if (err) console.error(err);
-										});
-									}
-
-								}
+							})
+							.catch((err) => {
+								console.error(err);
 							});
-
-						})
-						.catch((err) => {
-							console.error(err);
-						});
 
 					}
 				})

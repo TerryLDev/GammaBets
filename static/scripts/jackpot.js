@@ -64,6 +64,7 @@ socket.on('jackpotLoader',(data) => {
 
 });
 
+// gets player's chance of winning
 function getPlayerChance(potTotal, skinVals) {
 
     let chance = 0;
@@ -74,6 +75,7 @@ function getPlayerChance(potTotal, skinVals) {
     return chance
 }
 
+// gets 
 function getPlayerTotal(skinVals) {
     let playerTotal = (skinVals.reduce((p, c) => p + c))/100;
 
@@ -82,6 +84,7 @@ function getPlayerTotal(skinVals) {
     return playerTotal
 }
 
+// converts skin value in cents to dollar 
 function getSkinValue(skinVal) {
 
     skinVal = (Math.round((skinVal + Number.EPSILON)) / 100).toFixed(2);

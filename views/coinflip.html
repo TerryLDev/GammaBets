@@ -19,11 +19,17 @@
         />
         <link
             rel="stylesheet"
-            href="/static/stylesheets/coinflip.css"
+            href="/static/stylesheets/coinflip/coinflip.css"
+            type="text/css"
+        />
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/coinflip/viewmenu.css"
             type="text/css"
         />
     </head>
     <body>
+        <div id="view-menu-background" class="display-none"></div>
         <div class="layer">
 
         <header>
@@ -76,6 +82,8 @@
 
         <main id="main">
 
+            {% include "parts/userdata.html" %}
+
             {% include "parts/topnav.html" %}
 
             <div class="main-section">
@@ -86,7 +94,7 @@
 
                         <p>Create a New Coin Flip</p>
                         {% if user == "welcome" %}
-                        <button id="new-cf-game-menu" onclick="openFirstMenu()">Create Game</button>
+                        <button id="new-cf-game-menu" onclick="openFirstMenu()" disabled>Create Game</button>
 
                         {% else %}
                         <button id="new-cf-game-menu" onclick="openFirstMenu()">Create Game</button>
@@ -95,7 +103,6 @@
                     </div>
 
                     <div id="cf-game-area">
-                        <p>Test</p>
                     </div>
                 </div>
 
@@ -103,11 +110,14 @@
 
         </main>
 
-        {% include "parts/coinflipmenu.html" %}
+        {% include "parts/coinflip/coinflipmenu.html" %}
+        {% include "parts/coinflip/viewmenus.html" %}
 
         <script src="/static/scripts/homepage.js"></script>
         <script src="/static/scripts/deposit.js"></script>
-        <script src="/static/scripts/coinflip.js"></script>
+        <script src="/static/scripts/coinflip/coinflip.js"></script>
+        <script type="module" src="/static/scripts/coinflip/listinghandler.js"></script>
+        <script type="module" src="/static/scripts/coinflip/gameinteraction.js"></script>
 
         </div>
 

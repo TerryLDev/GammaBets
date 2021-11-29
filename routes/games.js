@@ -60,6 +60,8 @@ router.get('/coinflip', (req, res) => {
     req.session.isAuth = true;
     let userProfile;
 
+    console.log(socket.id)
+
     if (req.user == undefined || req.user == null) { 
         userProfile = "welcome";
         res.render('coinflip.html', { user : userProfile });
