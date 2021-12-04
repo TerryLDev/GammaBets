@@ -1,3 +1,142 @@
-#deposit-menu {
+.deposit-menu {
+    z-index: 10;
+    position: absolute;
+    width: 780px;
+    height: 780px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: #0e2a1f;
+    border: 4px solid rgba(214, 214, 214, 0.1);
+    box-sizing: border-box;
+    border-radius: 15px;
+    padding: 0;
+    margin: 0;
+}
+
+#deposit-info {
+    position: absolute;
+    bottom: 0px;
+    width: 772px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 0px 0px 10px 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    align-self: center;
+}
+
+#deposit-info p {
+    margin: 10px;
+    font-family: "Montserrat";
+    font-style: normal;
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 29px;
+    color: #ffffff;
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
+}
+#player-inventory {
+    margin-top: 14px;
+    margin-left: 42px;
+    margin-right: 42px;
+}
+#player-inventory-background-img {
+    position: absolute;
+    width: 695px;
+    height: 695px;
+    opacity: 0.1;
+}
+
+#player-inventory-slots {
+    position: absolute;
+    z-index: 11;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    row-gap: 10px;
+    column-gap: 10px;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: 170px;
+    align-items: center;
+    align-self: center;
+    width: 695px;
+    height: 695px;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+.inventory-skin-slot-label {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+    display: flex;
+    flex-direction: column;
+    padding: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    height: 170px;
+}
+
+.inventory-skin-slot-label:hover {
+    cursor: pointer;
+}
+
+input[type="checkbox"].skin-input {
     display: none;
+    margin: 0;
+}
+
+input[type="checkbox"].skin-input:checked + label.inventory-skin-slot-label {
+    background-color: white;
+    margin: 0;
+}
+
+.inventory-skin-slot-img {
+    width: 112px;
+    height: 112px;
+    margin: auto;
+}
+
+.inventory-skin-slot-name {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 16px;
+    text-align: center;
+    margin: 0;
+}
+
+.inventory-skin-slot-price {
+    font-family: "Montserrat";
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 17px;
+    text-align: center;
+    margin: 0;
+}
+
+.skin-slot {
+}
+
+@keyframes fade-in-menu {
+    from {
+        opacity: 0;
+        left: 0%;
+    }
+    to {
+        opacity: 1;
+        left: 50%;
+    }
+}
+
+.show-deposit-menu {
+    animation-name: fade-in-menu;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
 }

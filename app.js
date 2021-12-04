@@ -161,7 +161,7 @@ passport.use(
                             User.create({
                                 SteamID: user["steamid"],
                                 Username: user["personaname"],
-                                ProfilePictureURL: user["avatar"],
+                                ProfilePictureURL: user["avatarfull"],
                                 ProfileURL: user["profileurl"],
                                 DateJoined: Date.now(),
                             })
@@ -288,7 +288,6 @@ io.on("connection", async (socket) => {
     socket.on("getInventory", async (steamUser) => {
         // sends a request for the bot to check their inventory from rust
 
-        console.log(steamUser);
         MarketPrice.find({}, (err, skinsList) => {
             if (err) throw err;
             skins = skinsList;
@@ -331,7 +330,6 @@ io.on("connection", async (socket) => {
                                 a.price < b.price ? 1 : -1
                             );
 
-                            console.log(userInv);
                             io.to(steamUser.steamID).emit(
                                 "getInventory",
                                 userInv
@@ -344,20 +342,21 @@ io.on("connection", async (socket) => {
     });
 
     socket.on("createNewCoinFlipGame", async (data) => {
-        bot.sendCoinFlipTradeOffer(
+        let gameID = Date.now();
+        await bot.sendCoinFlipTradeOffer(
             data.user,
             data.skins,
             data.tradeURL,
             data.side,
-            data.gameID
+            gameID
         );
     });
+
+    socket.on("joinActiveCoinFlipGame", (data) => {});
 
     socket.on("makeJackpotDeposit", async (data) => {
         bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL);
     });
-
-    socket.on("waitingForCoinFlipOpponent", async (data) => {});
 });
 
 // SteamBot Events

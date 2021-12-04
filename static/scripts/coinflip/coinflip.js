@@ -52,10 +52,10 @@ function createCoinFlip(id) {
         alert("You can't choose both sides");
     } else if (tails.style.border == tailsBorder) {
         // show deposit menu and log that they chose tails
-        deposit.buildDepositMenu(id);
+        deposit.buildDepositMenu(id, null, "tails");
     } else if (heads.style.border == headsBorder) {
         // show deposit menu and log that they chose tails
-        deposit.buildDepositMenu(id);
+        deposit.buildDepositMenu(id, null, "heads");
     } else {
         alert("Error has occured");
     }

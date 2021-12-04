@@ -1,18 +1,14 @@
-<div id="deposit-menu">
-
-    {% include "./userdata.html" %}
-            
-    <button id="close-deposit" onclick="closeScreen()">X</button>
+<div id="deposit-menu" class="deposit-menu" style="display: none">
     <div id="player-inventory">
-        <div id="deposit-info">
-            <!--
-                this where the trade url link can go
-            -->
-        </div>
-        <div id="skin-selection-area">
-            
-        </div>
-        
+        <img
+            id="player-inventory-background-img"
+            src="/static/images/gammalogo.png"
+            alt=""
+        />
+        <div id="player-inventory-slots"></div>
     </div>
-
+    <div id="deposit-info">
+        <p>Total Value: $<span id="deposit-total-value">0.00</span></p>
+        <button id="deposit-button">Deposit</button>
+    </div>
 </div>

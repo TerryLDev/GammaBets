@@ -145,10 +145,10 @@ function addNewCFGame(cf) {
 
         let selectedView = document.querySelector(`[data-view-id="${id}"]`);
 
-        const back = document.getElementById("view-menu-background");
+        const back = document.getElementById("popup-menu-background");
 
-        back.classList.remove("display-none");
-        back.classList.add("fade-view-background");
+        back.style.display = "";
+        back.classList.add("fade-background");
 
         selectedView.classList.remove("display-none");
         selectedView.classList.add("show-selected-view-menu");

@@ -1,183 +1,170 @@
-export function buildDepositMenu(steamID) {
+const popupBackGround = document.getElementById("popup-menu-background");
+const depositMenu = document.getElementById("deposit-menu");
+const playerInventorySlots = document.getElementById("player-inventory-slots");
+const totalDepositValue = document.getElementById("deposit-total-value");
+const depositInfo = document.getElementById("deposit-info");
+
+const depositButton = document.getElementById("deposit-button");
+
+// build the deposit menu and add deposit info
+export function buildDepositMenu(steamID, gameID, side) {
+    popupBackGround.style.display = "";
+    popupBackGround.className = "fade-background";
+
+    depositMenu.style.display = "";
+    depositMenu.classList.add("show-deposit-menu");
+
+    popupBackGround.addEventListener("click", () => {
+        popupBackGround.style.display = "none";
+        depositMenu.style.display = "none";
+        depositMenu.classList.remove("show-deposit-menu");
+
+        playerInventorySlots.innerHTML = "";
+        depositInfo.removeAttribute("data-game-id");
+        depositInfo.removeAttribute("data-side");
+    });
+
+    if (gameID != null) {
+        depositInfo.dataset.gameId = gameID;
+    } else if (side != null) {
+        depositInfo.dataset.side = side;
+    }
+
     socket.emit("getInventory", {
         steamID: steamID,
     });
 }
 
 socket.on("getInventory", (inv) => {
-    console.log(inv);
-});
+    inv.forEach((item) => {
+        let skinDiv = document.createElement("div");
+        skinDiv.className = "skin-slot";
 
-/*
+        let price = (item.price / 100).toFixed(2);
 
-function openScreen() {
-    document.getElementById("deposit-menu").style = "width:50%";
-}
+        let inputCheckBox = document.createElement("input");
+        inputCheckBox.className = "skin-input";
+        inputCheckBox.type = "checkbox";
+        inputCheckBox.value = item.id;
+        inputCheckBox.id = item.id;
+        inputCheckBox.name = item.id;
 
-function closeScreen() {
-    if (document.body.contains(document.getElementById("deposit-menu"))) {
-        document.getElementById("deposit-menu").style = "width:0%";
-    }
-}
-
-let steamID;
-
-if (document.body.contains(document.getElementById("url-steam-id"))) {
-    steamID = document.getElementById("url-steam-id").value;
-}
-
-let tradeURL;
-
-if (document.body.contains(document.getElementById("tradeurl"))) {
-    tradeURL = document.getElementById("tradeurl").value;
-}
-
-function addTradeURL() {
-    let tradeURL = document.getElementById("tradeurl");
-    let steamID = document.getElementById("url-steam-id").value;
-
-    if (tradeURL.value != "") {
-        socket.emit("addTradeURL", {
-            trade: tradeURL.value,
-            steamID: steamID,
+        inputCheckBox.addEventListener("click", (Element) => {
+            let checkInput = Element.path[0];
+            if (checkInput.checked) {
+                // selecting skin
+                let findLabel = checkInput.nextElementSibling;
+                let labelChildren = findLabel.children;
+                let price = parseFloat(
+                    labelChildren[2].textContent.split("$")[1]
+                );
+                changeDepositTotalValuePos(price);
+            } else {
+                // deselecting skins
+                let findLabel = checkInput.nextElementSibling;
+                let labelChildren = findLabel.children;
+                let price = parseFloat(
+                    labelChildren[2].textContent.split("$")[1]
+                );
+                changeDepositTotalValueNeg(price);
+            }
         });
-    }
 
-    window.location.reload();
-}
+        let label = document.createElement("label");
+        label.setAttribute("for", item.id);
+        label.className = "inventory-skin-slot-label";
 
-// Add the users trade url
-socket.on("addTradeURL", function (msg) {
-    console.log(msg);
-});
+        let skinImg = document.createElement("img");
+        skinImg.className = "inventory-skin-slot-img";
+        skinImg.src = item.imageURL;
+        skinImg.alt = item.name;
 
-// send a request to tthe server ot pull the user's inventory
-const showDepositButton = document.getElementById("show-deposit-button");
+        let skinName = document.createElement("p");
+        skinName.className = "inventory-skin-slot-name";
+        skinName.textContent = item.name;
 
-showDepositButton.addEventListener("click", function () {
-    socket.emit("getInventory", {
-        steamID: steamID,
-        tradeURL: tradeURL.value,
+        let skinPrice = document.createElement("p");
+        skinPrice.className = "inventory-skin-slot-price";
+        skinPrice.textContent = "$" + price;
+
+        label.appendChild(skinImg);
+        label.appendChild(skinName);
+        label.appendChild(skinPrice);
+
+        skinDiv.appendChild(inputCheckBox);
+        skinDiv.appendChild(label);
+
+        playerInventorySlots.appendChild(skinDiv);
     });
 });
 
-const playerSkins = document.getElementById("player-skin-selection");
-const depositSkins = document.getElementById("deposit-skins");
+function changeDepositTotalValuePos(price) {
+    let newPrice = (parseFloat(totalDepositValue.textContent) + price).toFixed(
+        2
+    );
 
-depositSkins.addEventListener("click", function () {
-    // This is checking all the skins that are being selected and sending a request to the server to deposit the skins in either a jackpot game or a coinflip game
+    totalDepositValue.textContent = newPrice;
+}
 
-    let fullSkinList = playerSkins.childNodes;
-    let selectedSkinIDs = [];
+function changeDepositTotalValueNeg(price) {
+    let newPrice = (parseFloat(totalDepositValue.textContent) - price).toFixed(
+        2
+    );
 
-    for (let skin in fullSkinList) {
-        let checkIt = fullSkinList[skin].childNodes;
+    totalDepositValue.textContent = newPrice;
+}
 
-        try {
-            if (checkIt[0]["checked"]) {
-                selectedSkinIDs.push(checkIt[0].id);
-            }
-        } catch (err) {}
+// this gonna be a big one
+depositButton.addEventListener("click", (Event) => {
+    console.log(Event);
+
+    // values to push
+    const steamID = document.getElementById("user-steam-id").value;
+    const tradeURL = document.getElementById("user-trade-url").value;
+    let listOfSkins = [];
+
+    // check what page the user is one
+    let windowEvent = location.pathname;
+    let slotList = playerInventorySlots.childNodes;
+
+    for (let i = 0; i < slotList.length; i++) {
+        if (slotList[i].firstChild.checked) {
+            listOfSkins.push(slotList[i].firstChild.value);
+        }
     }
 
-    if (selectedSkinIDs == "") {
-        console.log("No Skins Selected");
-    } else if (
-        document
-            .getElementById("new-game-info")
-            .contains(document.getElementById("new-game-id"))
-    ) {
-        console.log("new coin flip game");
+    let checkforSide = depositInfo.hasAttribute("data-side");
+    let checkForGameID = depositInfo.hasAttribute("data-game-id");
 
-        let cfSteamID = document.getElementById("user-steamid").value;
-        let cfTradeURL = document.getElementById("user-tradeurl").value;
-        let cfSide;
-        let cfGameId = document.getElementById("new-game-id").value;
-
-        const heads = document.getElementById("coin-side-heads");
-        const tails = document.getElementById("coin-side-tails");
-
-        if (heads.checked) {
-            cfSide = "heads";
-        } else if (tails.checked) {
-            cfSide = "tails";
+    // check if in coinflip page
+    if (windowEvent == "/coinflip") {
+        if (checkForGameID) {
+            let gameID = depositInfo.dataset.gameId;
+        } else if (checkforSide) {
+            let side = depositInfo.dataset.side;
+            createNewCFGame(steamID, listOfSkins, tradeURL, side);
         }
+    }
 
-        socket.emit("createNewCoinFlipGame", {
-            user: cfSteamID,
-            skins: selectedSkinIDs,
-            tradeURL: cfTradeURL,
-            side: cfSide,
-            gameID: cfGameId,
-        });
-    } else {
-        console.log("new jackpot game");
-
-        socket.emit("makeJackpotDeposit", {
-            user: steamID,
-            skins: selectedSkinIDs,
-            tradeURL: tradeURL,
-        });
+    // checks if in jackpot page
+    else if (windowEvent == "/") {
     }
 });
 
-// this is all really bad
+export function createNewCFGame(steamID, listOfSkins, tradeURL, side) {
+    const data = {
+        user: steamID,
+        skins: listOfSkins,
+        tradeURL: tradeURL,
+        side: side,
+    };
 
-////////////////////////////////////////////////
-
-// redoing the entire deposit system
-
-// this script is ran when the player click on their join game for cf or deposit on jp
-
-// basically this creates the deposit menu and
-export function buildAndShowDepositMenu(gameID, gameMode) {
-    const playerInventory = document.getElementById("player-inventory");
-    let steamId = document.getElementById("user-steam-id").value;
-    let tradeURL = document.getElementById("user-trade-url").value;
-
-    if (steamId != "") {
-        socket.emit("getInventory", {
-            gameID: gameID,
-            steamID: steamID,
-            tradeURL: tradeURL.value,
-        });
-
-        socket.on("getInventory", (inv) => {
-            if (inv == "") {
-            } else {
-                // for each intem in inv it should creta s lot for it in the deposit menu
-
-                inv.forEach((item) => {
-                    let price = (item["price"] / 100).toFixed(2);
-
-                    let skinItem = document.createElement("div");
-
-                    skinItem.className = "inventory-item";
-
-                    skinItem.innerHTML =
-                        "<input type='checkbox' class='inventory-item' id='" +
-                        item["id"] +
-                        "' /><label for=" +
-                        item["id"] +
-                        "><img src='" +
-                        item["imageURL"] +
-                        "' alt='" +
-                        item["name"] +
-                        "'><p>" +
-                        "Price: $" +
-                        price +
-                        "</p></label>";
-
-                    playerSkins.appendChild(skinItem);
-                });
-            }
-        });
-    } else {
-        alert("Please Sign To Deposit Skins");
-    }
+    socket.emit("createNewCoinFlipGame", data);
 }
 
-export function sendDeposit(gameID, skinList, steamId, tradeURL) {}
-
-// also when the select the skins update the value they are putting in and amount of skins they are depositing
-*/
+export function joinCFGAme(steamID, listOfSkins, tradeURL, gameId) {
+    const data = {
+        // yea i know
+    };
+    socket.emit("joinActiveCoinFlipGame", data);
+}

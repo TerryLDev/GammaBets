@@ -50,8 +50,8 @@
         />
     </head>
     <body>
-        <div id="view-menu-background" class="display-none"></div>
         <div class="layer">
+            <div id="popup-menu-background" style="display: none"></div>
             <div class="coinflip-grid-layout">
                 {% include "parts/topnav.html" %}
 
@@ -99,7 +99,7 @@
                 </div>
 
                 {% include "parts/chat.html" %} {% include "parts/deposit.html"
-                %}
+                %} {% include "parts/userdata.html" %}
 
                 <script src="/static/scripts/homepage.js"></script>
                 <script type="module" src="/static/scripts/deposit.js"></script>
