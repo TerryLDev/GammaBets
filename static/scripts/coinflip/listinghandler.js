@@ -3,6 +3,7 @@ import * as deposit from "../deposit.js";
 
 const gameListings = document.getElementById("coinflip-listing-area");
 const allViews = document.getElementById("all-cf-views");
+const steamID = document.getElementById("user-steam-id").value;
 
 let allCFGames = [];
 
@@ -11,25 +12,20 @@ socket.on("coinFlipLoader", (games) => {
     // "games" is going to be an array of all the cf games from the external json file
     games.forEach((game) => {
         if (game.gameState) {
-            // add game as a listing and builds hte view menu for the game
-            if (
-                allCFGames.find((element) => element.gameID == game.gameID) ==
-                undefined
-            ) {
+            // add game as a listing and builds the view menu for the game
+            if (allCFGames.find((element) => element.gameID == game.gameID) == undefined) {
                 addNewCFGame(game);
                 buildView(game);
-            } else if (game.timer == "cancel") {
+            }
+            else if (game.timer == "cancel") {
                 // reset the game listing and view menu
                 buildView(game);
-            } else if (game.winner != "none") {
+            }
+            else if (game.winner != "none") {
             }
 
             // idk yet
-            else if (
-                game.timer != false &&
-                (game.playerTwoState == "Active" ||
-                    game.playerTwoState == "Accepted")
-            ) {
+            else if (game.timer != false && (game.playerTwoState == "Active" || game.playerTwoState == "Accepted")) {
                 gameInteraction.updateTimer(game);
                 gameInteraction.removeJoinButton(game);
             }
@@ -114,7 +110,7 @@ function addNewCFGame(cf) {
             }
         });
 
-        deposit.buildAndShowDepositMenu(id, "cf");
+        deposit.buildDepositMenu(steamID, cf.gameID, null);
     });
 
     if (cf.playerTwoState == "Accepted" || cf.playerTwoState == "Active") {
@@ -149,8 +145,12 @@ function addNewCFGame(cf) {
 
         back.style.display = "";
         back.classList.add("fade-background");
-
-        selectedView.classList.remove("display-none");
+        try {
+            selectedView.classList.remove("display-none");
+        }
+        catch (e) {
+            return null
+        }
         selectedView.classList.add("show-selected-view-menu");
     });
 
@@ -163,7 +163,9 @@ function addNewCFGame(cf) {
     }
 
     // push both buttons to button div
-    buttonListingDiv.appendChild(joinButton);
+    if (cf.playerOneId != steamID && cf.playerTwoState != "Active" && cf.timer != "none" && cf.playerTwoState != "Accepted") {
+		buttonListingDiv.appendChild(joinButton);
+	}
     buttonListingDiv.appendChild(viewButton);
 
     ///////////////////////

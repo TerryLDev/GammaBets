@@ -45,15 +45,15 @@ function createCoinFlip(id) {
         heads.style.border != headsBorder
     ) {
         alert("You need to select a side first before creating a coin flip");
-    } else if (
-        tails.style.border == tailsBorder &&
-        heads.style.border == headsBorder
-    ) {
+    }
+    else if (tails.style.border == tailsBorder && heads.style.border == headsBorder) {
         alert("You can't choose both sides");
-    } else if (tails.style.border == tailsBorder) {
+    }
+    else if (tails.style.border == tailsBorder) {
         // show deposit menu and log that they chose tails
         deposit.buildDepositMenu(id, null, "tails");
-    } else if (heads.style.border == headsBorder) {
+    }
+    else if (heads.style.border == headsBorder) {
         // show deposit menu and log that they chose tails
         deposit.buildDepositMenu(id, null, "heads");
     } else {
