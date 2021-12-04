@@ -1,80 +1,77 @@
-const coinflipMenu = document.getElementById('coinflip-menu');
-const sideSelect = document.getElementById('side-select');
-const cfDepoScreen = document.getElementById('cf-skin-selection');
+import * as deposit from "../deposit.js";
 
-function openFirstMenu() {
-    coinflipMenu.className = "show-menu";
-}
+const steamID = document.getElementById("user-steam-id").value;
 
-const heads = document.getElementById('coin-side-heads');
-const tails = document.getElementById('coin-side-tails');
+const heads = document.getElementById("coin-heads");
+const tails = document.getElementById("coin-tails");
+const createACoinFlipButton = document.getElementById("create-a-coinflip");
 
-function changeTails() {
-    if (heads.checked == true) {
-        tails.checked = !heads.checked;
-    }
-}
+const headsBorder = "2px solid black";
+const tailsBorder = "2px solid white";
 
-function changeHeads() {
-    if (tails.checked == true) {
-        heads.checked = !tails.checked;
-    }
-}
+function selectedButton(value) {
+    // select heads
+    if (value == "heads") {
+        if (tails.style.border == tailsBorder) {
+            tails.style.border = "";
+            tails.style.background = "";
 
-function closeDepoMenu() {
-
-    sideSelect.style.display = "grid";
-    coinflipMenu.classList.remove('show-menu');
-    cfDepoScreen.style.display = "none";
-    cfDepoScreen.classList.remove("show-depo-class");
-    tails.checked = false;
-    heads.checked = false;
-    
-    if (document.body.contains(document.getElementById('new-game-id'))) {
-        document.getElementById('new-game-id').remove();
-    }
-
-}
-
-function closeMenu() {
-    coinflipMenu.classList.remove('show-menu');
-
-    if (document.body.contains(document.getElementById('new-game-id'))) {
-        document.getElementById('new-game-id').remove();
-    }
-
-    tails.checked = false;
-    heads.checked = false;
-}
-
-const gameInfo = document.getElementById('new-game-info');
-
-function cfDepositMenu() {
-
-    if (tails.checked == true || heads.checked == true) {
-
-        sideSelect.style.display = "none";
-        cfDepoScreen.style.display = "flex";
-        cfDepoScreen.className = "show-depo-class";
-
-        if(gameInfo.contains(document.getElementById('new-game-id')) == false) {
-
-            let coinflipID = document.createElement('input');
-            coinflipID.value = String(Date.now());
-            coinflipID.hidden = true;
-            coinflipID.id = "new-game-id";
-
-            gameInfo.appendChild(coinflipID);
-
+            heads.style.border = headsBorder;
+            heads.style.background = "rgba(255, 0, 0, 1)";
+        } else {
+            heads.style.border = headsBorder;
+            heads.style.background = "rgba(255, 0, 0, 1)";
         }
-
-        else {
-
-            let coinflipID = document.getElementById("new-game-id");
-            coinflipID.value = String(Date.now());
-
-        }
-
     }
 
+    // select tails
+    else {
+        if (heads.style.border == headsBorder) {
+            heads.style.border = "";
+            heads.style.background = "";
+
+            tails.style.border = tailsBorder;
+            tails.style.background = "rgba(0, 0, 0, 1)";
+        } else {
+            tails.style.border = tailsBorder;
+            tails.style.background = "rgba(0, 0, 0, 1)";
+        }
+    }
 }
+
+function createCoinFlip(id) {
+    if (
+        tails.style.border != tailsBorder &&
+        heads.style.border != headsBorder
+    ) {
+        alert("You need to select a side first before creating a coin flip");
+    } else if (
+        tails.style.border == tailsBorder &&
+        heads.style.border == headsBorder
+    ) {
+        alert("You can't choose both sides");
+    } else if (tails.style.border == tailsBorder) {
+        // show deposit menu and log that they chose tails
+        deposit.buildDepositMenu(id);
+    } else if (heads.style.border == headsBorder) {
+        // show deposit menu and log that they chose tails
+        deposit.buildDepositMenu(id);
+    } else {
+        alert("Error has occured");
+    }
+}
+
+heads.addEventListener("click", () => {
+    selectedButton("heads");
+});
+tails.addEventListener("click", () => {
+    selectedButton("tails");
+});
+
+createACoinFlipButton.addEventListener("click", () => {
+    if (steamID == "" || steamID == undefined || steamID == null) {
+        alert("Please sign in through steam first");
+    } else {
+        createCoinFlip(steamID);
+    }
+});

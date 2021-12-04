@@ -1,99 +1,106 @@
-const socket = io()
+const socket = io();
 
-function sideBarToggle() {
-    let sidebar = document.getElementById('sidebar');
-    let mainPage = document.getElementById('main');
-    let buttonLabel = document.getElementById('sidebar-button');
-
-    if (buttonLabel.innerText == "Open Chat") {
-        sidebar.style.width = "300px";
-        mainPage.style.marginLeft = "300px";
-        buttonLabel.innerText = "Close Chat";
-
-    }
-
-    else {
-        sidebar.style.width = "0px";
-        mainPage.style.marginLeft = "0px";
-        buttonLabel.innerText = "Open Chat";
-    }
-}
-
-function viewProfile () {
-    return null
-}
+// user info
+const username = document.getElementById("user-steam-username").value;
+const profilePictureURL = document.getElementById(
+    "user-profile-picture-url"
+).value;
+const profileURL = document.getElementById("user-profile-url").value;
+// need username, profile url, profile picture url, the message, and time
 
 // Websocket funciton for the chat that's a work in progress
-const feed = document.getElementById('chat-feed');
-const messageOut = document.getElementById('chat-message-out');
-const chatSend = document.getElementById('send-message');
-const message = document.getElementById('message');
-const user = document.getElementById('user-message-name');
-const userProfile = document.getElementById('user-message-url');
+const feed = document.getElementById("chat-feed");
+const chatSend = document.getElementById("send-message");
+const message = document.getElementById("message");
 
-chatSend.addEventListener('click', function() {
+chatSend.addEventListener("click", function () {
     if (message.value != "") {
-        socket.emit('chat', {
-            message: message.value,
-            user: user.value,
-            userProfile: userProfile.value
-        })
-    
-        message.value = "";
+        sendMessage(username, profileURL, profilePictureURL, message.value);
     }
 
+    message.value = "";
 });
 
-message.addEventListener('keydown', (event) => {
-    
-    if (event.code == 'Enter') {
-
+message.addEventListener("keydown", (event) => {
+    if (event.code == "Enter") {
         if (message.value != "") {
-            socket.emit('chat', {
-                message: message.value,
-                user: user.value,
-                userProfile: userProfile.value
-            })
-        
-            message.value = "";
+            sendMessage(username, profileURL, profilePictureURL, message.value);
         }
 
+        message.value = "";
     }
 });
 
+function sendMessage(username, profileURL, profilePictureURL, userMessage) {
+    socket.emit("chat", {
+        username: username,
+        profileURL: profileURL,
+        profilePictureURL: profilePictureURL,
+        message: userMessage,
+    });
+}
+
 // Listen for messages
-socket.on('chat', function(messages) {
-    
+socket.on("chat", function (messages) {
+    // append message to what is there already
+
     feed.innerHTML = "";
 
-    let newMessage = document.createElement('div');
-    
-    messages.forEach(msg => {
-        newMessage.innerHTML += '<p id="new-message"><a href=' + msg.userProfile + '><strong>' + msg.user + '</a>: </strong>' + msg.message + "</p>";
-    });
+    messages.forEach((message) => {
+        let newMessage = document.createElement("div");
+        newMessage.className = "chat-message";
 
-    feed.appendChild(newMessage);
+        let userImg = document.createElement("img");
+        userImg.src = message.profilePictureURL;
+        userImg.className = "chat-message-img";
+
+        newMessage.appendChild(userImg);
+
+        let messageResponse = document.createElement("div");
+        messageResponse.className = "chat-message-response";
+
+        let messageSenderInfo = document.createElement("div");
+        messageSenderInfo.className = "chat-message-sender-info";
+
+        let linkToUser = document.createElement("a");
+        linkToUser.href = message.profileURL;
+
+        let username = document.createElement("h3");
+        username.className = "chat-message-sender-name";
+        username.textContent = message.username;
+
+        linkToUser.appendChild(username);
+        messageSenderInfo.appendChild(linkToUser);
+        messageResponse.appendChild(messageSenderInfo);
+
+        let messageText = document.createElement("p");
+        messageText.textContent = message.message;
+
+        messageResponse.appendChild(messageText);
+
+        newMessage.appendChild(messageResponse);
+
+        feed.appendChild(newMessage);
+    });
 
     feed.maxScrollTop = feed.scrollHeight - feed.offsetHeight;
 
     if (feed.maxScrollTop - feed.scrollTop <= feed.offsetHeight) {
-        feed.scrollTop = feed.scrollHeight
-  
-      }
+        feed.scrollTop = feed.scrollHeight;
+    }
 });
 
 socket.on("connect", () => {
-
-    const steamID = document.getElementById("user-steam-id")
+    const steamID = document.getElementById("user-steam-id");
     let userID = steamID.value;
-    
-    let data ={
-        steamID: userID
-    }
 
-    socket.emit("join", data)
+    let data = {
+        steamID: userID,
+    };
+
+    socket.emit("join", data);
 });
 
 socket.on("tradeLink", (msg) => {
-    console.log(msg)
-})
+    console.log(msg);
+});

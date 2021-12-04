@@ -1,18 +1,6 @@
 const viewBackground = document.getElementById("view-menu-background");
 const allViews = document.getElementById('all-cf-views');
 
-export function openViewMenu() {
-    
-    try {
-
-    }
-
-    catch(err) {
-
-    }
-}
-
-
 // build deposit screen
 export function joinGame(){
 
@@ -60,8 +48,7 @@ export async function removeJoinButton(game) {
     }
 }
 
-export async function showCFDepositScreen() {
+export async function showCFDepositScreen(gameId) {
 
     
-
 }

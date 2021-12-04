@@ -7,9 +7,20 @@
             integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
             crossorigin="anonymous"
         ></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500;700;900&display=swap"
+            rel="stylesheet"
+        />
         <link
             rel="stylesheet"
             href="/static/stylesheets/index.css"
+            type="text/css"
+        />
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/topnav.css"
             type="text/css"
         />
         <link
@@ -27,99 +38,84 @@
             href="/static/stylesheets/coinflip/viewmenu.css"
             type="text/css"
         />
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/coinflip/cfhistory.css"
+            type="text/css"
+        />
+        <link
+            rel="stylesheet"
+            href="/static/stylesheets/chat.css"
+            type="text/css"
+        />
     </head>
     <body>
         <div id="view-menu-background" class="display-none"></div>
         <div class="layer">
+            <div class="coinflip-grid-layout">
+                {% include "parts/topnav.html" %}
 
-        <header>
-            <div id="sidebar">
-                <div id="logo-login">
-                    <h1>RustSite</h1>
+                <div id="coinflip-mid-section">
+                    <div id="coin-selection">
+                        <button id="coin-heads" value="heads">
+                            <h2>Heads</h2>
+                            <h4 class="heads-percent">percent</h4>
+                        </button>
 
-                    {% if user == "welcome" %}
-                    <a href="/auth/steam">
-                        <img
-                            src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
-                            alt="Sign in Through Steam"
-                        />
-                    </a>
-                    {% else %}
-                    <h2>Welcome, <a id="this should pull up their website profile">{{ user.Username }}</a></h2>
-                    {% endif %}
-                </div>
+                        <button id="create-a-coinflip">
+                            <div id="create-coinflip-text">
+                                <p>Create</p>
+                                <p>A</p>
+                                <p>CoinFlip</p>
+                            </div>
+                        </button>
 
-                <div id="chat">
-                    <div id="chat-feed">
-                        <div id="chat-message-out"></div>
+                        <button id="coin-tails" value="tails">
+                            <h2>Tails</h2>
+                            <h4 class="tails-percent">percent</h4>
+                        </button>
                     </div>
-                    <div id="chat-options">
-                        <input
-                            id="user-message-name"
-                            style="display: none"
-                            ;
-                            value="{{ user.Username }}"
-                        />
-                        <input
-                            id="user-message-url"
-                            style="display: none"
-                            ;
-                            value="{{ user.ProfileURL }}"
-                        />
-                        {% if user == "welcome" %}
-                        <input id="message" type="text" name="message" placeholder="Sign In To Chat" disabled/>
-                        <input type="button" id="send-message" disabled value="Send" />
-                        
-                        {% else %}
-                        <input id="message" type="text" name="message" />
-                        <input type="button" id="send-message" value="Send" />
-                        {% endif %}
-                        <a href="">Support</a>
+
+                    <div id="coinflip-percent-bar">
+                        <div id="coinflip-percent-bar-heads">
+                            <p>
+                                Heads - <span class="heads-percent">50%</span>
+                            </p>
+                        </div>
+                        <div id="coinflip-percent-bar-tails">
+                            <p>
+                                Tails - <span class="tails-percent">50%</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
+
+                <div id="coinflip-history">
+                    <h3 class="side-menu-title">Coin Flip History</h3>
+                </div>
+
+                <div id="coinflip-listing-area">
+                    <h3 class="side-menu-title">Coin Flips</h3>
+                </div>
+
+                {% include "parts/chat.html" %} {% include "parts/deposit.html"
+                %}
+
+                <script src="/static/scripts/homepage.js"></script>
+                <script type="module" src="/static/scripts/deposit.js"></script>
+                <script
+                    type="module"
+                    src="/static/scripts/coinflip/coinflip.js"
+                ></script>
+                <script
+                    type="module"
+                    src="/static/scripts/coinflip/listinghandler.js"
+                ></script>
+                <script
+                    type="module"
+                    src="/static/scripts/coinflip/gameinteraction.js"
+                ></script>
             </div>
-        </header>
-
-        <main id="main">
-
-            {% include "parts/userdata.html" %}
-
-            {% include "parts/topnav.html" %}
-
-            <div class="main-section">
-
-                <div id="coinflip-area">
-                    
-                    <div id="create-cf-game">
-
-                        <p>Create a New Coin Flip</p>
-                        {% if user == "welcome" %}
-                        <button id="new-cf-game-menu" onclick="openFirstMenu()" disabled>Create Game</button>
-
-                        {% else %}
-                        <button id="new-cf-game-menu" onclick="openFirstMenu()">Create Game</button>
-
-                        {% endif %}
-                    </div>
-
-                    <div id="cf-game-area">
-                    </div>
-                </div>
-
-            </div>
-
-        </main>
-
-        {% include "parts/coinflip/coinflipmenu.html" %}
-        {% include "parts/coinflip/viewmenus.html" %}
-
-        <script src="/static/scripts/homepage.js"></script>
-        <script src="/static/scripts/deposit.js"></script>
-        <script src="/static/scripts/coinflip/coinflip.js"></script>
-        <script type="module" src="/static/scripts/coinflip/listinghandler.js"></script>
-        <script type="module" src="/static/scripts/coinflip/gameinteraction.js"></script>
-
         </div>
-
     </body>
 </html>

@@ -1,102 +1,47 @@
 body {
-    font-family: sans-serif, Arial, Helvetica;
-    margin: 10px;
-    background-image: url("https://imgix.bustle.com/uploads/image/2021/3/29/838af2f4-dc2d-4ca3-829a-729efe6c3f69-rust.JPG?w=1040&h=500&fit=crop&crop=faces&auto=format%2Ccompress&q=50&dpr=2");
+    font-family: "Montserrat", sans-serif, Arial, Helvetica;
+    margin: 0;
+    background-image: url("../images/Background Image.png");
     background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    mix-blend-mode: difference;
+    isolation: isolate;
+}
+
+.coinflip-grid-layout {
+    display: grid;
+    grid-template: repeat(12, auto) / repeat(4, auto);
+    grid-gap: 20px;
+    padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .layer {
-    background-color: rgba(1, 179, 111, 0.603);
-    position: absolute;
+    background: radial-gradient(
+            74.05% 74.05% at 50% 16.2%,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(14, 29, 53, 0.59) 100%
+        ),
+        linear-gradient(178.43deg, rgba(24, 39, 62, 0.75) 1.33%, #031303 85.13%);
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-}
-
-#sidebar {
-    position: fixed;
-    height: 100%;
-    width: 300px;
-    background-color: black;
-    left: 0;
-    top: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-}
-
-#logo-login {
-    background-color: aqua;
-    text-align: center;
-    margin: 10px;
-}
-
-#chat {
-    height: 80%;
-    margin: 10px;
-}
-
-#chat-frame {
-    background-color: white;
-    display: none;
-}
-
-#chat-feed {
-    height: 80%;
     overflow-y: scroll;
-    background-color: white;
-    margin-bottom: 10px;
 }
 
-#top-nav {
-    display: flex;
-    flex-flow: row;
-    align-items: center;
-    justify-content: space-around;
-    padding: 10px;
-    font-size: 20px;
-    background-color: #ffe4c4;
-}
-
-#top-nav img {
-    max-height: 30px;
-}
-
-#main {
-    margin-left: 300px;
-}
-
-.main-section {
-    padding: 10px;
-}
-
-#sidebar-button {
-    background-color: black;
-    color: azure;
-}
-
-#profile-button {
-    border: none;
-    padding: none;
-    background: none;
-}
-
-#profile-button img {
-    max-height: 20px;
-}
-
-#new-message {
-    margin: 3px;
-    font-size: 14px;
-}
-
-#new-message a {
-    color: black;
-}
-
-#top-sign-in {
-    display: flex;
-    align-items: center;
+.side-menu-title {
+    font-family: Montserrat;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 22px;
+    color: #ffffff;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    margin: 20px auto 20px auto;
+    text-align: center;
 }

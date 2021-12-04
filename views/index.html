@@ -19,100 +19,119 @@
         />
         <link
             rel="stylesheet"
-            href="/static/stylesheets/jackpot.css"
+            href="/static/stylesheets/jackpot/jackpot.css"
             type="text/css"
         />
     </head>
     <body>
         <div class="layer">
-        <header>
-            <div id="sidebar">
-                <div id="logo-login">
-                    <h1>RustSite</h1>
+            <header>
+                <div id="sidebar">
+                    <div id="logo-login">
+                        <h1>RustSite</h1>
 
-                    {% if user == "welcome" %}
-                    <a href="/auth/steam">
-                        <img
-                            src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
-                            alt="Sign in Through Steam"
-                        />
-                    </a>
-                    {% else %}
-                    <h2>Welcome, <a id="this should pull up their website profile">{{ user.Username }}</a></h2>
-                    {% endif %}
-                </div>
-
-                <div id="chat">
-                    <div id="chat-feed">
-                        <div id="chat-message-out"></div>
-                    </div>
-                    <div id="chat-options">
-                        <input
-                            id="user-message-name"
-                            style="display: none"
-                            ;
-                            value="{{ user.Username }}"
-                        />
-                        <input
-                            id="user-message-url"
-                            style="display: none"
-                            ;
-                            value="{{ user.ProfileURL }}"
-                        />
                         {% if user == "welcome" %}
-                        <input id="message" type="text" name="message" placeholder="Sign In To Chat" disabled/>
-                        <input type="button" id="send-message" disabled value="Send" />
-                        
+                        <a href="/auth/steam">
+                            <img
+                                src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
+                                alt="Sign in Through Steam"
+                            />
+                        </a>
                         {% else %}
-                        <input id="message" type="text" name="message" />
-                        <input type="button" id="send-message" value="Send" />
+                        <h2>
+                            Welcome,
+                            <a id="this should pull up their website profile"
+                                >{{ user.Username }}</a
+                            >
+                        </h2>
                         {% endif %}
-                        <a href="">Support</a>
+                    </div>
+
+                    <div id="chat">
+                        <div id="chat-feed">
+                            <div id="chat-message-out"></div>
+                        </div>
+                        <div id="chat-options">
+                            <input
+                                id="user-message-name"
+                                style="display: none"
+                                ;
+                                value="{{ user.Username }}"
+                            />
+                            <input
+                                id="user-message-url"
+                                style="display: none"
+                                ;
+                                value="{{ user.ProfileURL }}"
+                            />
+                            {% if user == "welcome" %}
+                            <input
+                                id="message"
+                                type="text"
+                                name="message"
+                                placeholder="Sign In To Chat"
+                                disabled
+                            />
+                            <input
+                                type="button"
+                                id="send-message"
+                                disabled
+                                value="Send"
+                            />
+
+                            {% else %}
+                            <input id="message" type="text" name="message" />
+                            <input
+                                type="button"
+                                id="send-message"
+                                value="Send"
+                            />
+                            {% endif %}
+                            <a href="">Support</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <main id="main">
+            <main id="main">
+                {% include "parts/topnav.html" %}
 
-            {% include "parts/userdata.html" %}
-            
-            {% include "parts/topnav.html" %}
-
-            <div class="main-section">
-
-                <div id="spinner">Waiting for Next Jackpot Game To Start</div>
-
-                <div id="deposit">
-
-                    <div id="jackpot-info">
-                        <p id="total-pot-value"></p>
+                <div class="main-section">
+                    <div id="spinner">
+                        Waiting for Next Jackpot Game To Start
                     </div>
-                    
-                    {% if user == "welcome" %}
-                    <button id="show-deposit-button" onclick="openScreen()" disabled>Deposit</button>
 
-                    {% else %}
-                    <button id="show-deposit-button" onclick="openScreen()">Deposit</button>
+                    <div id="deposit">
+                        <div id="jackpot-info">
+                            <p id="total-pot-value"></p>
+                        </div>
 
-                    {% endif %}
+                        {% if user == "welcome" %}
+                        <button
+                            id="show-deposit-button"
+                            onclick="openScreen()"
+                            disabled
+                        >
+                            Deposit
+                        </button>
 
+                        {% else %}
+                        <button id="show-deposit-button" onclick="openScreen()">
+                            Deposit
+                        </button>
+
+                        {% endif %}
+                    </div>
+
+                    <div id="player-bets"></div>
                 </div>
-                
-                <div id="player-bets">
-                </div>
 
-            </div>
+                {% include "parts/deposit.html" %}
+            </main>
 
-            {% include "parts/deposit.html" %}
-
-        </main>
-
-
-        <script src="/static/scripts/homepage.js"></script>
-        <script src="/static/scripts/jackpot.js"></script>
-        <script src="/static/scripts/deposit.js"></script>
-
+            <script src="/static/scripts/homepage.js"></script>
+            <script src="/static/scripts/jackpot.js"></script>
+            <script src="/static/scripts/deposit.js"></script>
         </div>
     </body>
 </html>
