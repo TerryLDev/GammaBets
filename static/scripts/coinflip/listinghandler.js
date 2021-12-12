@@ -8,49 +8,79 @@ const steamID = document.getElementById("user-steam-id").value;
 let allCFGames = [];
 
 // only use loader
-socket.on("coinFlipLoader", (games) => {
+socket.on("coinFlipLoader", async (games) => {
     // "games" is going to be an array of all the cf games from the external json file
     games.forEach((game) => {
+
         if (game.gameState) {
-            // add game as a listing and builds the view menu for the game
+
+            // add game as a listing and builds the view menu for the game when page is loaded and a new game comes
             if (allCFGames.find((element) => element.gameID == game.gameID) == undefined) {
                 addNewCFGame(game);
                 buildView(game);
             }
-            else if (game.timer == "cancel") {
-                // reset the game listing and view menu
-                buildView(game);
-            }
-            else if (game.winner != "none") {
+
+            else if (game.playerTwoState == "Active" && game.timer > 0) {
+                // get picture and name and timer
+                
+                // update picture and name
+                gameInteraction.playerJoined(game.gameID, game.playerTwoSide, game.playerTwoPic, game.playerTwoUser)
+
+                // update timer
+                gameInteraction.updateTimer(game)
+
             }
 
-            // idk yet
-            else if (game.timer != false && (game.playerTwoState == "Active" || game.playerTwoState == "Accepted")) {
-                gameInteraction.updateTimer(game);
-                gameInteraction.removeJoinButton(game);
+            else if (game.playerTwoState == "cancel") {
+                // reset the game listing if second trade is canceled
+                gameInteraction.tradeCanceled(game.gameID)
+
             }
+
+            else if (game.playerTwoState == "Accepted" && winner == "none") {
+
+                // show player two skins and values and starts flipping timer
+
+                // show skins and player value
+                gameInteraction.playerTwoAcceptedTrade(game)
+
+                // update timer
+                gameInteraction.updateTimer(game)
+
+            }
+
         }
 
         // this should remove the game from the website after it has been flipped
         else {
-            // remove game from game array
 
-            let position = allCFGames.findIndex((obj) => {
-                if (obj.gameID == game.gameID) {
-                    return obj;
-                }
-            });
+            if (game.winner != "none") {
 
-            allCFGames.splice(position, 1);
+                // shows the animation for the coinflip, removes game from listing, places game in the history container
+                // also it should show the coinflip animation and then show a the winner afterwards
 
-            // remove game from html element child of cf-game-area
+                //Remove game from listing
+                gameInteraction.removeGameLisiting(game);
 
-            gameListings.removeChild(document.getElementById(game.gameID));
+                // show animation
+                gameInteraction.showAnimationAndWinner(game);
+
+                let index = allCFGames.findIndex(splicer => {
+                    if (splicer.gameID == game.gameID) {
+                        return splicer
+                    }
+                })
+
+                allCFGames.splice(index, 1);
+
+            }
+
         }
     });
 });
 
 function addNewCFGame(cf) {
+
     allCFGames.push(cf);
 
     // main div for coin flip listing
@@ -88,8 +118,8 @@ function addNewCFGame(cf) {
 
     // buttons for the coin flip: view and join
 
-    const headsBackground = "rgba(237, 44, 44, 0.35)";
-    const tailsBackground = "rgba(251, 166, 39, 0.28)";
+    const redBackground = "rgba(138, 14, 14, 0.9)";
+    const blackBackground = "rgba(24, 24, 24, 0.9)";
 
     let buttonListingDiv = document.createElement("div");
     buttonListingDiv.className = "cf-game-buttons";
@@ -100,22 +130,31 @@ function addNewCFGame(cf) {
 
     // this should bring up the deposit button
     joinButton.addEventListener("click", (event) => {
-        let elements = event.path;
 
-        let id;
+        if (steamID == null || steamID == undefined || steamID == "") {
+            alert("Please Sign In Through to Join a Coin Flip");
 
-        elements.forEach((element) => {
-            if (element.className == "cf-game-listing") {
-                id = element.id;
-            }
-        });
+        }
 
-        deposit.buildDepositMenu(steamID, cf.gameID, null);
+        else {
+            let elements = event.path;
+
+            let id;
+
+            elements.forEach((element) => {
+                if (element.className == "cf-game-listing") {
+                    id = element.id;
+                }
+            });
+
+            deposit.buildDepositMenu(steamID, id, null);
+        }
     });
 
     if (cf.playerTwoState == "Accepted" || cf.playerTwoState == "Active") {
         joinButton.classList.add("display-none");
     }
+
 
     // view button
     let viewButton = document.createElement("button");
@@ -130,11 +169,10 @@ function addNewCFGame(cf) {
     // this brings up the view menu of the coin flip
     viewButton.addEventListener("click", (event) => {
         let elements = event.path;
-
         let id;
 
         elements.forEach((element) => {
-            if (element.className == "cf-game-listing") {
+            if (element.className == "coinflip-listing") {
                 id = element.id;
             }
         });
@@ -145,27 +183,25 @@ function addNewCFGame(cf) {
 
         back.style.display = "";
         back.classList.add("fade-background");
-        try {
-            selectedView.classList.remove("display-none");
-        }
-        catch (e) {
-            return null
-        }
+        selectedView.style.display = "";
         selectedView.classList.add("show-selected-view-menu");
     });
 
-    if (cf.playerOneSide == "heads") {
-        viewButton.style.background = headsBackground;
-        joinButton.style.background = headsBackground;
+    if (cf.playerOneSide == "red") {
+        viewButton.style.background = redBackground;
+        joinButton.style.background = redBackground;
     } else {
-        viewButton.style.background = tailsBackground;
-        joinButton.style.background = tailsBackground;
+        viewButton.style.background = blackBackground;
+        joinButton.style.background = blackBackground;
     }
 
     // push both buttons to button div
-    if (cf.playerOneId != steamID && cf.playerTwoState != "Active" && cf.timer != "none" && cf.playerTwoState != "Accepted") {
-		buttonListingDiv.appendChild(joinButton);
+    if (cf.timer == false) {
+        if (steamID != cf.playerOneId) {
+            buttonListingDiv.appendChild(joinButton);
+        }
 	}
+
     buttonListingDiv.appendChild(viewButton);
 
     ///////////////////////
@@ -179,16 +215,29 @@ function addNewCFGame(cf) {
 }
 
 // might need to change the view menu later based on the mockups
-async function buildView(game) {
+function buildView(game) {
     // create a new view menu for listing
-    // MAIN DIV FOR VIEW MENU
+
+    // container for background color
     let newCFViewMenu = document.createElement("div");
 
     newCFViewMenu.className = "view-menu";
-    newCFViewMenu.classList.add("display-none");
+    newCFViewMenu.style.display = "none";
 
     newCFViewMenu.dataset.viewId = game.gameID;
     newCFViewMenu.dataset.playerOneId = game.playerOneId;
+
+    //container for background image
+    let imageContainer = document.createElement("img")
+    imageContainer.src = "/static/images/gammalogo.png";
+    imageContainer.className = "view-background-image"
+
+    // container for all main components
+    let mainCointainer = document.createElement("div");
+    mainCointainer.className = "main-view-container";
+
+    newCFViewMenu.appendChild(imageContainer);
+    newCFViewMenu.appendChild(mainCointainer);
 
     /////////////////////////////////////
 
@@ -199,21 +248,39 @@ async function buildView(game) {
 
     /////////////////////////////////////
 
-    // div for player ONE picture, username, and total value
+    // container for players picture, username, and total value
     let playerOne = document.createElement("div");
-
-    playerOne.className = "view-player";
+    playerOne.className = "view-player-profile";
 
     // children in order
-    let playerOnePic = document.createElement("img");
+    let playerOnePic = document.createElement("img");    
     let playerOneUsername = document.createElement("p");
     let playerOneValue = document.createElement("p");
 
+    // setting up player ONE image
     playerOnePic.src = game.playerOnePicture;
 
+    if (game.playerOneSide == "red") {
+        playerOnePic.className = "red-player-profile-picture";
+    }
+
+    else {
+        playerOnePic.className = "black-player-profile-picture";
+    }
+
+    // setting up player ONE username
+    playerOneUsername.className = "view-player-name"
     playerOneUsername.innerText = game.playerOneUser;
 
-    playerOneValue.innerText = "$" + (game.totalValue / 100).toFixed(2);
+    // setting up player ONE value
+    let pOneVal = 0;
+
+    game.playerOneSkinValues.forEach(val => {
+		pOneVal += val;
+	});
+    
+    playerOneValue.innerText = "$" + (pOneVal / 100).toFixed(2);
+    playerOneValue.className = "view-player-value"
 
     playerOne.appendChild(playerOnePic);
     playerOne.appendChild(playerOneUsername);
@@ -225,49 +292,91 @@ async function buildView(game) {
 
     // middle section for either the timer or the coin
     let viewMiddleSection = document.createElement("div");
-    viewMiddleSection.className = "view-middle-section";
+    viewMiddleSection.className = "view-coin-section";
+
+    let coinPic = document.createElement("img");
+    coinPic.className = "view-coin-seciton-img";
+
+    if (game.playerOneSide == "red") {
+        coinPic.src = "/static/images/RedChip.png";
+    }
+    else {
+        coinPic.src = "/static/images/blackchip.png";
+    }
 
     // start, waiting for player to join
     let viewMiddleInfo = document.createElement("p");
-    viewMiddleInfo.innerText = "Waiting for Player to Join";
 
-    // join button for middle section
-    let viewJoinButton = document.createElement("button");
-    viewJoinButton.innerText = "Join";
-    viewJoinButton.className = "view-join-button";
-
-    if (game.playerTwoState == "Accepted" || game.playerTwoState == "Active") {
-        viewJoinButton.classList.add("display-none");
+    if (game.timer == false) {
+        viewMiddleInfo.innerText = "Waiting for Player...";
     }
+    else {
+        viewMiddleInfo.innerText = game.timer;
+    }
+    viewMiddleInfo.className = "view-coin-seciton-p";
 
+    viewMiddleSection.appendChild(coinPic);
     viewMiddleSection.appendChild(viewMiddleInfo);
-    viewMiddleSection.appendChild(viewJoinButton);
+    
+    playersAndCoin.appendChild(viewMiddleSection)
 
     /////////////////////////////////////
 
     // div for player TWO picture, username, and total value
     let playerTwo = document.createElement("div");
+	playerTwo.className = "view-player-profile";
+    playerTwo.classList.add("player-two-section")
 
-    playerTwo.className = "view-player";
+	// children in order
+	let playerTwoPic = document.createElement("img");
+	let playerTwoUsername = document.createElement("p");
+	let playerTwoValue = document.createElement("p");
 
-    // children in order
-    let playerTwoPic = document.createElement("img");
-    let playerTwoUsername = document.createElement("p");
-    let playerTwoValue = document.createElement("p");
+	// setting up player ONE image
+    if (game.playerTwoPicture == "none") {
+        playerTwoPic.src = "/static/images/defaultProfile.png";
+    }
+    else {
+        playerTwoPic.src = game.playerTwoPicture;
+    }
 
-    playerTwoPic.src = "/static/images/defaultProfile.png";
+	if (game.playerOneSide == "red") {
+		playerTwoPic.className = "black-player-profile-picture";
+	} else {
+		playerTwoPic.className = "red-player-profile-picture";
+	}
 
-    playerTwo.appendChild(playerTwoPic);
-    playerTwo.appendChild(playerTwoUsername);
-    playerTwo.appendChild(playerTwoValue);
+	// setting up player TWO username
+	playerTwoUsername.className = "view-player-name";
 
-    /////////////////////////////////////
+    if (game.playerTwoUser == "none"){
+        playerTwoUsername.innerText = "Waiting...";
+    }
+    else {
+        playerTwoUsername.innerText = game.playerTwoUsername;
+    }
 
-    // add play one and two with middle section
+	// setting up player TWO value
 
-    playersAndCoin.appendChild(playerOne);
-    playersAndCoin.appendChild(viewMiddleSection);
-    playersAndCoin.appendChild(playerTwo);
+    let pTwoVal = 0;
+
+    if (game.playerTwoSkinValues != "none") {
+
+        game.playerTwoSkinValues.forEach(val => {
+            pTwoVal += val;
+        });
+    }
+
+	playerTwoValue.innerText = "$" + (pTwoVal / 100).toFixed(2);
+	playerTwoValue.className = "view-player-value";
+
+	playerTwo.appendChild(playerTwoPic);
+	playerTwo.appendChild(playerTwoUsername);
+	playerTwo.appendChild(playerTwoValue);
+
+	playersAndCoin.appendChild(playerTwo);
+
+    mainCointainer.appendChild(playersAndCoin);
 
     /////////////////////////////////////
 
@@ -276,43 +385,80 @@ async function buildView(game) {
     allPlayerSkins.className = "view-both-player-skins";
 
     // player ONE SKINS
-    let playerOneSkinSlots = document.createElement("div");
-    playerOneSkinSlots.className = "view-player-skins";
+    let playerOneSkins = document.createElement("div");
+    playerOneSkins.className = "view-skins-grid";
+
+    let playerOneSlotClass;
+
+    if (game.playerOneSide == "red") {
+        playerOneSlotClass = "red-player-skin-slot";
+    }
+    else {
+        playerOneSlotClass = "black-player-skin-slot";
+    }
 
     // loop through all the player skins
     for (let i = 0; i < game.playerOneSkins.length; i++) {
-        let newSkin = document.createElement("div");
+        let slot = document.createElement("div");
+        slot.className = playerOneSlotClass;
 
-        newSkin.className = "view-skin";
+        let slotSkinImg = document.createElement("img");
+        slotSkinImg.src = game.playerOneSkinPictures[i];
+        slotSkinImg.alt = "N/A"
+        slotSkinImg.className = "view-slot-img";
 
-        let skinPrice = (game.playerOneSkinValues[i] / 100).toFixed(2);
+        let slotSkinValue = document.createElement("p");
+        slotSkinValue.textContent = "$" +(game.playerOneSkinValues[i] / 100).toFixed(2);
+        slotSkinValue.className = "view-slot-value";
 
-        newSkin.innerHTML =
-            "<img src='" +
-            game.playerOneSkinPictures[i] +
-            "' alt='" +
-            game.playerOneSkins[i] +
-            "'/><p>" +
-            game.playerOneSkins[i] +
-            "</p><p>$" +
-            skinPrice +
-            "</p>";
+        slot.appendChild(slotSkinImg);
+        slot.appendChild(slotSkinValue);
 
-        playerOneSkinSlots.appendChild(newSkin);
+        playerOneSkins.appendChild(slot);
+
     }
 
-    // player TWO SKINS init
-    let playerTwoSkinSlots = document.createElement("div");
-    playerTwoSkinSlots.className = "view-player-skins";
+    allPlayerSkins.appendChild(playerOneSkins)
 
-    allPlayerSkins.appendChild(playerOneSkinSlots);
-    allPlayerSkins.appendChild(playerTwoSkinSlots);
+    // player Two Skins
+    let playerTwoSkins = document.createElement("div");
+	playerTwoSkins.className = "view-skins-grid";
+    playerTwoSkins.classList.add(".player-two-section")
 
-    /////////////////////////////////////
+	let playerTwoSlotClass;
 
-    // put it the view menu together
-    newCFViewMenu.appendChild(playersAndCoin);
-    newCFViewMenu.appendChild(allPlayerSkins);
+	if (game.playerOneSide == "red") {
+		playerTwoSlotClass = "black-player-skin-slot";
+	} else {
+		playerTwoSlotClass = "red-player-skin-slot";
+	}
+
+	// loop through all the player skins
+    if (game.playerTwoSkins != "none") {
+        for (let i = 0; i < game.playerTwoSkins.length; i++) {
+			let slot = document.createElement("div");
+			slot.className = playerTwoSlotClass;
+
+			let slotSkinImg = document.createElement("img");
+			slotSkinImg.src = game.playerTwoSkinPictures[i];
+			slotSkinImg.alt = "N/A";
+			slotSkinImg.className = "view-slot-img";
+
+			let slotSkinValue = document.createElement("p");
+			slotSkinValue.textContent =
+				"$" + (game.playerTwoSkinValues[i] / 100).toFixed(2);
+			slotSkinValue.className = "view-slot-value";
+
+			slot.appendChild(slotSkinImg);
+			slot.appendChild(slotSkinValue);
+
+			playerTwoSkins.appendChild(slot);
+		}
+    }
+
+    allPlayerSkins.appendChild(playerTwoSkins);
+
+    mainCointainer.appendChild(allPlayerSkins);
 
     allViews.appendChild(newCFViewMenu);
 }

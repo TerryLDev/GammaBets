@@ -138,11 +138,20 @@ depositButton.addEventListener("click", (Event) => {
 
     // check if in coinflip page
     if (windowEvent == "/coinflip") {
+
+        // if a gameid is given the someon is joining a game
         if (checkForGameID) {
+
             let gameID = depositInfo.dataset.gameId;
-        } else if (checkforSide) {
+
+        }
+
+        // if a side is given then someone is creating a game
+        else if (checkforSide) {
+
             let side = depositInfo.dataset.side;
             createNewCFGame(steamID, listOfSkins, tradeURL, side);
+
         }
     }
 
@@ -162,9 +171,16 @@ export function createNewCFGame(steamID, listOfSkins, tradeURL, side) {
     socket.emit("createNewCoinFlipGame", data);
 }
 
-export function joinCFGAme(steamID, listOfSkins, tradeURL, gameId) {
+export async function joinCFGAme(steamID, listOfSkins, tradeURL, gameId) {
     const data = {
-        // yea i know
+        steamID: steamID,
+        skins: listOfSkins,
+        tradeURL: tradeURL,
+        gameID: gameId,
     };
     socket.emit("joinActiveCoinFlipGame", data);
+}
+
+export async function cfDepositLimit() {
+
 }

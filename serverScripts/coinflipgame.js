@@ -20,14 +20,13 @@ const client = new SteamUser;
 const SteamBot = require("../steam/bot");
 
 const fs = require('fs');
-const e = require('express');
 
 function decideCoinFlipWinner(cfGammID) {
 
     try {
 
         CoinFlipGame.findOne({"GameID": cfGammID}, (err, cf) => {
-            if (err) return console.error(err)
+            if (err) return err;
     
             else {
     
@@ -108,16 +107,16 @@ async function addNewActiveGame(cfID) {
                     slicerDelay: 3
                 }
 
-                if (cfGame.Heads == "" || cfGame.Heads == undefined) {
+                if (cfGame.Red == "" || cfGame.Red == undefined) {
 
-                    newEntry.playerOneSide = "tails";
-                    newEntry.playerTwoSide = "heads";
+                    newEntry.playerOneSide = "black";
+                    newEntry.playerTwoSide = "red";
 
                 }
 
                 else {
-                    newEntry.playerOneSide = "heads";
-                    newEntry.playerTwoSide = "tails";
+                    newEntry.playerOneSide = "red";
+                    newEntry.playerTwoSide = "black";
                 }
 
                 activeGames.push(newEntry)
@@ -136,7 +135,7 @@ async function addNewActiveGame(cfID) {
 }
 
 // changes playerTwoState form "none" to "Active" or changes it to "Accepted"
-async function opponentChangeStateCFGame(cfGame) {
+async function opponentAcceptedTrade(cfGame) {
 
     try {
 
@@ -146,8 +145,6 @@ async function opponentChangeStateCFGame(cfGame) {
 
         modify.forEach(obj => {
             if (obj.gameID == cfGame.GameID) {
-                obj.playerTwoUser = cfGame.Players[1].username;
-                obj.playerTwoPicture = cfGame.Players[1].userPicture;
                 obj.playerTwoSkins = cfGame.Players[1].skins;
                 obj.playerTwoSkinValues = cfGame.Players[1].skinValues;
                 obj.playerTwoSkinPictures = cfGame.Players[1].skinPictures;
@@ -164,6 +161,31 @@ async function opponentChangeStateCFGame(cfGame) {
 
 }
 
+async function opponentJoiningGame(gameID, username, userPicURL, steamID, tradeState) {
+
+    try {
+		let json = await fs.readFileSync(`${__dirname}/cfgames.json`, {
+			encoding: "utf-8",
+		});
+
+		let modify = JSON.parse(json);
+
+		modify.forEach((obj) => {
+			if (obj.gameID == gameID) {
+				obj.playerTwoTradeState = tradeState;
+                obj.playerTwoId = steamID;
+                obj.playerTwoUser = username;
+                obj.playerTwoPicture = userPicURL;
+			}
+		});
+
+		fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify));
+	} catch (err) {
+		return console.log(err);
+	}
+
+}
+
 // changes playerTwoState form "sent" to "none" if the user declined the trade offer sent to them
 async function opponentDeclinedTrade(cfGame) {
 
@@ -175,8 +197,19 @@ async function opponentDeclinedTrade(cfGame) {
 
         modify.forEach(obj => {
             if (obj.gameID == cfGame.GameID) {
-                obj.playerTwoState = "none";
-                obj.timer = false;
+                obj.playerTwoUser =  "none"
+                obj.playerTwoId = "none"
+                obj.playerTwoPicture = "none"
+                obj.playerTwoSkins = "none"
+                obj.playerTwoSkinValues = "none"
+                obj.playerTwoSkinPictures = "none"
+                obj.playerTwoState = "none"
+                obj.playerTwoSide = 'none'
+                obj.totalValue = cfGame.TotalValue
+                obj.timer = false
+                obj.gameState = cfGame.Status
+                obj.wait = parseInt(process.env.COIN_FLIP_ENDING_WAIT_TIME)
+                obj.slicerDelay = 3
             }
         })
 
@@ -332,6 +365,7 @@ const coinFlipUpdates = async () => {
                 else if(gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Active" && gameObj.timer == 0) {
                     console.log(`Canel opponent's trade with GameID: ${gameObj.gameID}`)
 
+                    // timer ran out, cancel the trade
                     gameObj.timer = false;
                     gameObj.playerTwoState = "cancel";
                 }
@@ -360,6 +394,20 @@ const coinFlipUpdates = async () => {
     
                         // call a function that decides a winner
                         let cfWinner = decideCoinFlipWinner(gameObj.gameID)
+
+                        CoinFlipGame.findOneAndUpdate({"GameID": gameObj.gameID}, {
+                            Winner: cfWinner,
+                            Status: false
+                        }, {upsert: true}, (err, cf) => {
+                            if (err) {
+                                console.error(err);
+                            }
+
+                            else {
+                                // send trade offer and send trade link to winner
+                            }
+
+                        })
     
                         gameObj.winner = cfWinner;
     
@@ -424,4 +472,11 @@ const coinFlipUpdates = async () => {
 
 }
 
-module.exports = {decideCoinFlipWinner, addNewActiveGame, coinFlipUpdates, opponentChangeStateCFGame, opponentDeclinedTrade}
+module.exports = {
+	decideCoinFlipWinner,
+	addNewActiveGame,
+	coinFlipUpdates,
+	opponentAcceptedTrade,
+	opponentDeclinedTrade,
+	opponentJoiningGame,
+};

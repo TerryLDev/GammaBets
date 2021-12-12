@@ -15,7 +15,6 @@ const JackpotGame = require('../models/jackpotgame.model');
 const coinFlipUpdater = require('../serverScripts/coinflipgame');
 const e = require('express');
 
-
 class SteamBot {
 
 	constructor(logOnOptions) {
@@ -120,8 +119,6 @@ class SteamBot {
 
 	sendCoinFlipTradeOffer(steamID, skins, tradeURL, side, gameID) {
 
-		const isActiveGame = this.checkForActiveCFGame(gameID);
-
 		const offer = this.manager.createOffer(steamID);
 
 		this.manager.getUserInventoryContents(steamID, 252490, 2, true, (err, inv) => {
@@ -178,49 +175,14 @@ class SteamBot {
 									
 									if (err) return console.error(err);
 
-									else if (isActiveGame) {
-
-										if (side == 'heads') {
-
-											CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
-												PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
-												PlayerTwoTradeID: offer.id,
-												Heads: steamID,
-											}, {upsert: true}, (err, doc) => {
-												if (err) return console.log(err);
-
-												else {
-													coinFlipUpdater.opponentChangeStateCFGame(cf);
-												}
-											})
-
-										}
-
-										else {
-
-											CoinFlipGame.findOneAndUpdate({"GameID": gameID}, {
-												PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
-												PlayerTwoTradeID: offer.id,
-												Tails: steamID,
-											}, {upsert: true}, (err, doc) => {
-												if (err) return console.log(err);
-
-												else {
-													coinFlipUpdater.opponentChangeStateCFGame(cf);
-												}
-											})
-
-										}
-									}
-
 									else {
 
-										if (side == 'heads') {
+										if (side == 'red') {
 											CoinFlipGame.create({
 												GameID: gameID,
 												PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
 												PlayerOneTradeID: offer.id,
-												Heads: steamID,
+												Red: steamID,
 												Status: true,
 												DateCreated: Date.now()
 											})
@@ -238,7 +200,7 @@ class SteamBot {
 												GameID: gameID,
 												PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state],
 												PlayerOneTradeID: offer.id,
-												Tails: steamID,
+												Black: steamID,
 												Status: true,
 												DateCreated: Date.now()
 											})
@@ -264,28 +226,20 @@ class SteamBot {
 		})
 	}
 
-	checkForActiveCFGame(cfGameID) {
-
-		CoinFlipGame.find({GameID: cfGameID}, (err, doc) => {
-			if (err) return console.error(err);
+	getCFGame(id) {
+		CoinFlipGame.findOne({GameID: id}, (err, cf) => {
+			if (err) console.log(err);
 
 			else {
-
-				if (doc != null) {
-					return true
-				}
-				else {
-					return false
-				}
+				return cf
 			}
-		})
-
+		});
 	}
 
 	// called from where?
-	cancelOpponentCoinFlipTradeOffer(cfGame) {
+	cancelOpponentCoinFlipTradeOffer(gameID) {
 
-		CoinFlipGame.findOne({"GameID": cfGame.gameID}, (err, game) => {
+		CoinFlipGame.findOne({"GameID": gameID}, (err, game) => {
 			if (err) return console.error(err)
 
 			else {
@@ -297,7 +251,7 @@ class SteamBot {
 							if (err) return console.error(err)
 
 							else {
-								CoinFlipGame.updateOne({"GameID": cfGame.GameID}, {$set: {PlayerTwoTradeState: undefined, PlayerTwoTradeID: undefined}}, { runValidators: true })
+								CoinFlipGame.updateOne({"GameID": gameID}, {$set: {PlayerTwoTradeState: undefined, PlayerTwoTradeID: undefined}}, { runValidators: true })
 
 								TradeHistory.updateOne({"TradeID": offer.id}, {$set: {State: TradeOfferManager.ETradeOfferState[offer.state]}})
 							}
@@ -387,7 +341,121 @@ class SteamBot {
 			
 		});
 	}
+	
+	async joinCFGameAndSendTrade(steamID, username, skins, tradeURL, gameID) {
+		let currentCF = await this.getCFGame(gameID)
 
+		const offer = this.manager.createOffer(steamID);
+
+		this.manager.getUserInventoryContents(steamID, 252490, 2, true, (err, inv) => {
+
+			if (err) return console.error(err);
+
+			else {
+
+				let itemNames = []
+
+				skins.forEach(desired => {
+
+					const item = inv.find(item => item.assetid == desired);
+
+					if(item) {
+						offer.addTheirItem(item);
+						itemNames.push(item.market_hash_name)
+					}
+
+					else{
+						offer.cancel((err) => {
+							if (err) return console.log(err)
+						});
+					}
+
+				})
+
+				let token = tradeURL.split('token=')[1]
+
+				offer.setToken(token)
+
+				offer.send((err, status) => {
+					if (err) return console.error(err);
+
+					else {
+
+						console.log(status, offer.id);
+
+						TradeHistory.create({
+							TradeID: offer.id,
+							SteamID: steamID,
+							BotID: '2',
+							Items: skins,
+							ItemNames: itemNames,
+							TransactionType: 'Deposit',
+							State: TradeOfferManager.ETradeOfferState[offer.state],
+							GameMode: "Coin Flip",
+							GameID: gameID,
+							DateCreated: Date.now()
+						})
+							.then(result => {
+
+								if (currentCF.Red == Players[0].userSteamId) {
+									CoinFlipGame.findOneAndUpdate(
+										{ GameID: gameID },
+										{
+											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+											PlayerTwoTradeID: offer.id,
+											Black: steamID,
+										}, { upsert: true }, (err, doc) => {
+											if (err) return console.log(err)
+
+											else {
+
+												User.findOne({SteamID: steamID}, (err, user) => {
+													if (err) return console.error(err);
+													else {
+														coinFlipUpdater.opponentJoiningGame(gameID, username, user.ProfilePictureURL, steamID,TradeOfferManager.ETradeOfferState[offer.state]
+														);
+													}
+												})
+											}
+										}
+									);
+								}
+
+								else {
+
+									CoinFlipGame.findOneAndUpdate({ GameID: gameID }, {
+											PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[offer.state],
+											PlayerTwoTradeID: offer.id,
+											Red: steamID,
+										}, { upsert: true }, (err, doc) => {
+											if (err) return console.log(err)
+
+											else {
+
+												User.findOne({SteamID: steamID}, (err, user) => {
+													if (err) return console.error(err);
+													else {
+														coinFlipUpdater.opponentJoiningGame(gameID, username, user.ProfilePictureURL, steamID,TradeOfferManager.ETradeOfferState[offer.state]
+														);
+													}
+												})
+											}
+										}
+									);
+
+								}
+
+							})
+							.catch(err => {
+								return console.log(err)
+							});
+
+					}
+				})
+			}
+		})
+			
+	}
 }
 
 module.exports = SteamBot;

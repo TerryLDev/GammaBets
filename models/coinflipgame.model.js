@@ -14,8 +14,8 @@ const coinFlipGameSchema = Schema({
     PlayerOneTradeID: String,
     PlayerTwoTradeState: String,
     PlayerTwoTradeID: String,
-    Heads: String,
-    Tails: String,
+    Red: String,
+    Black: String,
     Winner: String,
     Status: Boolean,
     DateCreated: Date

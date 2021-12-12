@@ -2,70 +2,73 @@ import * as deposit from "../deposit.js";
 
 const steamID = document.getElementById("user-steam-id").value;
 
-const heads = document.getElementById("coin-heads");
-const tails = document.getElementById("coin-tails");
+const red = document.getElementById("coin-red");
+const black = document.getElementById("coin-black");
 const createACoinFlipButton = document.getElementById("create-a-coinflip");
 
-const headsBorder = "2px solid black";
-const tailsBorder = "2px solid white";
+const redBorder = "2px solid black";
+const redBackground = "#8a0e0e";
+
+const blackBorder = "2px solid white";
+const blackBackground = "#181818";
 
 function selectedButton(value) {
-    // select heads
-    if (value == "heads") {
-        if (tails.style.border == tailsBorder) {
-            tails.style.border = "";
-            tails.style.background = "";
+    // select red
+    if (value == "red") {
+        if (black.style.border == blackBorder) {
+            black.style.border = "";
+            black.style.background = "";
 
-            heads.style.border = headsBorder;
-            heads.style.background = "rgba(255, 0, 0, 1)";
+            red.style.border = redBorder;
+            red.style.background = redBackground;
         } else {
-            heads.style.border = headsBorder;
-            heads.style.background = "rgba(255, 0, 0, 1)";
+            red.style.border = redBorder;
+            red.style.background = redBackground;
         }
     }
 
-    // select tails
+    // select black
     else {
-        if (heads.style.border == headsBorder) {
-            heads.style.border = "";
-            heads.style.background = "";
+        if (red.style.border == redBorder) {
+            red.style.border = "";
+            red.style.background = "";
 
-            tails.style.border = tailsBorder;
-            tails.style.background = "rgba(0, 0, 0, 1)";
+            black.style.border = blackBorder;
+            black.style.background = blackBackground;
         } else {
-            tails.style.border = tailsBorder;
-            tails.style.background = "rgba(0, 0, 0, 1)";
+            black.style.border = blackBorder;
+            black.style.background = blackBackground;
         }
     }
 }
 
 function createCoinFlip(id) {
     if (
-        tails.style.border != tailsBorder &&
-        heads.style.border != headsBorder
+        black.style.border != blackBorder &&
+        red.style.border != redBorder
     ) {
         alert("You need to select a side first before creating a coin flip");
     }
-    else if (tails.style.border == tailsBorder && heads.style.border == headsBorder) {
+    else if (black.style.border == blackBorder && red.style.border == redBorder) {
         alert("You can't choose both sides");
     }
-    else if (tails.style.border == tailsBorder) {
-        // show deposit menu and log that they chose tails
-        deposit.buildDepositMenu(id, null, "tails");
+    else if (black.style.border == blackBorder) {
+        // show deposit menu and log that they chose black
+        deposit.buildDepositMenu(id, null, "black");
     }
-    else if (heads.style.border == headsBorder) {
-        // show deposit menu and log that they chose tails
-        deposit.buildDepositMenu(id, null, "heads");
+    else if (red.style.border == redBorder) {
+        // show deposit menu and log that they chose black
+        deposit.buildDepositMenu(id, null, "red");
     } else {
         alert("Error has occured");
     }
 }
 
-heads.addEventListener("click", () => {
-    selectedButton("heads");
+red.addEventListener("click", () => {
+    selectedButton("red");
 });
-tails.addEventListener("click", () => {
-    selectedButton("tails");
+black.addEventListener("click", () => {
+    selectedButton("black");
 });
 
 createACoinFlipButton.addEventListener("click", () => {
