@@ -116,7 +116,6 @@ function changeDepositTotalValueNeg(price) {
 
 // this gonna be a big one
 depositButton.addEventListener("click", (Event) => {
-    console.log(Event);
 
     // values to push
     const steamID = document.getElementById("user-steam-id").value;
@@ -137,6 +136,8 @@ depositButton.addEventListener("click", (Event) => {
     let checkforSide = depositInfo.hasAttribute("data-side");
     let checkForGameID = depositInfo.hasAttribute("data-game-id");
 
+    console.log(windowEvent)
+
     // check if in coinflip page
     if (windowEvent == "/coinflip") {
 
@@ -152,13 +153,22 @@ depositButton.addEventListener("click", (Event) => {
         else if (checkforSide) {
 
             let side = depositInfo.dataset.side;
-            createNewCFGame(steamID, listOfSkins,);
+            createNewCFGame(steamID, listOfSkins, tradeURL, side);
 
+        }
+
+        else {
+            console.log("cf error")
         }
     }
 
     // checks if in jackpot page
     else if (windowEvent == "/") {
+
+    }
+
+    else {
+        console.log("this shouldn't happen")
     }
 });
 
