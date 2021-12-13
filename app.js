@@ -94,6 +94,19 @@ mongoose.connect(
 
                 console.log("done: JP");
             });
+
+            /*
+            Dev Purpose ONLY
+            
+            CoinFlipGame.find({}, (err, cfs) => {
+                if(err) console.log(err);
+                else {
+                    cfs.forEach(cf => {
+                        coinFlipUpdater.addNewActiveGame(cf.GameID)
+                    })
+                }
+            })
+            */
         }
     }
 );
@@ -372,6 +385,7 @@ io.on("connection", async (socket) => {
     });
 
     socket.on("joinActiveCoinFlipGame", async (data) => {
+
         // verify data
         let verify = await DBScripts.verifyIDAndUsername(data.steamID, data.username)
 
@@ -387,6 +401,7 @@ io.on("connection", async (socket) => {
 			);
 
         }
+
         else {
             console.log(error)
         }

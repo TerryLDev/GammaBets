@@ -121,6 +121,7 @@ depositButton.addEventListener("click", (Event) => {
     // values to push
     const steamID = document.getElementById("user-steam-id").value;
     const tradeURL = document.getElementById("user-trade-url").value;
+    const username = document.getElementById("user-steam-username").value;
     let listOfSkins = [];
 
     // check what page the user is one
@@ -143,6 +144,7 @@ depositButton.addEventListener("click", (Event) => {
         if (checkForGameID) {
 
             let gameID = depositInfo.dataset.gameId;
+            joinCFGAme(steamID, username, listOfSkins, tradeURL, gameID);
 
         }
 
@@ -150,7 +152,7 @@ depositButton.addEventListener("click", (Event) => {
         else if (checkforSide) {
 
             let side = depositInfo.dataset.side;
-            createNewCFGame(steamID, listOfSkins, tradeURL, side);
+            createNewCFGame(steamID, listOfSkins,);
 
         }
     }
@@ -171,9 +173,10 @@ export function createNewCFGame(steamID, listOfSkins, tradeURL, side) {
     socket.emit("createNewCoinFlipGame", data);
 }
 
-export async function joinCFGAme(steamID, listOfSkins, tradeURL, gameId) {
+export async function joinCFGAme(steamID, user, listOfSkins, tradeURL, gameId) {
     const data = {
         steamID: steamID,
+        username: user,
         skins: listOfSkins,
         tradeURL: tradeURL,
         gameID: gameId,
