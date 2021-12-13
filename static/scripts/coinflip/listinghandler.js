@@ -295,7 +295,7 @@ function buildView(game) {
     viewMiddleSection.className = "view-coin-section";
 
     let coinPic = document.createElement("img");
-    coinPic.className = "view-coin-seciton-img";
+    coinPic.className = "view-coin-section-img";
 
     if (game.playerOneSide == "red") {
         coinPic.src = "/static/images/RedChip.png";
@@ -313,7 +313,7 @@ function buildView(game) {
     else {
         viewMiddleInfo.innerText = game.timer;
     }
-    viewMiddleInfo.className = "view-coin-seciton-p";
+    viewMiddleInfo.className = "view-coin-section-p";
 
     viewMiddleSection.appendChild(coinPic);
     viewMiddleSection.appendChild(viewMiddleInfo);

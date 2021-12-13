@@ -6,8 +6,7 @@ body {
 	background-attachment: fixed;
 	background-position: center;
 	background-repeat: no-repeat;
-	mix-blend-mode: difference;
-	isolation: isolate;
+	mix-blend-mode: normal;
 }
 
 .coinflip-grid-layout {

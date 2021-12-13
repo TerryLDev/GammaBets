@@ -88,13 +88,13 @@
 	margin-top: 20px;
 }
 
-.view-coin-seciton-img {
+.view-coin-section-img {
 	width: 150px;
 	height: 150px;
 	margin: 0 45px 0px 45px;
 }
 
-.view-coin-seciton-p {
+.view-coin-section-p {
 	font-family: "Montserrat";
 	font-style: normal;
 	font-weight: 600;
@@ -220,4 +220,39 @@
 	animation-duration: 1s;
 	animation-iteration-count: 1;
 	animation-fill-mode: forwards;
+}
+
+/* fade out coin animation */
+@keyframes fade-out-coin-animation {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+		display: none;
+	}
+}
+
+@keyframes fade-in-coin-winner {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.fade-out-coin-animation {
+	animation-name: fade-out-coin-animation;
+	animation-duration: 1.5s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: 1;
+}
+
+.fade-in-coin-winner {
+	z-index: 9;
+	animation-name: fade-in-coin-winner;
+	animation-duration: 1.5s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: 1;
 }

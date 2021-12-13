@@ -165,40 +165,69 @@ export async function removeGameLisiting(game) {
 
 export async function showAnimationAndWinner(game) {
 
-    // get the view menu
     let viewMenu = document.querySelector(`[data-view-id="${game.gameID}"]`);
 
-    // get middle container
-    let coinContainer = viewMenu.querySelector(".view-coin-section");
-    coinContainer.innerHTML = "";
+    if (viewMenu.hasAttribute("data-flipping") == false) {
 
-    // create animation gif container
-    let animationContainer = document.createElement("img");
-    animationContainer.className = "coin-animation"
+        // get the view menu
+        let viewMenu = document.querySelector(`[data-view-id="${game.gameID}"]`);
 
-    let winnerSide;
-    let srcGif;
+        viewMenu.setAttribute("data-flipping", true);
 
-    if (game.winner == game.playerOneId) {
-        // should return either red or black
-        winnerSide = game.playerOneSide;
+        // get middle container
+        let coinContainer = viewMenu.querySelector(".view-coin-section");
+        coinContainer.innerHTML = "";
 
+        // create animation gif container
+        let animationContainer = document.createElement("img");
+        animationContainer.className = "coin-animation"
+
+        let winnerSide;
+        let srcGif;
+        let coinImg;
+        let name;
+
+        if (game.winner == game.playerOneId) {
+            // should return either red or black
+            winnerSide = game.playerOneSide;
+            name = game.playerOneUser;
+        }
+
+        else {
+            winnerSide = game.playerTwoSide;
+            name = game.playerTwoUser;
+        }
+
+        if (winnerSide == 'red') {
+
+            srcGif = winnerRed[Math.floor(Math.random()*winnerRed.length)];
+            coinImg = "/static/images/RedChip.png";
+        }
+
+        else {
+            srcGif = winnerBlack[Math.floor(Math.random()*winnerBlack.length)];
+            coinImg = "/static/images/blackchip.png";
+        }
+
+        animationContainer.src = srcGif;
+
+        coinContainer.appendChild(animationContainer);
+
+        let winnerCoin = document.createElement("img");
+        winnerCoin.src = coinImg;
+        winnerCoin.className = "view-coin-section-img";
+
+        let winnerName = document.createElement("p");
+        winnerName.className = "view-coin-section-p";
+        winnerName.textContent = name;
+
+        setTimeout(function() {
+            animationContainer.classList.add("fade-out-coin-animation");
+            coinContainer.appendChild(winnerCoin);
+            coinContainer.appendChild(winnerName);
+            winnerCoin.classList.add("fade-in-coin-winner");
+            winnerName.classList.add("fade-in-coin-winner");
+        }, 5500);
     }
-
-    else {
-
-    }
-
-    if (winnerSide == 'red') {
-        srcGif = winnerRed[Math.floor(Math.random()*winnerRed.length)];
-    }
-
-    else {
-        srcGif = winnerBlack[Math.floor(Math.random()*winnerBlack.length)];
-    }
-
-    animationContainer.src = srcGif;
-
-    coinContainer.appendChild(animationContainer);
 
 }
