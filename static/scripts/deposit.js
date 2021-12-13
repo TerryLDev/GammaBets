@@ -25,9 +25,12 @@ export function buildDepositMenu(steamID, gameID, side) {
     });
 
     if (gameID != null) {
-        depositInfo.dataset.gameId = gameID;
-    } else if (side != null) {
-        depositInfo.dataset.side = side;
+        depositInfo.setAttribute("data-game-id", gameID);
+
+    }
+    else if (side != null) {
+        depositInfo.setAttribute("data-side", side);
+
     }
 
     socket.emit("getInventory", {
@@ -114,6 +117,11 @@ function changeDepositTotalValueNeg(price) {
     totalDepositValue.textContent = newPrice;
 }
 
+/////////////////
+// ahh...
+/////////////////
+
+
 // this gonna be a big one
 depositButton.addEventListener("click", (Event) => {
 
@@ -136,7 +144,10 @@ depositButton.addEventListener("click", (Event) => {
     let checkforSide = depositInfo.hasAttribute("data-side");
     let checkForGameID = depositInfo.hasAttribute("data-game-id");
 
-    console.log(windowEvent)
+    console.log(checkForGameID);
+    console.log(checkforSide);
+
+    console.log(windowEvent);
 
     // check if in coinflip page
     if (windowEvent == "/coinflip") {
@@ -144,7 +155,7 @@ depositButton.addEventListener("click", (Event) => {
         // if a gameid is given the someon is joining a game
         if (checkForGameID) {
 
-            let gameID = depositInfo.dataset.gameId;
+            let gameID = depositInfo.getAttribute("data-game-id");
             joinCFGAme(steamID, username, listOfSkins, tradeURL, gameID);
 
         }
@@ -152,7 +163,7 @@ depositButton.addEventListener("click", (Event) => {
         // if a side is given then someone is creating a game
         else if (checkforSide) {
 
-            let side = depositInfo.dataset.side;
+            let side = depositInfo.getAttribute("data-side");
             createNewCFGame(steamID, listOfSkins, tradeURL, side);
 
         }
