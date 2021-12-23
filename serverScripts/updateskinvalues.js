@@ -1,55 +1,48 @@
-const MarketPrice = require('../models/marketprice.model');
-const SteamCommunity = require('steamcommunity');
-
 async function updateSkinPrices() {
+	console.log("Updating prices of skins...");
 
-    console.log("Updating prices of skins...")
+	try {
+		const community = new SteamCommunity();
 
-    try {
+		community.marketSearch({ appid: 252490 }, (err, items) => {
+			if (err) return console.error(err);
 
-        const community = new SteamCommunity();
+			items.forEach((item) => {
+				MarketPrice.exists({ SkinName: item["market_hash_name"] })
+					.then((result) => {
+						if (result) {
+							MarketPrice.findOneAndUpdate(
+								{ SkinName: item["market_hash_name"] },
+								{ Value: item["price"] },
+								{ upsert: true },
+								(err, data) => {
+									if (err) return console.error(err);
+									console.log(data);
+								}
+							);
+						} else {
+							MarketPrice.create(
+								{
+									SkinName: item["market_hash_name"],
+									SkinPictureURL: item["image"],
+									Value: item["price"],
+									DateLogged: Date.now(),
+								},
+								(err, data) => {
+									if (err) return console.error(err);
+								}
+							);
+						}
+					})
 
-        community.marketSearch({appid: 252490}, (err, items) => {
-            
-            if (err) return console.error(err);
-
-            items.forEach(item => {
-
-                MarketPrice.exists({SkinName: item['market_hash_name']})
-                    .then((result) => {
-
-                        if (result) {
-                            MarketPrice.findOneAndUpdate({SkinName: item['market_hash_name']}, {Value: item['price']}, {upsert: true}, (err, data) => {
-                                if(err) return console.error(err);
-                                console.log(data)
-                            });
-                        }
-
-                        else {
-
-                            MarketPrice.create({
-                                SkinName: item['market_hash_name'],
-                                SkinPictureURL: item['image'],
-                                Value: item['price'],
-                                DateLogged: Date.now()
-                            }, (err, data) => {
-                                if(err) return console.error(err);
-                            });
-                        }
-                    })
-
-                    .catch((err) => {
-                        return console.error(err);
-                    });
-            });
-            
-        });
-
-    }
-
-    catch(err) {
-        throw new Error(err)
-    }
+					.catch((err) => {
+						return console.error(err);
+					});
+			});
+		});
+	} catch (err) {
+		throw new Error(err);
+	}
 }
 
 module.exports = updateSkinPrices;

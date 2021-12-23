@@ -1,47 +1,48 @@
-// SteamBot
-const SteamUser = require('steam-user');
-const SteamTotp = require('steam-totp');
-const SteamCommunity = require('steamcommunity');
-const TradeOfferManager = require('steam-tradeoffer-manager');
+const User = require("../models/user.model");
+const TradeHistory = require("../models/tradehistory.model");
+const Support = require("../models/support.model");
+const MarketPrice = require("../models/marketprice.model");
+const CoinFlipGame = require("../models/coinflipgame.model");
+const JackpotGame = require("../models/jackpotgame.model");
 
-const community = new SteamCommunity;
-const manager = new TradeOfferManager;
-const client = new SteamUser;
+// SteamBot
+const SteamUser = require("steam-user");
+const SteamTotp = require("steam-totp");
+const SteamCommunity = require("steamcommunity");
+const TradeOfferManager = require("steam-tradeoffer-manager");
+
+const community = new SteamCommunity();
+const manager = new TradeOfferManager();
+const client = new SteamUser();
 
 const SteamBot = require("../steam/bot");
 
 // Comeback to this later when you're back home
 
 function jackpotWinner(game, callback) {
-    
-    try {
-        let listOfPlayers = []
-    
-        game.Players.forEach(player => { 
-            
-            let playerTotalVal = 0;
+	try {
+		let listOfPlayers = [];
 
-            player['skinValues'].forEach(val => {
-                playerTotalVal += val
-            })
+		game.Players.forEach((player) => {
+			let playerTotalVal = 0;
 
-            for(let i = 0; i < playerTotalVal; i++){
-                listOfPlayers.push(player.userSteamId);
-            }
+			player["skinValues"].forEach((val) => {
+				playerTotalVal += val;
+			});
 
-        });
+			for (let i = 0; i < playerTotalVal; i++) {
+				listOfPlayers.push(player.userSteamId);
+			}
+		});
 
-        const shuffled = listOfPlayers.sort(() => Math.random - 0.5)
+		const shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
 
-        let randomWinner = Math.floor(Math.random()*shuffled.length);
+		let randomWinner = Math.floor(Math.random() * shuffled.length);
 
-        return callback(shuffled[randomWinner])
-    }
-
-    catch (error) {
-        return callback(error)
-    }
-
+		return callback(shuffled[randomWinner]);
+	} catch (error) {
+		return callback(error);
+	}
 }
 
 // This is gonna handle everything
@@ -52,224 +53,187 @@ function jackpotWinner(game, callback) {
 // should return what items to trade with item ids in an array
 // return steamid of user
 
-function takeJackpotProfit(game, winner /* Please put in winner from DB */, allSkins, callback) {
+function takeJackpotProfit(
+	game,
+	winner /* Please put in winner from DB */,
+	allSkins,
+	callback
+) {
+	try {
+		let percent = 0.1;
 
-    try {
+		let username = winner.Username;
 
-        let percent = 0.1;
+		if (username.includes("gammabets")) {
+			percent = 0.05;
+		}
 
-        let username = winner.Username
+		let listOfPlayerSkins = [];
 
-        if (username.includes('gammabets')) {
-            percent = 0.05
-        }
+		let totalPot = 0;
 
-        listOfPlayerSkins = []
+		game.Players.forEach((player) => {
+			player.skins.forEach((skin) => {
+				allSkins.forEach((dbSkin) => {
+					if (skin == dbSkin.SkinName) {
+						totalPot += dbSkin.Value;
+					}
+				});
+			});
+		});
 
-        let totalPot = 0;
+		const serverProfit = totalPot * percent;
 
-        game.Players.forEach(player => {
-            player.skins.forEach(skin => {
-                allSkins.forEach(dbSkin => {
-                    if (skin == dbSkin.SkinName) {
-                        totalPot += dbSkin.Value;
-                    }
-                });
-            });
-        });
+		let attemptOne = [];
+		let attemptOneVal = 0;
 
-        const serverProfit = totalPot * percent;
+		let attemptTwo = [];
+		let attemptTwoVal = 0;
 
-        let attemptOne = [];
-        let attemptOneVal = 0;
+		let attemptThree = [];
+		let attemptThreeVal = 0;
 
-        let attemptTwo = [];
-        let attemptTwoVal = 0;
+		let attemptFour = [];
+		let attemptFourVal = 0;
 
-        let attemptThree = [];
-        let attemptThreeVal = 0;
+		let attemptFive = [];
+		let attemptFiveVal = 0;
 
-        let attemptFour= [];
-        let attemptFourVal = 0;
+		game.Players.forEach((player) => {
+			player.skins.forEach((skin) => {
+				listOfPlayerSkins.push(skin);
+			});
+		});
 
-        let attemptFive = [];
-        let attemptFiveVal = 0;
+		for (let i = 1; i < 6; i++) {
+			const shuffledList = listOfPlayerSkins.sort(
+				() => Math.random() - 0.5
+			);
 
+			shuffledList.forEach((skin) => {
+				allSkins.forEach((dbSkin) => {
+					if (skin == dbSkin.SkinName) {
+						if (dbSkin.Value < serverProfit) {
+							if (i == 1) {
+								attemptOne.push(skin);
+								attemptOneVal += dbSkin.Value;
 
-        game.Players.forEach(player =>{
+								if (attemptOneVal > serverProfit) {
+									attemptOneVal -= dbSkin.Value;
+									attemptOne.pop();
+								}
+							} else if (i == 2) {
+								attemptTwo.push(skin);
+								attemptTwoVal += dbSkin.Value;
 
-            player.skins.forEach(skin => {
-                listOfPlayerSkins.push(skin)
-            })
+								if (attemptTwoVal > serverProfit) {
+									attemptTwoVal -= dbSkin.Value;
+									attemptTwo.pop();
+								}
+							} else if (i == 3) {
+								attemptThree.push(skin);
+								attemptThreeVal += dbSkin.Value;
 
-        })
+								if (attemptThreeVal > serverProfit) {
+									attemptThreeVal -= dbSkin.Value;
+									attemptThree.pop();
+								}
+							} else if (i == 4) {
+								attemptFour.push(skin);
+								attemptFourVal += dbSkin.Value;
 
-        for(let i = 1; i < 6; i++) {
+								if (attemptFourVal > serverProfit) {
+									attemptFourVal -= dbSkin.Value;
+									attemptFour.pop();
+								}
+							} else if (i == 5) {
+								attemptFive.push(skin);
+								attemptFiveVal += dbSkin.Value;
 
-            const shuffledList = listOfPlayerSkins.sort(() => Math.random - 0.5)
+								if (attemptFiveVal > serverProfit) {
+									attemptFiveVal -= dbSkin.Value;
+									attemptFive.pop();
+								}
+							}
+						}
+					}
+				});
+			});
+		}
 
-            shuffledList.forEach(skin => {
-                
-                allSkins.forEach(dbSkin => {
-                    
-                    if (skin == dbSkin.SkinName){
+		let findBestProfit = [];
+		findBestProfit.push(attemptOneVal);
+		findBestProfit.push(attemptTwoVal);
+		findBestProfit.push(attemptThreeVal);
+		findBestProfit.push(attemptFourVal);
+		findBestProfit.push(attemptFiveVal);
 
-                        if (dbSkin.Value < serverProfit) {
+		let currentHighest = 0;
+		let index = 0;
 
-                            if (i == 1) {
-                                attemptOne.push(skin)
-                                attemptOneVal += dbSkin.Value
+		for (let i = 0; i < findBestProfit.length; i++) {
+			let newHighet = findBestProfit[i];
 
-                                if (attemptOneVal > serverProfit) {
-                                    attemptOneVal -= dbSkin.Value
-                                    attemptOne.pop();
-                                }
-                            }
+			if (newHighet > currentHighest) {
+				currentHighest = newHighet;
+				index = i;
+			}
+		}
 
-                            else if (i == 2) {
-                                attemptTwo.push(skin)
-                                attemptTwoVal += dbSkin.Value
-
-                                if (attemptTwoVal > serverProfit) {
-                                    attemptTwoVal -= dbSkin.Value
-                                    attemptTwo.pop();
-                                }
-                            }
-
-                            else if (i == 3) {
-                                attemptThree.push(skin)
-                                attemptThreeVal += dbSkin.Value
-
-                                if (attemptThreeVal > serverProfit) {
-                                    attemptThreeVal -= dbSkin.Value
-                                    attemptThree.pop();
-                                }
-                            }
-
-                            else if (i == 4) {
-                                attemptFour.push(skin)
-                                attemptFourVal += dbSkin.Value
-
-                                if (attemptFourVal > serverProfit) {
-                                    attemptFourVal -= dbSkin.Value
-                                    attemptFour.pop();
-                                }
-                            }
-
-                            else if (i == 5) {
-                                attemptFive.push(skin)
-                                attemptFiveVal += dbSkin.Value
-
-                                if (attemptFiveVal > serverProfit) {
-                                    attemptFiveVal -= dbSkin.Value
-                                    attemptFive.pop();
-                                }
-                            }
-                        }
-                    }
-                })
-            })
-        }
-
-        let findBestProfit = [];
-        findBestProfit.push(attemptOneVal);
-        findBestProfit.push(attemptTwoVal);
-        findBestProfit.push(attemptThreeVal);
-        findBestProfit.push(attemptFourVal);
-        findBestProfit.push(attemptFiveVal);
-
-        let currentHighest = 0
-        let index = 0
-
-        for(let i = 0; i < findBestProfit.length; i++) {
-
-            let newHighet = findBestProfit[i]
-
-            if (newHighet > currentHighest){
-                currentHighest = newHighet
-                index = i;
-            }
-        }
-        
-        if (index == 0) {
-
-            getWinnerSkins(listOfPlayerSkins, attemptOne, (error, data) => {
-                if (error) return callback(error)
-                else {
-                    return callback(data, winner)
-                }
-            });
-        }
-
-        else if (index == 1) {
-
-            getWinnerSkins(listOfPlayerSkins, attemptTwo, (error, data) => {
-                if (error) return callback(error)
-                else {
-                    return callback(data, winner)
-                }
-            });
-        }
-
-        else if (index == 2) {
-
-            getWinnerSkins(listOfPlayerSkins, attemptThree, (error, data) => {
-                if (error) return callback(error)
-                else {
-                    return callback(data, winner)
-                }
-            });
-        }
-
-        else if (index == 3) {
-
-            getWinnerSkins(listOfPlayerSkins, attemptFour, (error, data) => {
-                if (error) return callback(error)
-                else {
-                    return callback(data, winner)
-                }
-            });
-        }
-
-        else if (index == 4) {
-
-            getWinnerSkins(listOfPlayerSkins, attemptFive, (error, data) => {
-                if (error) return callback(error)
-                else {
-                    return callback(data, winner)
-                }
-            });
-        }
-
-        else {
-            console.log('No Profit')
-        }
-
-    }
-
-    catch(error) {
-        return callback(error)
-    }
-
-    
+		if (index == 0) {
+			getWinnerSkins(listOfPlayerSkins, attemptOne, (error, data) => {
+				if (error) return callback(error);
+				else {
+					return callback(data, winner);
+				}
+			});
+		} else if (index == 1) {
+			getWinnerSkins(listOfPlayerSkins, attemptTwo, (error, data) => {
+				if (error) return callback(error);
+				else {
+					return callback(data, winner);
+				}
+			});
+		} else if (index == 2) {
+			getWinnerSkins(listOfPlayerSkins, attemptThree, (error, data) => {
+				if (error) return callback(error);
+				else {
+					return callback(data, winner);
+				}
+			});
+		} else if (index == 3) {
+			getWinnerSkins(listOfPlayerSkins, attemptFour, (error, data) => {
+				if (error) return callback(error);
+				else {
+					return callback(data, winner);
+				}
+			});
+		} else if (index == 4) {
+			getWinnerSkins(listOfPlayerSkins, attemptFive, (error, data) => {
+				if (error) return callback(error);
+				else {
+					return callback(data, winner);
+				}
+			});
+		} else {
+			console.log("No Profit");
+		}
+	} catch (error) {
+		return callback(error);
+	}
 }
 
-function getWinnerSkins (skinList, attempt, callback) {
-    
-    try {
+function getWinnerSkins(skinList, attempt, callback) {
+	try {
+		attempt.forEach((attemptSkin) => {
+			let i = skinList.indexOf(attemptSkin);
+			skinList.splice(i, 1);
+		});
 
-        attempt.forEach(attemptSkin => {
-            let i = skinList.indexOf(attemptSkin);
-            skinList.splice(i, 1);
-        });
-
-        return callback(skinList);
-    }
-
-    catch(error) {
-        return callback(error);
-    }
-
+		return callback(skinList);
+	} catch (error) {
+		return callback(error);
+	}
 }
 
-module.exports = {jackpotWinner, takeJackpotProfit}
+module.exports = { jackpotWinner, takeJackpotProfit };

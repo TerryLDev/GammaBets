@@ -23,19 +23,12 @@ function checkForOpenView() {
 }
 
 export async function updateTimer(game) {
-    document
-        .querySelector(`[data-view-id="${game.gameID}"]`)
-        .getElementsByClassName(
-            "view-middle-section"
-        )[0].firstElementChild.textContent =
-        "Waiting for Player... " + game.timer;
+    document.querySelector(`[data-view-id="${game.gameID}"]`).querySelector(".view-coin-section-p").textContent = "Waiting for Player... " + game.timer;
 }
 
 // remove join butotn on listing and view menu
 export async function removeJoinButton(game) {
-    let targetListing = document
-        .getElementById(game.gameID)
-        .querySelector(".join-button");
+    let targetListing = document.getElementById(game.gameID).querySelector(".join-button");
 
     if (targetListing.style.display != "none") {
         targetListing.style.display = "none";
@@ -43,9 +36,11 @@ export async function removeJoinButton(game) {
 }
 
 // run when second player cancels trade on coinflip
-export async function tradeCanceled(game) {
+export function tradeCanceled(game) {
+
     // show join button on listing
-    let joinButton = document.getElementById(game.gameID).querySelector(".join-button");
+    let listingGame = document.getElementById(game.gameID);
+    let joinButton = listingGame.querySelector(".join-button");
 
     joinButton.style.display = "";
 
@@ -53,7 +48,7 @@ export async function tradeCanceled(game) {
     let viewMenu = document.querySelector(`[data-view-id="${game.gameID}"]`);
 
     // reset timer
-    let timer = viewMenu.querySelector(".view-coin-seciton-p");
+    let timer = viewMenu.querySelector(".view-coin-section-p");
 
     timer.textContent = "Waiting for Player...";
 
@@ -63,12 +58,14 @@ export async function tradeCanceled(game) {
     if(game.playerOneSide == "red") {
 
         let picture = playerTwoContainer.querySelector(".black-player-profile-picture");
-        picture.src = "/static/images/user/defaultProfile.png"
+        picture.src = "/static/images/user/defaultProfile.png";
 
-        playerTwoContainer.querySelector(".view-player-name").textContent = "Waiting..."
+        playerTwoContainer.querySelector(".view-player-name").textContent = "Waiting...";
+
     }
 
     else {
+
         let picture = playerTwoContainer.querySelector(".red-player-profile-picture");
 		picture.src = "/static/images/user/defaultProfile.png";
 
@@ -81,22 +78,27 @@ export async function playerJoined(gameID, pTwoSide, playerTwoPic, playerTwoName
     let viewMenu = document.querySelector(`[data-view-id="${gameID}"]`);
     let findContainer = viewMenu.querySelector(".player-two-section");
 
-    // if red
-    if (pTwoSide == "red") {
+    if (findContainer.hasAttribute("data-joined") == false) {
 
-        // red player
-        findContainer.querySelector(".red-player-profile-picture").src = playerTwoPic;
+        // if red
+        if (pTwoSide == "red") {
 
+            // red player
+            findContainer.querySelector(".red-player-profile-picture").src = playerTwoPic;
+
+        }
+        
+        // if black
+        else {
+
+            // black player
+            findContainer.querySelector(".black-player-profile-picture").src = playerTwoPic;
+        }
+
+        findContainer.querySelector(".view-player-name").textContent = playerTwoName;
+
+        findContainer.setAttribute("data-joined", true);
     }
-    
-    // if black
-    else {
-
-        // black player
-        findContainer.querySelector(".black-player-profile-picture").src = playerTwoPic;
-    }
-
-    findContainer.querySelector(".view-player-name").textContent = playerTwoName;
 }
 
 // run when player 2 accepts the coinflip trade

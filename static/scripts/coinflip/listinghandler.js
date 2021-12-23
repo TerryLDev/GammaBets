@@ -20,20 +20,23 @@ socket.on("coinFlipLoader", async (games) => {
                 buildView(game);
             }
 
-            else if (game.playerTwoState == "Active" && game.timer > 0) {
+            else if (game.playerTwoState == "Active" && game.timer >= 0) {
                 // get picture and name and timer
                 
                 // update picture and name
-                gameInteraction.playerJoined(game.gameID, game.playerTwoSide, game.playerTwoPic, game.playerTwoUser)
+                gameInteraction.playerJoined(game.gameID, game.playerTwoSide, game.playerTwoPicture, game.playerTwoUser);
 
                 // update timer
-                gameInteraction.updateTimer(game)
+                gameInteraction.updateTimer(game);
+
+                gameInteraction.removeJoinButton(game);
 
             }
 
             else if (game.playerTwoState == "cancel") {
+
                 // reset the game listing if second trade is canceled
-                gameInteraction.tradeCanceled(game.gameID)
+                gameInteraction.tradeCanceled(game)
 
             }
 
@@ -138,15 +141,18 @@ function addNewCFGame(cf) {
 
         else {
             let elements = event.path;
+            console.log(elements)
 
             let id;
 
             elements.forEach((element) => {
-                if (element.className == "cf-game-listing") {
+                console.log(element)
+                if (element.className == "coinflip-listing") {
                     id = element.id;
                 }
             });
 
+            console.log(id);
             deposit.buildDepositMenu(steamID, id, null);
         }
     });
@@ -334,7 +340,7 @@ function buildView(game) {
 
 	// setting up player ONE image
     if (game.playerTwoPicture == "none") {
-        playerTwoPic.src = "/static/images/defaultProfile.png";
+        playerTwoPic.src = "/static/images/user/defaultProfile.png";
     }
     else {
         playerTwoPic.src = game.playerTwoPicture;

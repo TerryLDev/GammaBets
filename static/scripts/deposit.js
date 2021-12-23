@@ -20,14 +20,15 @@ export function buildDepositMenu(steamID, gameID, side) {
         depositMenu.classList.remove("show-deposit-menu");
 
         playerInventorySlots.innerHTML = "";
-        depositInfo.removeAttribute("data-game-id");
+        depositInfo.removeAttribute("data-gameid");
         depositInfo.removeAttribute("data-side");
     });
 
     if (gameID != null) {
-        depositInfo.setAttribute("data-game-id", gameID);
+        depositInfo.setAttribute("data-gameid", gameID);
 
     }
+
     else if (side != null) {
         depositInfo.setAttribute("data-side", side);
 
@@ -142,7 +143,7 @@ depositButton.addEventListener("click", (Event) => {
     }
 
     let checkforSide = depositInfo.hasAttribute("data-side");
-    let checkForGameID = depositInfo.hasAttribute("data-game-id");
+    let checkForGameID = depositInfo.hasAttribute("data-gameid");
 
     console.log(checkForGameID);
     console.log(checkforSide);
@@ -155,7 +156,7 @@ depositButton.addEventListener("click", (Event) => {
         // if a gameid is given the someon is joining a game
         if (checkForGameID) {
 
-            let gameID = depositInfo.getAttribute("data-game-id");
+            let gameID = depositInfo.getAttribute("data-gameid");
             joinCFGAme(steamID, username, listOfSkins, tradeURL, gameID);
 
         }
