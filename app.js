@@ -8,10 +8,8 @@ const passportSteam = require("passport-steam");
 const mongoose = require("mongoose");
 const MongoStore = require("connect-mongo");
 const cors = require("cors");
-
 const socket = require("socket.io");
 const async = require("async");
-
 const helmet = require("helmet");
 const fs = require("fs");
 
@@ -46,8 +44,7 @@ const SteamBot = require("./steam/bot");
 
 const updateValues = require("./serverScripts/updateskinvalues");
 const coinFlipUpdater = require("./serverScripts/coinflipgame");
-
-const DBScripts = require("./serverScripts/database");
+const cfGames = require("./serverScripts/revisedcoinflip");
 
 let mongo_uri = process.env.MONGO_URI;
 
@@ -97,9 +94,9 @@ mongoose.connect(
 				console.log("done: JP");
 			});
 
-			/*
+			
             // Dev Purpose ONLY
-
+			
             CoinFlipGame.find({}, (err, cfs) => {
                 if(err) console.log(err);
                 else {
@@ -108,7 +105,8 @@ mongoose.connect(
                     })
                 }
             })
-            */
+			
+            
 		}
 	}
 );
@@ -130,7 +128,7 @@ app.use(
 );
 
 // Localhost port
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 3000;
 
 // Set Up config for Steambots
 const bot = new SteamBot({
@@ -330,22 +328,16 @@ io.on("connection", async (socket) => {
 			allUsers = data;
 		});
 
-		if (
-			steamUser.steamID == null ||
-			steamUser.steamID == undefined ||
-			steamUser.steamID == ""
-		) {
+		if (steamUser.steamID == null || steamUser.steamID == undefined ||steamUser.steamID == "") {
 			console.log("user needs to be logged in to get inventory");
-		} else {
+		}
+		else {
 			User.findOne({ SteamID: steamUser.steamID }, (err, doc) => {
 				if (err) return console.error(err);
-				else if (
-					doc["SteamID"] == null ||
-					doc["SteamID"] == undefined ||
-					doc["SteamID"] == ""
-				) {
+				else if (doc["SteamID"] == null || doc["SteamID"] == undefined || doc["SteamID"] == "") {
 					console.log("You need to log this user to the db my guy");
-				} else {
+				}
+				else {
 					community.getUserInventoryContents(
 						doc["SteamID"],
 						252490,
@@ -399,17 +391,15 @@ io.on("connection", async (socket) => {
 	});
 
 	socket.on("joinActiveCoinFlipGame", (data) => {
-		if (DBScripts.verifyIDAndUsername(data.steamID, data.username)) {
-			bot.joinCFGameAndSendTrade(
-				data.steamID,
-				data.username,
-				data.skins,
-				data.tradeURL,
-				data.gameID
-			);
-		} else {
-			console.log("I'm gonna off myself");
-		}
+	
+		bot.joinCFGameAndSendTrade(
+			data.steamID,
+			data.username,
+			data.skins,
+			data.tradeURL,
+			data.gameID
+		);
+		
 	});
 
 	socket.on("makeJackpotDeposit", async (data) => {
@@ -472,23 +462,16 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 					console.log(
 						`Withdraw Trade: ${offer.id} was declined, Please notify user ${trade.SteamID}`
 					);
-				} else if (
-					trade.TransactionType == "Deposit" &&
-					trade.GameMode == "Coin Flip"
-				) {
+				}
+				else if (trade.TransactionType == "Deposit" && trade.GameMode == "Coin Flip") {
 					CoinFlipGame.findOne(
 						{ GameID: trade.GameID },
 						(err, declinedCFGame) => {
 							if (err) console.error(err);
 							// do somethign with the error
 							else {
-								if (
-									declinedCFGame.PlayerOneTradeState ==
-									"Accepted"
-								) {
-									coinFlipUpdater.opponentDeclinedTrade(
-										declinedCFGame
-									);
+								if (declinedCFGame.PlayerOneTradeState == "Accepted") {
+									coinFlipUpdater.opponentDeclinedTrade(declinedCFGame);
 
 									// let the front end know that it was declined
 
@@ -536,24 +519,26 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 	} else if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
 		console.log("Trade was cancel " + offer.id);
 		console.log("PLEASE DO SOMETHING WITH THE EVENT");
-	} else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
+	}
+	else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
+		
 		TradeHistory.findOneAndUpdate(
 			{ TradeID: offer.id },
 			{ State: TradeOfferManager.ETradeOfferState[offer.state] },
 			{ new: true },
 			(err, trade) => {
 				if (err) return console.error(err);
+				
 				else if (trade == null || trade.SteamID == null) {
 					return console.error(
 						"Invalid TradeID Lookup or Manual Change"
 					);
 				}
 
-				// Not a perm solution
-				else if (
-					trade.TransactionType == "Deposit" &&
-					trade.GameMode == "Jackpot"
-				) {
+				// Not a perm solution 
+				// checks if it's a jackpot
+				else if (trade.TransactionType == "Deposit" && trade.GameMode == "Jackpot") {
+
 					JackpotGame.findOne({ Status: true }, (err, game) => {
 						if (err) return console.error(err);
 						else if (game == null) {
@@ -690,104 +675,95 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 					});
 
 					console.log(offer.id + " Trade was Accepted");
-				} else if (
-					trade.TransactionType == "Deposit" &&
-					trade.GameMode == "Coin Flip"
-				) {
-					CoinFlipGame.findOne(
-						{ GameID: trade.GameID },
-						(err, activeCFGame) => {
-							if (err) return console.error(err);
-							else if (activeCFGame == null) {
-								console.log(
-									"Invlaid coin flip game look up or something I don't know"
-								);
-							} else if (
-								activeCFGame.Status == true &&
-								(activeCFGame.PlayerTwoTradeState == null ||
-									activeCFGame.PlayerTwoTradeState ==
-										undefined)
-							) {
-								// pushes a new coin flip game to the website for people to join
+				}
+				else if (trade.TransactionType == "Deposit" && trade.GameMode == "Coin Flip") {
 
-								let username;
-								let userPic;
-								let skinVals = [];
-								let skinPics = [];
-								let totalVal = 0;
+					CoinFlipGame.findOne({ GameID: trade.GameID }, (err, activeCFGame) => {
 
-								allUsers.forEach((user) => {
-									if (user["SteamID"] == trade.SteamID) {
-										username = user["Username"];
-										userPic = user["ProfilePictureURL"];
-									}
-								});
+						if (err) return console.error(err);
+						
+						else if (activeCFGame == null) {
+							console.log(
+								"Invlaid coin flip game look up or something I don't know"
+							);
+						}
+						else if (activeCFGame.Status == true && (activeCFGame.PlayerTwoTradeState == null || activeCFGame.PlayerTwoTradeState ==undefined)) {
+							// pushes a new coin flip game to the website for people to join
 
-								if (username == undefined) {
-									username = "Unknown";
+							let username;
+							let userPic;
+							let skinVals = [];
+							let skinPics = [];
+							let totalVal = 0;
 
-									// probably should throw an error or something
+							allUsers.forEach((user) => {
+								if (user["SteamID"] == trade.SteamID) {
+									username = user["Username"];
+									userPic = user["ProfilePictureURL"];
 								}
+							});
 
-								trade.ItemNames.forEach((skin) => {
-									skins.forEach((val) => {
-										if (skin == val["SkinName"]) {
-											skinPics.push(
-												val["SkinPictureURL"]
-											);
-											skinVals.push(val["Value"]);
-											totalVal += val["Value"];
-										}
-									});
-								});
+							if (username == undefined) {
+								username = "Unknown";
 
-								let userBet = {
-									username: username,
-									userSteamId: trade["SteamID"],
-									userPicture: userPic,
-									skins: trade.ItemNames,
-									skinValues: skinVals,
-									skinIDs: trade.Items,
-									skinPictures: skinPics,
-								};
+								// probably should throw an error or something
+							}
 
-								let fullBetList = [];
-
-								fullBetList.push(userBet);
-
-								CoinFlipGame.findOneAndUpdate(
-									{ GameID: activeCFGame.GameID },
-									{
-										$set: {
-											Players: fullBetList,
-											TotalValue: totalVal,
-											PlayerOneTradeState:
-												TradeOfferManager
-													.ETradeOfferState[
-													offer.state
-												],
-										},
-									},
-									(err, cf) => {
-										if (err) return console.error(err);
-										else {
-											console.log(
-												"New Coin Flip game was created: " +
-													cf.GameID
-											);
-
-											coinFlipUpdater.addNewActiveGame(
-												cf.GameID
-											);
-										}
+							trade.ItemNames.forEach((skin) => {
+								skins.forEach((val) => {
+									if (skin == val["SkinName"]) {
+										skinPics.push(
+											val["SkinPictureURL"]
+										);
+										skinVals.push(val["Value"]);
+										totalVal += val["Value"];
 									}
-								);
-							} else if (
-								activeCFGame.Status == true &&
-								(activeCFGame.PlayerTwoTradeState != null ||
-									activeCFGame.PlayerTwoTradeState !=
-										undefined)
-							) {
+								});
+							});
+
+							let userBet = {
+								username: username,
+								userSteamId: trade["SteamID"],
+								userPicture: userPic,
+								skins: trade.ItemNames,
+								skinValues: skinVals,
+								skinIDs: trade.Items,
+								skinPictures: skinPics,
+							};
+
+							let fullBetList = [];
+
+							fullBetList.push(userBet);
+
+							CoinFlipGame.findOneAndUpdate(
+								{ GameID: activeCFGame.GameID },
+								{
+									$set: {
+										Players: fullBetList,
+										TotalValue: totalVal,
+										PlayerOneTradeState:
+											TradeOfferManager
+												.ETradeOfferState[
+												offer.state
+											],
+									},
+								},
+								(err, cf) => {
+									if (err) return console.error(err);
+									else {
+										console.log(
+											"New Coin Flip game was created: " +
+												cf.GameID
+										);
+
+										coinFlipUpdater.addNewActiveGame(
+											cf.GameID
+										);
+									}
+								}
+							);
+							}
+							else if (activeCFGame.Status == true &&(activeCFGame.PlayerTwoTradeState != null || activeCFGame.PlayerTwoTradeState != undefined)) {
 								// makes the player join the active coin flip game and starts the count down time for it about to flip
 
 								let username;
@@ -842,19 +818,14 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 													offer.state
 												],
 										},
-									},
+									}, { new: true },
 									(err, cf) => {
+
 										if (err) return console.error(err);
 										else {
-											console.log(
-												username +
-													" Joined: " +
-													cf.GameID
-											);
+											console.log(username + " Joined: " + cf.GameID);
 
-											coinFlipUpdater.opponentAcceptedTrade(
-												cf
-											);
+											coinFlipUpdater.opponentAcceptedTrade(cf);
 										}
 									}
 								);
@@ -957,29 +928,51 @@ setInterval(async function () {
 // This is what pushes the updates to the frontend
 const callCoinFlipUpdate = async () => {
 	try {
+
 		let modify = await coinFlipUpdater.coinFlipUpdates();
 
 		io.emit("coinFlipLoader", modify);
 
 		return modify;
-	} catch (e) {
+
+	}
+	catch (e) {
+
 		return console.log(e);
+
 	}
 };
 
-let updates;
-const coinFlipTimer = setInterval(async function () {
-	updates = await callCoinFlipUpdate();
+setInterval(async function () {
 
-	updates.forEach((gameObj) => {
-		if (gameObj.playerTwoState == "cancel") {
-			bot.cancelOpponentCoinFlipTradeOffer(gameObj.gameID);
-		}
+	try {
+		callCoinFlipUpdate()
 
-		if (gameObj.winner != "none") {
-			console.log(gameObj.winner);
-		}
-	});
+		.then(updates => {
+
+			updates.forEach((gameObj) => {
+
+				if (gameObj.playerTwoState == "cancel") {
+					bot.cancelOpponentCoinFlipTradeOffer(gameObj.gameID);
+				}
+		
+				if (gameObj.winner != "none") {
+					console.log(gameObj.winner);
+				}
+		
+			});
+		})
+
+		.catch(err => {
+			console.log("Error Occurred while updating coin flip games");
+			console.log(err);
+		});
+	}
+
+	catch(err) {
+		console.log(err);
+	}
+
 }, 1000);
 
 // sends to certain user
@@ -996,3 +989,44 @@ setInterval(function () {
 }, 5000);
 
 //////////////////////////////////////////////////////////////
+
+// Coin flip events
+
+/*
+
+cfGames.cfEvents.on("timer", (data) => {
+	console.log(data.time);
+});
+
+cfGames.cfEvents.on("newCFGame", (data) => {
+	
+});
+
+cfGames.cfEvents.on("secondPlayerJoinedCFGame", (data) => {
+
+});
+
+cfGames.cfEvents.on("secondPlayerDeclinedTrade", (data) => {
+
+});
+
+cfGames.cfEvents.on("secondPlayerAccepctedTrade", (data) => {
+
+});
+
+cfGames.cfEvents.on("cancelCFGame", (data) => {
+
+});
+
+cfGames.cfEvents.on("winner", (data) => {
+
+});
+
+cfGames.cfEvents.on("removeCFGame", (data) => {
+
+});
+
+const testerCF = new cfGames.ActiveCoinFlipGame("00001");
+testerCF.startTimer();
+
+*/

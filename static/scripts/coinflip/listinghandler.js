@@ -3,7 +3,6 @@ import * as deposit from "../deposit.js";
 
 const gameListings = document.getElementById("coinflip-listing-area");
 const allViews = document.getElementById("all-cf-views");
-const steamID = document.getElementById("user-steam-id").value;
 
 let allCFGames = [];
 
@@ -40,7 +39,7 @@ socket.on("coinFlipLoader", async (games) => {
 
             }
 
-            else if (game.playerTwoState == "Accepted" && winner == "none") {
+            else if (game.playerTwoState == "Accepted" && game.winner == "none") {
 
                 // show player two skins and values and starts flipping timer
 
@@ -134,6 +133,8 @@ function addNewCFGame(cf) {
     // this should bring up the deposit button
     joinButton.addEventListener("click", (event) => {
 
+        let steamID = localStorage.SteamID
+
         if (steamID == null || steamID == undefined || steamID == "") {
             alert("Please Sign In Through to Join a Coin Flip");
 
@@ -203,6 +204,8 @@ function addNewCFGame(cf) {
 
     // push both buttons to button div
     if (cf.timer == false) {
+        let steamID = localStorage.SteamID
+
         if (steamID != cf.playerOneId) {
             buttonListingDiv.appendChild(joinButton);
         }

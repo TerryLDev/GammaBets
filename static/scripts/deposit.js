@@ -8,6 +8,7 @@ const depositButton = document.getElementById("deposit-button");
 
 // build the deposit menu and add deposit info
 export function buildDepositMenu(steamID, gameID, side) {
+
     popupBackGround.style.display = "";
     popupBackGround.className = "fade-background";
 
@@ -37,6 +38,7 @@ export function buildDepositMenu(steamID, gameID, side) {
     socket.emit("getInventory", {
         steamID: steamID,
     });
+
 }
 
 socket.on("getInventory", (inv) => {
@@ -55,23 +57,27 @@ socket.on("getInventory", (inv) => {
 
         inputCheckBox.addEventListener("click", (Element) => {
             let checkInput = Element.path[0];
+
             if (checkInput.checked) {
+
                 // selecting skin
                 let findLabel = checkInput.nextElementSibling;
                 let labelChildren = findLabel.children;
-                let price = parseFloat(
-                    labelChildren[2].textContent.split("$")[1]
-                );
+                let price = parseFloat(labelChildren[2].textContent.split("$")[1]);
+
                 changeDepositTotalValuePos(price);
-            } else {
+            }
+
+            else {
+
                 // deselecting skins
                 let findLabel = checkInput.nextElementSibling;
                 let labelChildren = findLabel.children;
-                let price = parseFloat(
-                    labelChildren[2].textContent.split("$")[1]
-                );
+                let price = parseFloat(labelChildren[2].textContent.split("$")[1]);
+
                 changeDepositTotalValueNeg(price);
             }
+
         });
 
         let label = document.createElement("label");
@@ -127,9 +133,9 @@ function changeDepositTotalValueNeg(price) {
 depositButton.addEventListener("click", (Event) => {
 
     // values to push
-    const steamID = document.getElementById("user-steam-id").value;
-    const tradeURL = document.getElementById("user-trade-url").value;
-    const username = document.getElementById("user-steam-username").value;
+    const steamID = localStorage.SteamID;
+    const tradeURL = localStorage.TradeURL;
+    const username = localStorage.Username;
     let listOfSkins = [];
 
     // check what page the user is one
@@ -196,6 +202,7 @@ export function createNewCFGame(steamID, listOfSkins, tradeURL, side) {
 }
 
 export async function joinCFGAme(steamID, user, listOfSkins, tradeURL, gameId) {
+
     const data = {
         steamID: steamID,
         username: user,
@@ -203,6 +210,7 @@ export async function joinCFGAme(steamID, user, listOfSkins, tradeURL, gameId) {
         tradeURL: tradeURL,
         gameID: gameId,
     };
+
     socket.emit("joinActiveCoinFlipGame", data);
 }
 

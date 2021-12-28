@@ -1,49 +1,62 @@
 require("dotenv").config(__dirname + "/.env");
 const fs = require("fs");
 
-function decideCoinFlipWinner(cfGammID) {
+const CoinFlipGame = require("../models/coinflipgame.model");
+const User = require("../models/user.model");
+
+function decideCoinFlipWinner(gameID) {
+	
 	try {
-		CoinFlipGame.findOne({ GameID: cfGammID }, (err, cf) => {
+
+		CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
+
 			if (err) return err;
+
 			else {
-				try {
-					let listOfPlayers = [];
 
-					cf.Players.forEach((player) => {
-						let playerTotalVal = 0;
+				let listOfPlayers = [];
 
-						player["skinValues"].forEach((val) => {
-							playerTotalVal += val;
-						});
+				cf.Players.forEach((player) => {
 
-						for (let i = 0; i < playerTotalVal; i++) {
-							listOfPlayers.push(player.userSteamId);
-						}
+					let playerTotalVal = 0;
+
+					player["skinValues"].forEach((val) => {
+
+						playerTotalVal += val;
 					});
 
-					const shuffled = listOfPlayers.sort(
-						() => Math.random() - 0.5
-					);
+					for (let i = 0; i < playerTotalVal; i++) {
 
-					let randomWinner = Math.floor(
-						Math.random() * shuffled.length
-					);
+						listOfPlayers.push(player.userSteamId);
+					}
 
-					return shuffled[randomWinner];
-				} catch (error) {
-					return error;
-				}
+				});
+
+				let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
+
+				let randomWinner = Math.floor(Math.random() * shuffled.length);
+
+				let winner = shuffled[randomWinner]
+
+				return winner;
 			}
+
 		});
-	} catch (e) {
+
+	}
+	
+	catch (e) {
 		return e;
 	}
 }
 
 async function addNewActiveGame(cfID) {
+	
 	try {
+
 		CoinFlipGame.findOne({ GameID: cfID }, (err, cfGame) => {
 			if (err) return console.log(err);
+			
 			else {
 				let json = fs.readFileSync(`${__dirname}/cfgames.json`, {
 					encoding: "utf-8",
@@ -94,44 +107,46 @@ async function addNewActiveGame(cfID) {
 				);
 			}
 		});
-	} catch (e) {
+	}
+	catch (e) {
 		console.log(e);
 	}
 }
 
-// changes playerTwoState form "none" to "Active" or changes it to "Accepted"
-async function opponentAcceptedTrade(cfGame) {
+function opponentAcceptedTrade(cfGame) {
+	
 	try {
-		let json = await fs.readFileSync(`${__dirname}/cfgames.json`, {
+
+		let json = fs.readFileSync(`${__dirname}/cfgames.json`, {
 			encoding: "utf-8",
 		});
 
 		let modify = JSON.parse(json);
 
-		modify.forEach((obj) => {
+		modify.forEach(obj => {
+
 			if (obj.gameID == cfGame.GameID) {
+
 				obj.playerTwoSkins = cfGame.Players[1].skins;
 				obj.playerTwoSkinValues = cfGame.Players[1].skinValues;
 				obj.playerTwoSkinPictures = cfGame.Players[1].skinPictures;
 				obj.playerTwoState = cfGame.PlayerTwoTradeState;
 			}
+
 		});
 
 		fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify));
-	} catch (err) {
+	}
+	
+	catch (err) {
 		return console.log(err);
 	}
 }
 
-async function opponentJoiningGame(
-	gameID,
-	username,
-	userPicURL,
-	steamID,
-	tradeState
-) {
+function opponentJoiningGame(gameID, username, userPicURL, steamID, tradeState) {
+
 	try {
-		let json = await fs.readFileSync(`${__dirname}/cfgames.json`, {
+		let json = fs.readFileSync(`${__dirname}/cfgames.json`, {
 			encoding: "utf-8",
 		});
 
@@ -183,12 +198,6 @@ async function opponentDeclinedTrade(cfGame) {
 	} catch (err) {
 		return console.log(err);
 	}
-}
-
-// changes playerTwoState from "sent" to "none" if the user has ran of time to accept the trade sent to them
-// have the bot cancel the trade that was sent to the person
-function tradeCountDownExpired(cfGame) {
-	// call a function that cancels the trade
 }
 
 // after a certain amount of time a user can cancel their active game
@@ -287,42 +296,31 @@ async function sendWithdrawAndTakeProfit(jsonGame, winnerId, botId) {
 }
 
 // IT FUCKING WORKSSSSSSS FUCKING FINALLY
-const coinFlipUpdates = async () => {
+const coinFlipUpdates = () => {
+
 	try {
-		let json = fs.readFileSync(`${__dirname}/cfgames.json`, {
-			encoding: "utf-8",
-		});
+		
+		let json = fs.readFileSync(`${__dirname}/cfgames.json`, { encoding: "utf-8",});
 
 		let modify = JSON.parse(json);
 
 		modify.forEach((gameObj) => {
 			if (gameObj.gameState == true) {
+				
 				// checks if an opponent was sent a trade
-				if (
-					gameObj["playerOneState"] == "Accepted" &&
-					gameObj["playerTwoState"] == "Active" &&
-					gameObj["timer"] === false
-				) {
+				if (gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "Active" && gameObj["timer"] === false) {
 					gameObj["timer"] = parseInt(
 						process.env.COIN_FLIP_OPPONENT_JOINING_TIME
 					);
 				}
 
 				// changes the timer while waiting for the opponent to join
-				else if (
-					gameObj["playerOneState"] == "Accepted" &&
-					gameObj["playerTwoState"] == "Active" &&
-					gameObj["timer"] >= 1
-				) {
+				else if (gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "Active" && gameObj["timer"] >= 1) {
 					gameObj["timer"] = gameObj["timer"] - 1;
 				}
 
 				// should send a request to the server and website that the opponent failed ot accept the trade in time
-				else if (
-					gameObj.playerOneState == "Accepted" &&
-					gameObj.playerTwoState == "Active" &&
-					gameObj.timer == 0
-				) {
+				else if (gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Active" && gameObj.timer == 0) {
 					console.log(
 						`Canel opponent's trade with GameID: ${gameObj.gameID}`
 					);
@@ -333,66 +331,64 @@ const coinFlipUpdates = async () => {
 				}
 
 				// change the timer from a countdown for the trade to about to flip
-				else if (
-					gameObj.playerOneState == "Accepted" &&
-					gameObj.playerTwoState == "Accepted" &&
-					gameObj.timer > 0
-				) {
+				else if (gameObj.playerOneState == "Accepted" && gameObj.playerTwoState == "Accepted" && gameObj.timer > 0) {
 					gameObj.timer = `Flipping in... ${process.env.COIN_FLIP_COUNTDOWN_TIME}`;
 				}
 
 				// change the flipping timer
-				else if (typeof gameObj.timer == "string") {
-					if (
-						parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1
-					) {
-						let currentFlipTimer =
-							"Flipping in... " +
-							(parseInt(
-								gameObj.timer.split("Flipping in... ")[1]
-							) -
-								1);
+				else if (typeof(gameObj.timer) == "string") {
+
+					if (parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
+
+						let currentFlipTimer ="Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1);
 
 						gameObj.timer = currentFlipTimer;
 					}
 
 					// this should send a request to the server and website that it's time ot flip
 					// this decides the winner
-					else if (
-						parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0
-					) {
-						console.log("Flipping!!!" + gameObj.gameID);
+					else if (parseInt(gameObj.timer.split("Flipping in... ")[1]) == 0 && gameObj.winner == "none") {
+
+						console.log("Selecting Winner for CF Game: " + gameObj.gameID);
 
 						// call a function that decides a winner
-						let cfWinner = decideCoinFlipWinner(gameObj.gameID);
-
-						CoinFlipGame.findOneAndUpdate(
+						decideCoinFlipWinner(gameObj.gameID)
+							.then(winner => {
+								console.log(winner)
+								gameObj.winner = winner;
+							})
+							.catch(err => {
+								console.log("AHHHHHH " + err)
+							});
+						
+						/*
+						CoinFlipGame.updateOne(
 							{ GameID: gameObj.gameID },
-							{
+							{ $set: {
 								Winner: cfWinner,
 								Status: false,
-							},
-							{ upsert: true },
-							(err, cf) => {
+							}}, {}, (err) => {
+
 								if (err) {
 									console.error(err);
-								} else {
+								}
+								
+								else {
 									// send trade offer and send trade link to winner
+									gameObj.winner = cfWinner;
 								}
 							}
 						);
+						*/
 
-						gameObj.winner = cfWinner;
-
-						gameObj.gameState = false;
 					}
-				} else if (
-					gameObj.winner != "none" &&
-					gameObj.wait <= process.env.COIN_FLIP_ENDING_WAIT_TIME &&
-					gameObj.wait != 0
-				) {
+				}
+
+				else if (gameObj.winner != "none" && gameObj.wait <= process.env.COIN_FLIP_ENDING_WAIT_TIME && gameObj.wait > 0) {
 					gameObj.wait -= 1;
-				} else if (gameObj.wait == 0) {
+				}
+				
+				else if (gameObj.wait == 0) {
 					gameObj.gameState = false;
 				}
 
@@ -407,14 +403,22 @@ const coinFlipUpdates = async () => {
 					gameObj.playerTwoState = "none";
 					gameObj.timer = false;
 				}
-			} else {
+			}
+			
+			else {
+
 				if (gameObj.slicerDelay > 0) {
 					gameObj.slicerDelay -= 1;
-				} else {
+				}
+				
+				else {
+
 					let gameIndex = modify.findIndex((slicer) => {
+						
 						if (slicer.gameID == gameObj.gameID) {
 							return slicer;
 						}
+
 					});
 
 					modify.splice(gameIndex, 1);
@@ -425,7 +429,8 @@ const coinFlipUpdates = async () => {
 		fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify));
 
 		return modify;
-	} catch (err) {
+	}
+	catch (err) {
 		return err;
 	}
 };

@@ -46,6 +46,7 @@ export function tradeCanceled(game) {
 
     // reset view menu
     let viewMenu = document.querySelector(`[data-view-id="${game.gameID}"]`);
+    console.log(viewMenu);
 
     // reset timer
     let timer = viewMenu.querySelector(".view-coin-section-p");
@@ -58,6 +59,8 @@ export function tradeCanceled(game) {
     if(game.playerOneSide == "red") {
 
         let picture = playerTwoContainer.querySelector(".black-player-profile-picture");
+
+        picture.src = "";
         picture.src = "/static/images/user/defaultProfile.png";
 
         playerTwoContainer.querySelector(".view-player-name").textContent = "Waiting...";
@@ -67,9 +70,12 @@ export function tradeCanceled(game) {
     else {
 
         let picture = playerTwoContainer.querySelector(".red-player-profile-picture");
+
+        picture.src = "";
 		picture.src = "/static/images/user/defaultProfile.png";
 
         playerTwoContainer.querySelector(".view-player-name").textContent = "Waiting...";
+
     }
 }
 
@@ -104,7 +110,7 @@ export async function playerJoined(gameID, pTwoSide, playerTwoPic, playerTwoName
 // run when player 2 accepts the coinflip trade
 export async function playerTwoAcceptedTrade(game) {
 
-    let viewMenu = document.querySelector(`[data-view-id="${gameID}"]`);
+    let viewMenu = document.querySelector(`[data-view-id="${game.gameID}"]`);
 
     // checks if it was already rendered
     if (viewMenu.querySelector(".view-both-player-skins").querySelector(".player-two-section").hasAttribute("data-waiting") == false) {

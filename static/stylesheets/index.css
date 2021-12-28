@@ -47,7 +47,7 @@ body {
 
 #popup-menu-background {
 	margin: 0;
-	position: absolute;
+	position: fixed;
 	z-index: 2;
 	background-color: rgba(0, 0, 0, 0.5);
 	width: 100%;
