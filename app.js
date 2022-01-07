@@ -117,6 +117,10 @@ mongoose.connect(
 	}
 );
 
+User.watch().on("change", change => {
+	console.log(change);
+})
+
 // Setting up cookies
 app.use(
 	session({

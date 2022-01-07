@@ -28,19 +28,26 @@ class CoinFlipManager extends GameManager {
     async callNewGame(tradeDBObject, dbSkins) {
 
         // ahhhhhh
-        // let user = await this.getPlayerAndSlot(tradeDBObject, dbSkins);
-
+        let userBet = await this.getPlayerAndSlot(tradeDBObject, dbSkins);
         let fullBetList = [];
 
-        fullBetList.push(userBet);
+        fullBetList.push(await userBet);
+
+        let totalVal;
+
+        await userBet.skinValues.forEach(val => {
+
+            totalVal += val;
+
+        });
 
         CoinFlipGame.findOneAndUpdate(
             { GameID: activeCFGame.GameID },
             {
                 $set: {
-                    Players: fullBetList,
-                    TotalValue: totalVal,
-                    PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state]
+                    Players: await fullBetList,
+                    TotalValue: await totalVal,
+                    PlayerOneTradeState: tradeDBObject.State
                 },
             }, { new: true }, (err, cf) => {
 

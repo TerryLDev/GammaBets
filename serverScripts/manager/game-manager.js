@@ -29,49 +29,41 @@ class GameManager {
             }
 
             else {
-                let userBet = this.playerArraySlot();
 
-                return [userBet, tot]
+                let username = user.Username;
+                let userPic = user.ProfilePictureURL;
+                let skinVals = [];
+                let skinPics = [];
+
+                tradeDBObject.ItemNames.forEach((skin) => {
+
+                    dbSkins.forEach((val) => {
+
+                        if (skin == val["SkinName"]) {
+
+                            skinPics.push(val["SkinPictureURL"]);
+                            skinVals.push(val["Value"]);
+
+                        }
+
+                    });
+                });
+
+                let userBet = {
+                    username: username,
+                    userSteamId: tradeDBObject["SteamID"],
+                    userPicture: userPic,
+                    skins: tradeDBObject.ItemNames,
+                    skinValues: skinVals,
+                    skinIDs: tradeDBObject.Items,
+                    skinPictures: skinPics,
+                };
+
+                return userBet;
             }
 
         });
         
-    }
-
-    playerArraySlot(tradeDBObject, dbSkins, user) {
-
-        let username = user.Username;
-        let userPic = user.ProfilePictureURL;
-        let skinVals = [];
-        let skinPics = [];
-
-        tradeDBObject.ItemNames.forEach((skin) => {
-
-            dbSkins.forEach((val) => {
-
-                if (skin == val["SkinName"]) {
-
-                    skinPics.push(val["SkinPictureURL"]);
-                    skinVals.push(val["Value"]);
-                    totalVal += val["Value"];
-
-                }
-
-            });
-        });
-
-        let userBet = {
-            username: username,
-            userSteamId: tradeDBObject["SteamID"],
-            userPicture: userPic,
-            skins: tradeDBObject.ItemNames,
-            skinValues: skinVals,
-            skinIDs: tradeDBObject.Items,
-            skinPictures: skinPics,
-        };
-
-        return userBet;
-
     }
 
 }

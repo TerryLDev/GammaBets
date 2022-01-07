@@ -149,14 +149,10 @@ class SteamBot {
 
 		this.client.on("disconnected", (eresult, msg) => {
 
-			setTimeout(function () {
+			console.log(eresult);
+			console.log(msg);
 
-				console.log(eresult);
-				console.log(msg);
-
-				this.logIntoSteam();
-
-			}, 1500);
+			setTimeout(this.logIntoSteam(), 1500);
 
 		});
 		
