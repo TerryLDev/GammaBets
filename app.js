@@ -40,11 +40,16 @@ const community = new SteamCommunity();
 const manager = new TradeOfferManager();
 const client = new SteamUser();
 
-const SteamBot = require("./steam/bot");
+const { SteamBot } = require("./serverScripts/steam/steam-bot");
 
 const updateValues = require("./serverScripts/updateskinvalues");
 const coinFlipUpdater = require("./serverScripts/coinflipgame");
 const cfGames = require("./serverScripts/revisedcoinflip");
+const cfGameHandler = new cfGames.ActiveCoinFlipGame();
+
+const { CoinFlipBot } = require("./serverScripts/steam/coinflip-bot");
+
+let lastUsedCFBot = "none";
 
 let mongo_uri = process.env.MONGO_URI;
 
@@ -60,6 +65,7 @@ let jpTimer = 10;
 let readyToRoll = false;
 let countDown = false;
 
+// Connect to MongoDB
 mongoose.connect(
 	mongo_uri,
 	{ useNewUrlParser: true, useUnifiedTopology: true },
@@ -96,16 +102,16 @@ mongoose.connect(
 
 			
             // Dev Purpose ONLY
-			
+			/*
             CoinFlipGame.find({}, (err, cfs) => {
                 if(err) console.log(err);
                 else {
                     cfs.forEach(cf => {
-                        coinFlipUpdater.addNewActiveGame(cf.GameID)
+                        cfGameHandler.createNewGame(cf);
                     })
                 }
             })
-			
+			*/
             
 		}
 	}
@@ -130,12 +136,12 @@ app.use(
 // Localhost port
 const port = process.env.PORT || 3000;
 
-// Set Up config for Steambots
-const bot = new SteamBot({
-	accountName: process.env.USERNAME,
-	password: process.env.PASSWORD,
-	twoFactorCode: SteamTotp.generateAuthCode(process.env.SHARED_SECRET),
-});
+// Intialize Bots
+const bot = new SteamBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET));
+
+const cfBotZero = new CoinFlipBot(process.env.CF_BOT_0_USERNAME, process.env.CF_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_0_SHARED_SECRET), process.env.CF_BOT_0_SERVERID);
+
+const cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_SERVERID);
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -163,16 +169,18 @@ passport.use(
 					? process.env.API_KEY_DEV
 					: process.env.API_KEY_PRO,
 		},
+
 		function (identifier, profile, done) {
 			process.nextTick(function () {
 				profile.identifier = identifier;
 
 				let user = profile["_json"];
-				console.log(user);
 
 				User.exists({ SteamID: user["steamid"] })
 					.then((result) => {
+
 						if (result == false) {
+
 							User.create({
 								SteamID: user["steamid"],
 								Username: user["personaname"],
@@ -181,29 +189,29 @@ passport.use(
 								DateJoined: Date.now(),
 							})
 								.then((result) => {
-									User.save()
-										.then((result) => {
-											console.log(result);
-										})
-										.catch((err) => {
-											console.error(err);
-										});
+
+									console.log(result);
+
 								})
 								.catch((err) => {
+
 									console.error(err);
+
 								});
-						} else {
+
+						}
+						
+						else {
 							console.log("User Exists");
-							User.findOneAndUpdate(
-								{ SteamID: user["steamid"] },
-								{
+
+							User.findOneAndUpdate({ SteamID: user["steamid"] }, { $set : {
 									Username: user["personaname"],
 									ProfilePictureURL: user["avatarfull"],
 									ProfileURL: user["profileurl"],
-								},
-								{ new: true },
-								(err, doc) => {
+								}}, { new: true }, (err, doc) => {
+
 									if (err) return console.log(err);
+
 								}
 							);
 						}
@@ -237,10 +245,7 @@ app.get("/auth/steam", passport.authenticate("steam"), function (req, res) {
 	// this function will not be called.
 });
 
-app.get(
-	"/auth/steam/return",
-	passport.authenticate("steam", { failureRedirect: "/" }),
-	function (req, res) {
+app.get("/auth/steam/return", passport.authenticate("steam", { failureRedirect: "/" }),function (req, res) {
 		// Successful authentication, redirect home
 		req.session.isAuth = true;
 		res.redirect("/");
@@ -251,8 +256,10 @@ app.use("/", gameRoutes);
 app.use("/support", supportRoutes);
 
 const server = app.listen(port, (err) => {
+
 	if (err) return console.error(err);
 	console.log(`Port: ${port}, Server Running...`);
+
 });
 
 const io = socket(server);
@@ -262,27 +269,60 @@ const messages = [];
 
 let activeJPGameID;
 
-io.on("connection", async (socket) => {
+io.on("connection", (socket) => {
+
 	socket.on("join", function (data) {
+
 		if (data.steamID != "") {
+
 			socket.join(data.steamID);
 			console.log(`${data.steamID} Joined`);
+			
 		}
+
 	});
 
 	socket.on("leave", async function (data) {
-		if (data.steamID != "") {
-			socket.leave(data.steamID);
-			console.log(`${data.steamID} Left`);
+
+		try {
+
+			if (data.steamID != "") {
+				socket.leave(data.steamID);
+				console.log(`${data.steamID} Left`);
+			}
+
 		}
+
+		catch(err) {
+
+			console.log("An Error Occurred when leaving channel: " + data.steamID)
+
+		}
+
 	});
 
 	socket.emit("chat", messages);
 
 	socket.on("chat", async (data) => {
-		messages.push(data);
 
-		io.emit("chat", messages);
+		if (await messages.length == 100) {
+
+			await messages.shift();
+
+			await messages.push(data);
+
+			io.emit("chat", await messages);
+
+		}
+
+		else {
+
+			await messages.push(data);
+
+			io.emit("chat", await messages);
+
+		}
+
 	});
 
 	socket.on("jackpotWinner", async (data) => {
@@ -329,8 +369,11 @@ io.on("connection", async (socket) => {
 		});
 
 		if (steamUser.steamID == null || steamUser.steamID == undefined ||steamUser.steamID == "") {
+
 			console.log("user needs to be logged in to get inventory");
+
 		}
+
 		else {
 			User.findOne({ SteamID: steamUser.steamID }, (err, doc) => {
 				if (err) return console.error(err);
@@ -379,75 +422,92 @@ io.on("connection", async (socket) => {
 	});
 
 	socket.on("createNewCoinFlipGame", async (data) => {
-		let gameID = Date.now();
 
-		await bot.sendCoinFlipTradeOffer(
-			data.user,
-			data.skins,
-			data.tradeURL,
-			null,
-			gameID
-		);
+		try {
+
+			let gameID = await Date.now();
+
+			if (lastUsedCFBot == "CF0") {
+
+				cfBotOne.sendCoinFlipTradeOfferPlayerOne(data.steamID, data.skins, data.tradeURL, data.side, await gameID);
+
+				lastUsedCFBot = cfBotOne.botID;
+
+			}
+
+			else {
+
+				cfBotZero.sendCoinFlipTradeOfferPlayerOne(data.steamID, data.skins, data.tradeURL, data.side, await gameID);
+
+				lastUsedCFBot = cfBotZero.botID;
+
+			}
+
+		}
+
+		catch(err) {
+
+			console.log(err);
+			console.log("Error Occurred while creating a new game");
+
+		}
+
 	});
 
-	socket.on("joinActiveCoinFlipGame", (data) => {
-	
-		bot.joinCFGameAndSendTrade(
-			data.steamID,
-			data.username,
-			data.skins,
-			data.tradeURL,
-			data.gameID
-		);
+	socket.on("joinActiveCoinFlipGame", async (data) => {
+
+		/* data = {
+			steamID: steamID,
+			username: user,
+			skins: listOfSkins,
+			tradeURL: tradeURL,
+			gameID: gameId,
+		};
+		*/
+
+		try {
+
+			let findBot = await cfGameHandler.findCFBot(data.gameID);
+
+			if (await findBot == "CF0") {
+
+				cfBotZero.joinCFGameAndSendTrade(data.steamId, data.username, data.skins, data.tradeURL, data.gameID);
+
+			}
+
+			else if (await findBot == "CF1") {
+
+				cfBotOne.joinCFGameAndSendTrade(data.steamId, data.username, data.skins, data.tradeURL, data.gameID);
+
+			}
+
+			else {
+
+				console.log("Can't find Coin Flip bot");
+
+			}
+		}
+
+		catch (err) {
+
+		}
 		
 	});
 
 	socket.on("makeJackpotDeposit", async (data) => {
+
 		bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL);
+
 	});
+
 });
 
 // SteamBot Events
-
-bot.client.on("steamGuard", (domain, callback, lastCodeWrong) => {
-	setTimeout(function () {
-		if (lastCodeWrong) {
-			console.log("Wrong Code for Bot 1");
-			let code = SteamTotp.generateAuthCode(process.env.SHARED_SECRET);
-			callback(code);
-		}
-	}, 1500);
-});
-
-bot.client.on("tradeResponse", (steamID, response) => {
-	console.log(steamID);
-	console.log(response);
-});
-
-bot.client.on("disconnected", (eresult, msg) => {
-	setTimeout(function () {
-		console.log(eresult);
-		console.log(msg);
-
-		bot.logOn({
-			accountName: process.env.USERNAME,
-			password: process.env.PASSWORD,
-			twoFactorCode: SteamTotp.generateAuthCode(
-				process.env.SHARED_SECRET
-			),
-		});
-	}, 1500);
-});
-
-bot.client.on("error", (err) => {
-	if (err == "Error: RateLimitExceeded") {
-		console.log("Bot 1 has exceeded its rate limit");
-		bot.client.logOff();
-	}
-});
-
+/*
 bot.manager.on("sentOfferChanged", (offer, oldState) => {
+
 	if (TradeOfferManager.ETradeOfferState[offer.state] == "Declined") {
+		
 		TradeHistory.findOneAndUpdate(
 			{ TradeID: offer.id },
 			{ State: TradeOfferManager.ETradeOfferState[offer.state] },
@@ -516,10 +576,13 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 				}
 			}
 		);
-	} else if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
+	}
+
+	else if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
 		console.log("Trade was cancel " + offer.id);
 		console.log("PLEASE DO SOMETHING WITH THE EVENT");
 	}
+
 	else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
 		
 		TradeHistory.findOneAndUpdate(
@@ -527,6 +590,7 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 			{ State: TradeOfferManager.ETradeOfferState[offer.state] },
 			{ new: true },
 			(err, trade) => {
+
 				if (err) return console.error(err);
 				
 				else if (trade == null || trade.SteamID == null) {
@@ -608,7 +672,9 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 									}
 								}
 							);
-						} else {
+						}
+						
+						else {
 							let username;
 							let userPic;
 							let skinVals = [];
@@ -676,6 +742,7 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 
 					console.log(offer.id + " Trade was Accepted");
 				}
+
 				else if (trade.TransactionType == "Deposit" && trade.GameMode == "Coin Flip") {
 
 					CoinFlipGame.findOne({ GameID: trade.GameID }, (err, activeCFGame) => {
@@ -683,11 +750,13 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 						if (err) return console.error(err);
 						
 						else if (activeCFGame == null) {
-							console.log(
-								"Invlaid coin flip game look up or something I don't know"
-							);
+
+							console.log("Invlaid coin flip game look up or something I don't know");
+
 						}
-						else if (activeCFGame.Status == true && (activeCFGame.PlayerTwoTradeState == null || activeCFGame.PlayerTwoTradeState ==undefined)) {
+
+						else if (activeCFGame.Status == true && (activeCFGame.PlayerTwoTradeState == null || activeCFGame.PlayerTwoTradeState == undefined)) {
+
 							// pushes a new coin flip game to the website for people to join
 
 							let username;
@@ -741,28 +810,22 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 									$set: {
 										Players: fullBetList,
 										TotalValue: totalVal,
-										PlayerOneTradeState:
-											TradeOfferManager
-												.ETradeOfferState[
-												offer.state
-											],
+										PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offer.state]
 									},
-								},
-								(err, cf) => {
-									if (err) return console.error(err);
-									else {
-										console.log(
-											"New Coin Flip game was created: " +
-												cf.GameID
-										);
+								}, { new: true }, (err, cf) => {
 
-										coinFlipUpdater.addNewActiveGame(
-											cf.GameID
-										);
+									if (err) return console.error(err);
+
+									else {
+
+										console.log("New Coin Flip game was created: " + cf.GameID);
+
+										cfGameHandler.createNewGame(cf);
+
 									}
 								}
 							);
-							}
+						}
 							else if (activeCFGame.Status == true &&(activeCFGame.PlayerTwoTradeState != null || activeCFGame.PlayerTwoTradeState != undefined)) {
 								// makes the player join the active coin flip game and starts the count down time for it about to flip
 
@@ -837,6 +900,7 @@ bot.manager.on("sentOfferChanged", (offer, oldState) => {
 		);
 	}
 });
+*/
 
 // Jackpot Timer
 let setIntervalDelay = 1000;
@@ -923,57 +987,6 @@ setInterval(async function () {
 }, 1000 * 60 * 60 * 12);
 
 //////////////////////////////////////////////////////////////
-// im going to lose my mind it cant call this fucking function
-
-// This is what pushes the updates to the frontend
-const callCoinFlipUpdate = async () => {
-	try {
-
-		let modify = await coinFlipUpdater.coinFlipUpdates();
-
-		io.emit("coinFlipLoader", modify);
-
-		return modify;
-
-	}
-	catch (e) {
-
-		return console.log(e);
-
-	}
-};
-
-setInterval(async function () {
-
-	try {
-		callCoinFlipUpdate()
-
-		.then(updates => {
-
-			updates.forEach((gameObj) => {
-
-				if (gameObj.playerTwoState == "cancel") {
-					bot.cancelOpponentCoinFlipTradeOffer(gameObj.gameID);
-				}
-		
-				if (gameObj.winner != "none") {
-					console.log(gameObj.winner);
-				}
-		
-			});
-		})
-
-		.catch(err => {
-			console.log("Error Occurred while updating coin flip games");
-			console.log(err);
-		});
-	}
-
-	catch(err) {
-		console.log(err);
-	}
-
-}, 1000);
 
 // sends to certain user
 
@@ -992,41 +1005,122 @@ setInterval(function () {
 
 // Coin flip events
 
-/*
+// Coin Flip Timer
+setInterval(function () {
 
+	cfGameHandler.timer();
+
+}, 1000);
+
+// need more work
 cfGames.cfEvents.on("timer", (data) => {
-	console.log(data.time);
+
+	// data format (array)
+	// data = [{GameID: **, currentTime: **}]
+
+	io.emit("cfTimer", data);
+
 });
 
+// need more work
 cfGames.cfEvents.on("newCFGame", (data) => {
+	
+	// data format
+	// data = GameObject (game obejct from the json file)
+
+	io.emit("newCFGame", data);
 	
 });
 
-cfGames.cfEvents.on("secondPlayerJoinedCFGame", (data) => {
+// need more work
+cfGames.cfEvents.on("secondPlayerJoiningCFGame", (data) => {
+	
+	// data format
+	/* data = {
+		SteamID: steamID,
+		Username: username,
+		GameID: gameID,
+		TradeState: tradeState,
+		UserPicURL: userPicURL,
+		PlayerTwoSide: "red" or "black"
+	}
+	*/
+
+	io.emit("secondPlayerJoiningCFGame", data)
 
 });
 
+// need more work
 cfGames.cfEvents.on("secondPlayerDeclinedTrade", (data) => {
 
 });
 
+// need more work
 cfGames.cfEvents.on("secondPlayerAccepctedTrade", (data) => {
 
 });
 
-cfGames.cfEvents.on("cancelCFGame", (data) => {
+// need more work
+cfGames.cfEvents.on("cancelCFGame", async (data) => {
+
+	// data format
+	// data = {GameID: **};
+
+	try {
+		// bot cancels trade
+		bot.cancelOpponentCoinFlipTradeOffer(data.GameID);
+
+		// handler updates json file and returns the {gameobject} from the json file
+		const update = await cfGameHandler.cancelOpponentTrade(data.GameID);
+
+		// socket pushes update to front end
+		io.emit("cancelCFGame", await update);
+	}
+	
+	catch (err) {
+		return console.error(err);
+	}
 
 });
 
-cfGames.cfEvents.on("winner", (data) => {
+// need more work
+cfGames.cfEvents.on("decideWinner", async (data) => {
+	// given data format
+	// data = {GameID: **, GameState: ** (just false)}
+
+	// returned winnerObj format
+	// winnerObj = {GameID: gameID, SteamID: winner}
+
+	try {
+
+		// updates the json file to change gameState to false
+		cfGameHandler.updateJsonGameState(data.GameState);
+
+		// gets the winner
+		const winnerObj = await cfGameHandler.decideWinner(data.GameID);
+
+		// pushes winner to frontend
+		io.emit("cfWinner", await winnerObj);
+
+		// updates the winner in json file
+		cfGameHandler.updateWinner(await winnerObj);
+
+		// push game state update
+		let dataGS = {GameState: data.GameState};
+
+		io.emit("updateGameState", dataGS);
+
+	}
+
+	catch (err) {
+
+		return console.log(err);
+
+	}
 
 });
 
+// need more work
 cfGames.cfEvents.on("removeCFGame", (data) => {
 
 });
-
-const testerCF = new cfGames.ActiveCoinFlipGame("00001");
-testerCF.startTimer();
-
-*/

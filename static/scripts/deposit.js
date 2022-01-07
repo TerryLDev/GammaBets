@@ -192,7 +192,7 @@ depositButton.addEventListener("click", (Event) => {
 
 export function createNewCFGame(steamID, listOfSkins, tradeURL, side) {
     const data = {
-        user: steamID,
+        steamID: steamID,
         skins: listOfSkins,
         tradeURL: tradeURL,
         side: side,
@@ -201,7 +201,7 @@ export function createNewCFGame(steamID, listOfSkins, tradeURL, side) {
     socket.emit("createNewCoinFlipGame", data);
 }
 
-export async function joinCFGAme(steamID, user, listOfSkins, tradeURL, gameId) {
+export function joinCFGAme(steamID, user, listOfSkins, tradeURL, gameId) {
 
     const data = {
         steamID: steamID,
@@ -214,6 +214,6 @@ export async function joinCFGAme(steamID, user, listOfSkins, tradeURL, gameId) {
     socket.emit("joinActiveCoinFlipGame", data);
 }
 
-export async function cfDepositLimit() {
+export function cfDepositLimit() {
 
 }

@@ -58,6 +58,7 @@ async function addNewActiveGame(cfID) {
 			if (err) return console.log(err);
 			
 			else {
+
 				let json = fs.readFileSync(`${__dirname}/cfgames.json`, {
 					encoding: "utf-8",
 				});
@@ -93,7 +94,9 @@ async function addNewActiveGame(cfID) {
 				if (cfGame.Red == "" || cfGame.Red == undefined) {
 					newEntry.playerOneSide = "black";
 					newEntry.playerTwoSide = "red";
-				} else {
+				}
+				
+				else {
 					newEntry.playerOneSide = "red";
 					newEntry.playerTwoSide = "black";
 				}
@@ -108,6 +111,7 @@ async function addNewActiveGame(cfID) {
 			}
 		});
 	}
+
 	catch (e) {
 		console.log(e);
 	}
@@ -162,7 +166,9 @@ function opponentJoiningGame(gameID, username, userPicURL, steamID, tradeState) 
 		});
 
 		fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify));
-	} catch (err) {
+	}
+	
+	catch (err) {
 		return console.log(err);
 	}
 }
@@ -170,6 +176,7 @@ function opponentJoiningGame(gameID, username, userPicURL, steamID, tradeState) 
 // changes playerTwoState form "sent" to "none" if the user declined the trade offer sent to them
 async function opponentDeclinedTrade(cfGame) {
 	try {
+
 		let json = await fs.readFileSync(`${__dirname}/cfgames.json`, {
 			encoding: "utf-8",
 		});
@@ -195,7 +202,9 @@ async function opponentDeclinedTrade(cfGame) {
 		});
 
 		fs.writeFileSync(`${__dirname}/cfgames.json`, JSON.stringify(modify));
-	} catch (err) {
+	}
+	
+	catch (err) {
 		return console.log(err);
 	}
 }
@@ -305,6 +314,7 @@ const coinFlipUpdates = () => {
 		let modify = JSON.parse(json);
 
 		modify.forEach((gameObj) => {
+
 			if (gameObj.gameState == true) {
 				
 				// checks if an opponent was sent a trade
@@ -340,7 +350,7 @@ const coinFlipUpdates = () => {
 
 					if (parseInt(gameObj.timer.split("Flipping in... ")[1]) >= 1) {
 
-						let currentFlipTimer ="Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1);
+						let currentFlipTimer = "Flipping in... " + (parseInt(gameObj.timer.split("Flipping in... ")[1]) - 1);
 
 						gameObj.timer = currentFlipTimer;
 					}

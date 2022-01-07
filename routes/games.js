@@ -8,10 +8,23 @@ const app = express();
 app.set('views', '../views')
 app.set('view engine', 'html')
 
+const cfGame = require("../serverScripts/revisedcoinflip")
+
+const cfGameHandler = new cfGame.ActiveCoinFlipGame();
+
 
 router.use(function timeLog(req, res, next) {
 	console.log("Time: ", Date.now());
 	next();
+});
+
+router.use("/coinflip/json", function(req, res, next) {
+
+	const allCFGameJson = JSON.stringify(cfGameHandler.gameJson());
+
+	res.json(allCFGameJson)
+	next();
+
 });
 
 router.get("/", (req, res) => {

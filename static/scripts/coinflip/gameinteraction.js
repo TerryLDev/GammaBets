@@ -8,10 +8,18 @@ const winnerRed = ["/static/images/coins/endred1.gif", "/static/images/coins/end
 viewBackground.addEventListener("click", (event) => {
     viewBackground.style.display = "none";
 
-    checkForOpenView();
+    checkForOpenViews();
 });
 
-function checkForOpenView() {
+function getViewMenu(gameID) {
+
+    let viewMenu = document.querySelector(`[data-view-id="${gameID}"]`);
+
+    return viewMenu;
+
+}
+
+function checkForOpenViews() {
 
     let getMenus = allViews.querySelectorAll(".view-menu");
 
@@ -20,6 +28,7 @@ function checkForOpenView() {
             getMenus[i].style.display = "none";
         }
     }
+
 }
 
 export async function updateTimer(game) {
@@ -79,9 +88,16 @@ export function tradeCanceled(game) {
     }
 }
 
-export async function playerJoined(gameID, pTwoSide, playerTwoPic, playerTwoName) {
+////////////////////////////
+////// Working On //////////
+////////////////////////////
 
-    let viewMenu = document.querySelector(`[data-view-id="${gameID}"]`);
+// should change website view menu when a player joins a coin flip
+export function secondPlayerJoining(gameID, pTwoSide, playerTwoPic, playerTwoName) {
+
+
+    let viewMenu = getViewMenu(gameID);
+
     let findContainer = viewMenu.querySelector(".player-two-section");
 
     if (findContainer.hasAttribute("data-joined") == false) {

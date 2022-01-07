@@ -6,8 +6,71 @@ const allViews = document.getElementById("all-cf-views");
 
 let allCFGames = [];
 
+// grabs data from json when user first loads coinflip
+window.addEventListener("load", function(e) {
+
+    let url = window.location.href + "/json";
+
+    fetch(url)
+    .then(response => {
+        response.json().then(json => {
+            let gameArray = JSON.parse(json);
+
+            gameArray.forEach(gameObj => {
+                addNewCFGame(gameObj);
+                buildView(gameObj);
+            })
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    })
+    .catch(err => {
+        console.log(err);
+    });
+});
+
+socket.on("newCFGame", async (cfGameObject) => {
+
+    try {
+
+        addNewCFGame(cfGameObject);
+        buildView(cfGameObject);
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+        console.log("New Coin Flip Game was not able to be added, please refresh the page");
+        
+    }
+
+});
+
+socket.on("secondPlayerJoiningCFGame", async (data) => {
+
+    try {
+
+        gameInteraction.secondPlayerJoining(data.GameID, data.PlayerTwoSide, data.UserPicURL, data.Username);
+
+    }
+
+    catch (err) {
+
+        console.log(err);
+        console.log("Player attempted to join a coin flip, but update was not pushed. Please refresh the page to see updates");
+
+    }
+
+});
+
+
+
 // only use loader
-socket.on("coinFlipLoader", async (games) => {
+/*
+socket.on("coinFlipLoader", (games) => {
+
     // "games" is going to be an array of all the cf games from the external json file
     games.forEach((game) => {
 
@@ -79,10 +142,13 @@ socket.on("coinFlipLoader", async (games) => {
 
         }
     });
+
 });
+*/
 
 function addNewCFGame(cf) {
 
+    // push new game to array
     allCFGames.push(cf);
 
     // main div for coin flip listing
@@ -175,6 +241,7 @@ function addNewCFGame(cf) {
 
     // this brings up the view menu of the coin flip
     viewButton.addEventListener("click", (event) => {
+
         let elements = event.path;
         let id;
 
@@ -186,12 +253,15 @@ function addNewCFGame(cf) {
 
         let selectedView = document.querySelector(`[data-view-id="${id}"]`);
 
+        console
+
         const back = document.getElementById("popup-menu-background");
 
         back.style.display = "";
         back.classList.add("fade-background");
         selectedView.style.display = "";
         selectedView.classList.add("show-selected-view-menu");
+
     });
 
     if (cf.playerOneSide == "red") {

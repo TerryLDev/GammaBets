@@ -17,6 +17,10 @@ const coinFlipGameSchema = Schema({
     Red: String,
     Black: String,
     Winner: String,
+    BotID: {
+        type: String,
+        required: true
+    },
     Status: Boolean,
     DateCreated: Date
 }, {

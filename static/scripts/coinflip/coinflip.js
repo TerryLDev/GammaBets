@@ -73,24 +73,46 @@ function createCoinFlip(id) {
     }
 }
 
-red.addEventListener("click", () => {
-    selectedButton("red");
-});
-
-black.addEventListener("click", () => {
-    selectedButton("black");
-});
-
-createACoinFlipButton.addEventListener("click", () => {
-
-    let steamID = localStorage.SteamID;
-
-    if (steamID == "" || steamID == undefined || steamID == null) {
-        alert("Please sign in through steam first");
+red.addEventListener("click", async () => {
+    try {
+        selectedButton("red");
     }
 
-    else {
-        createCoinFlip(steamID);
+    catch(err) {
+        console.log("You can't choose that my guy")
+    }
+});
+
+black.addEventListener("click", async () => {
+    try {
+        selectedButton("black");
+    }
+
+    catch(err) {
+        console.log("You can't choose that my guy")
+    }
+});
+
+createACoinFlipButton.addEventListener("click", async () => {
+
+    try {
+
+        let steamID = await localStorage.SteamID;
+
+        if (await steamID == "" || await steamID == undefined || await steamID == null) {
+            alert("Please sign in through steam first");
+        }
+
+        else {
+            createCoinFlip(await steamID);
+        }
+
+    }
+
+    catch(err) {
+
+        alert("Please sign in through steam first dummy");
+
     }
 
 });

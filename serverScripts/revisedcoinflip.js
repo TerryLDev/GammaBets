@@ -3,68 +3,415 @@ const fs = require("fs");
 
 const CoinFlipGame = require("../models/coinflipgame.model");
 const User = require("../models/user.model");
-
-var emitter = require('events').EventEmitter;
-const cfEvents = new emitter
+const emitter = require('events').EventEmitter;
+const cfEvents = new emitter();
 
 class ActiveCoinFlipGame {
 
-    constructor(GameID) {
-        this.GameID = GameID;
+    constructor() {
+
+        this.defaultTimer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
+        this.countDown = process.env.COIN_FLIP_COUNTDOWN_TIME
+        this.waitTime = process.env.COIN_FLIP_ENDING_WAIT_TIME;
+
     }
 
-    async decideWinner() {
+    findCFBot(gameID) {
+        CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
+
+            if (err) return console.log(err);
+
+            else {
+
+                return cf.BotID
+
+            }
+
+        })
+    }
+
+    // Pulling parsed game json
+
+    gameJson() {
+
+        let rawJson = fs.readFileSync(`${__dirname}/cf-games.json`, {encoding: "utf-8"});
+        const parsedJson = JSON.parse(rawJson);
+        return parsedJson;
+
+    }
+
+    editJson(modifiedJson) {
+
+        fs.writeFileSync(`${__dirname}/cf-games.json`, JSON.stringify(modifiedJson));
+
+    }
+
+    // Updates Methods
+
+    updateJsonGameState(update) {
+
+        let modifier = this.gameJson();
+
+        modifier.forEach(gameObj => {
+
+            if (update.GameID == gameObj.gameID) {
+
+                gameObj.gameState = update.GameState;
+
+            }
+
+        });
+
+        this.editJson(modifier);
+
+    }
+
+    updateJsonWinner(update) {
+
+        // update format
+        // update = {GameID: gameID, SteamID: winner}
+
+        let modifier = this.gameJson();
+
+        modifier.forEach(gameObj => {
+            if (gameObj.gameID == update.GameID) {
+                gameObj.winner = update.SteamID;
+            }
+        });
+
+        this.editJson(modifier);
+
+    }
+
+    ////////////////
+
+    // Winner methods
+
+    decideWinner(gameID) {
+
+        CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
+
+            if (err) return err;
+
+            else {
+
+                let listOfPlayers = [];
+
+                cf.Players.forEach((player) => {
+
+                    let playerTotalVal = 0;
+
+                    player["skinValues"].forEach((val) => {
+
+                        playerTotalVal += val;
+                    });
+
+                    for (let i = 0; i < playerTotalVal; i++) {
+
+                        listOfPlayers.push(player.userSteamId);
+                    }
+
+                });
+
+                let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
+
+                let randomWinner = Math.floor(Math.random() * shuffled.length);
+
+                let winner = shuffled[randomWinner]
+
+                const data = {
+                    GameID: gameID,
+                    SteamID: winner
+                }
+
+                return data;
+            }
+
+        });
+    
+    }
+
+    takeProfitAndWithdrawal() {
+
+    }
+
+    ////////////////
+
+    // Call Methods (runnning functions that handle big task for async functions)
+
+    callNewGame(gameObject) {
+
+        let modifier = this.gameJson();
+
+        let newEntry = {
+            gameID: gameObject.GameID,
+            playerOneUser: gameObject.Players[0].username,
+            playerOneId: gameObject.Players[0].userSteamId,
+            playerOnePicture: gameObject.Players[0].userPicture,
+            playerOneSkins: gameObject.Players[0].skins,
+            playerOneSkinValues: gameObject.Players[0].skinValues,
+            playerOneSkinPictures: gameObject.Players[0].skinPictures,
+            playerOneState: gameObject.PlayerOneTradeState,
+            playerOneSide: "none",
+            playerTwoUser: "none",
+            playerTwoId: "none",
+            playerTwoPicture: "none",
+            playerTwoSkins: "none",
+            playerTwoSkinValues: "none",
+            playerTwoSkinPictures: "none",
+            playerTwoState: "none",
+            playerTwoSide: "none",
+            totalValue: gameObject.TotalValue,
+            bot: gameObject.BotID,
+            timer: false,
+            gameState: gameObject.Status,
+            winner: "none",
+            wait: parseInt(process.env.COIN_FLIP_ENDING_WAIT_TIME),
+            slicerDelay: 3,
+        };
+
+        if (gameObject.Red == "" || gameObject.Red == undefined) {
+            newEntry.playerOneSide = "black";
+            newEntry.playerTwoSide = "red";
+        }
+        
+        else {
+            newEntry.playerOneSide = "red";
+            newEntry.playerTwoSide = "black";
+        }
+
+        modifier.push(newEntry);
+
+        this.editJson(modifier);
+
+        return newEntry;
+
+    }
+
+    callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
+
+        let modifier = this.gameJson();
+        let data = {};
+
+        modifier.forEach((gameobj) => {
+
+            if (gameobj.gameID == gameID) {
+
+                gameobj.playerTwoState = tradeState;
+                gameobj.playerTwoId = steamID;
+                gameobj.playerTwoUser = username;
+                gameobj.playerTwoPicture = userPicURL;
+                gameobj.timer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
+
+                data.SteamID = steamID;
+                data.Username = username;
+                data.GameID = gameID;
+                data.TradeState = tradeState;
+                data.UserPicURL = userPicURL;
+                data.PlayerTwoSide = gameobj.playerTwoSide;
+
+            }
+
+        });
+
+        this.editJson(modifier);
+
+        return data;
+
+    }
+
+    callOpponentAcceptedTrade() {
+
+    }
+
+    ////////////////
+
+    // Main Methods
+
+    async createNewGame(gameObject) {
+
+        try {
+            const data = await this.callNewGame(gameObject);
+
+            cfEvents.emit("newCFGame", await data);
+        }
+
+        catch (err) {
+            console.log("An error occurred when adding a new game to the json file");
+            console.log(err);
+        }
+
+    }
+
+    async opponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
 
         try {
 
-            CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
-    
-                if (err) return err;
-    
-                else {
-    
-                    let listOfPlayers = [];
-    
-                    cf.Players.forEach((player) => {
-    
-                        let playerTotalVal = 0;
-    
-                        player["skinValues"].forEach((val) => {
-    
-                            playerTotalVal += val;
-                        });
-    
-                        for (let i = 0; i < playerTotalVal; i++) {
-    
-                            listOfPlayers.push(player.userSteamId);
-                        }
-    
-                    });
-    
-                    let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
-    
-                    let randomWinner = Math.floor(Math.random() * shuffled.length);
-    
-                    let winner = shuffled[randomWinner]
-    
-                    return winner;
-                }
-    
-            });
-    
+            let data = await this.callOpponentJoiningGame(gameID,steamID, username, tradeState, userPicURL);
+
+            cfEvents.emit("secondPlayerJoiningCFGame", await data);
+
         }
-        
-        catch (e) {
-            return e;
+
+        catch(err) {
+
+            console.error(err);
+            console.log("An Error Occrred when emitting data to server");
+
+        }
+
+    }
+
+    async opponentAcceptedTrade() {
+
+    }
+
+    cancelOpponentTrade(gameID) {
+
+        let modifier = this.gameJson();
+
+        let gameObject;
+
+        modifier.forEach(gameObj => {
+
+            if (gameObj.gameID == gameID) {
+
+                gameObject = gameObj
+
+                gameObj.playerTwoUser = "none";
+                gameObj.playerTwoId = "none";
+                gameObj.playerTwoPicture = "none";
+                gameObj.playerTwoSkins = "none";
+                gameObj.playerTwoSkinValues = "none";
+                gameObj.playerTwoSkinPictures = "none";
+                gameObj.playerTwoState = "none";
+                gameObj.timer = false;
+
+            }
+        })
+    
+        this.editJson(modifier);
+        return gameObject;
+
+    }
+
+    ////////////////
+
+    // Timer Methods
+
+    // might need some more changes
+    updateTimer() {
+
+        let modifier = this.gameJson();
+
+        let data = [];
+
+        // go through each game in the json list
+        if (modifier.length > 0) {
+
+            modifier.forEach(gameObj => {
+
+                let newEntry = {};
+
+                // checks if game is active
+                if (gameObj.gameState == true) {
+
+                    // checks if the timer is a int (waiting for opponent to accept trade)
+                    if (typeof(gameObj.timer) == "number") {
+
+                        if (gameObj.timer == 0) {
+
+                            // cancel trade offer sent to opponent
+                            cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
+
+                        }
+
+                        else {
+
+                            gameObj.timer--;
+
+                            newEntry.GameID = gameObj.gameID;
+                            newEntry.CurrentTime = gameObj.timer;
+                            
+                        }
+
+                    }
+
+                    // if the timer is a string
+                    // this means the coin is counting down for the flip
+                    else if (typeof(gameObj.timer) == "string") {
+
+                        let currentFlipTime = parseInt(gameObj.timer.split("Flipping in... ")[1]);
+
+                        if (currentFlipTime >= 0) {
+
+                            currentFlipTime--;
+                            newTime = "Flipping in... " + currentFlipTime;
+
+                            gameObj.timer = newTime;
+
+                            newEntry.GameID = gameObj.gameID;
+                            newEntry.CurrentTime = gameObj.timer;
+
+                        }
+
+                        else {
+
+                            // emit event to decide a winner
+                            cfEvents.emit("decideWinner", {
+
+                                GameID: gameObj.gameID,
+                                GameState: false
+
+                            });
+                            
+
+                        }
+
+                    }
+
+                    data.push(newEntry);
+
+                }
+
+            })
+
+            return data;
+        }
+
+
+        else {
+
+            return false
+
         }
     }
 
-    startTimer() {
-        setInterval(function() {
-            const data = {time: 100}
-            cfEvents.emit("timer", data);
-        }, 1000);
-    }
+    async timer() {
+
+        try {
+
+            const result = await this.updateTimer();
+
+            if (await result != false) {
+
+                cfEvents.emit("timer", result);
+
+            }
+
+        }
+
+        catch(err) {
+
+            console.log("Error Occurred on Timer");
+            return console.log(err);
+
+        }
+
+    };
+
+    ////////////////
+
 }
 
 module.exports = {ActiveCoinFlipGame, cfEvents};

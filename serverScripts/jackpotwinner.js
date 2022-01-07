@@ -15,8 +15,6 @@ const community = new SteamCommunity();
 const manager = new TradeOfferManager();
 const client = new SteamUser();
 
-const SteamBot = require("../steam/bot");
-
 // Comeback to this later when you're back home
 
 function jackpotWinner(game, callback) {

@@ -5,32 +5,42 @@ const TradeOfferManager = require('steam-tradeoffer-manager');
 
 require('dotenv').config(__dirname + '/.env');
 
-const User = require('../models/user.model');
-const TradeHistory = require('../models/tradehistory.model');
-const Support = require('../models/support.model');
-const MarketPrice = require('../models/marketprice.model');
-const CoinFlipGame = require('../models/coinflipgame.model');
-const JackpotGame = require('../models/jackpotgame.model');
+const User = require('../../models/user.model');
+const TradeHistory = require('../../models/tradehistory.model');
+const Support = require('../../models/support.model');
+const MarketPrice = require('../../models/marketprice.model');
+const CoinFlipGame = require('../../models/coinflipgame.model');
+const JackpotGame = require('../../models/jackpotgame.model');
 
-const coinFlipUpdater = require('../serverScripts/coinflipgame');
+const coinFlipUpdater = require('../coinflipgame');
+
+const cfGames = require("../revisedcoinflip");
+const cfGameHandler = new cfGames.ActiveCoinFlipGame();
 
 class SteamBot {
 
-	constructor(logOnOptions) {
+	loginAttempts = 0;
+
+	constructor(username, password, twoFactorCode) {
+		this.username = username;
+		this.password = password;
+		this.twoFactorCode = twoFactorCode;
+
 		this.client = new SteamUser();
 		this.community = new SteamCommunity();
 		this.manager = new TradeOfferManager({
-		steam: this.client,
-		community: this.community,
-		language: 'en'
+			steam: this.client,
+			community: this.community,
+			language: 'en'
 		});
 
-		this.logOn(logOnOptions);
+		this.logIntoSteam();
 	}
 
-	logOn(logOnOptions) {
+	logIntoSteam() {
 
-		this.client.logOn(logOnOptions);
+		this.client.logOn({accountName: this.username, password: this.password, twoFactorCode: this.twoFactorCode});
+		this.loginAttempts++;
 
 		this.client.on('loggedOn', () => {
 			console.log('Steam User Logged In')
@@ -114,7 +124,7 @@ class SteamBot {
 
 	}
 
-	sendCoinFlipTradeOffer(steamID, skins, tradeURL, side, gameID) {
+	sendCoinFlipTradeOfferPlayerOne(steamID, skins, tradeURL, side, gameID) {
 
 		const offer = this.manager.createOffer(steamID);
 
@@ -227,7 +237,6 @@ class SteamBot {
 
 		let pOneSide = "";
 
-
 		if (cfGameObj.Red == cfGameObj.Players[0].userSteamId) {
 			pOneSide = "red";
 		}
@@ -257,11 +266,11 @@ class SteamBot {
 					else {
 
 						User.findOne({SteamID: steamID}, (err, user) => {
+
 							if (err) return console.error(err);
 							
 							else {
-								coinFlipUpdater.opponentJoiningGame(cfGameObj.GameID, username, user.ProfilePictureURL, steamID,TradeOfferManager.ETradeOfferState[tradeObj.state]
-								);
+								cfGameHandler.opponentJoiningGame(doc.GameID, user.SteamID, user.Username, TradeOfferManager.ETradeOfferState[tradeObj.state], user.ProfilePictureURL)
 							}
 
 						})
@@ -285,8 +294,7 @@ class SteamBot {
 						User.findOne({SteamID: steamID}, (err, user) => {
 							if (err) return console.error(err);
 							else {
-								coinFlipUpdater.opponentJoiningGame(cfGameObj.GameID, username, user.ProfilePictureURL, steamID,TradeOfferManager.ETradeOfferState[tradeObj.state]
-								);
+								cfGameHandler.opponentJoiningGame(doc.GameID, user.SteamID, user.Username, TradeOfferManager.ETradeOfferState[tradeObj.state], user.ProfilePictureURL)
 							}
 						})
 					}
@@ -380,6 +388,7 @@ class SteamBot {
 						console.log(status, offer.id);
 
 						TradeHistory.create({
+
 							TradeID: offer.id,
 							SteamID: steamID,
 							BotID: '2',
@@ -390,12 +399,18 @@ class SteamBot {
 							GameMode: "Coin Flip",
 							GameID: cfGame.GameID,
 							DateCreated: Date.now()
+
 						})
 							.then(async (result) => {
+
 								this.cfOpponentJoiningQuery(cfGame, offer, steamID, username);
+
 							})
+
 							.catch(err => {
-								return console.log(err)
+
+								return console.log(err);
+
 							});
 
 					}
