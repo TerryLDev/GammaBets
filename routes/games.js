@@ -8,10 +8,8 @@ const app = express();
 app.set('views', '../views')
 app.set('view engine', 'html')
 
-const cfGame = require("../serverScripts/revisedcoinflip")
-
-const cfGameHandler = new cfGame.ActiveCoinFlipGame();
-
+const { CoinFlipHandler, cfEvents } = require("../gammabets/handler/coinflip-handler")
+const cfGameHandler = new CoinFlipHandler();
 
 router.use(function timeLog(req, res, next) {
 	console.log("Time: ", Date.now());
@@ -35,6 +33,7 @@ router.get("/", (req, res) => {
 		userProfile = "welcome";
 		res.render("index.html", { user: userProfile });
 	}
+
 	else if (req.user != undefined || req.user != null) {
 		User.findOne({ SteamID: req.user["_json"]["steamid"] }, (err, data) => {
 			if (err) userProfile = "welcome";
@@ -42,6 +41,7 @@ router.get("/", (req, res) => {
 			res.render("index.html", { user: userProfile });
 		});
 	}
+	
 	else {
 		userProfile = "welcome";
 		res.render("index.html", { user: userProfile });

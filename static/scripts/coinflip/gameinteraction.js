@@ -126,13 +126,15 @@ export function secondPlayerJoining(gameID, pTwoSide, playerTwoPic, playerTwoNam
 // run when player 2 accepts the coinflip trade
 export async function playerTwoAcceptedTrade(game) {
 
-    let viewMenu = document.querySelector(`[data-view-id="${game.gameID}"]`);
+    let viewMenu = document.querySelector(`[data-view-id="${game.GameID}"]`);
 
     // checks if it was already rendered
     if (viewMenu.querySelector(".view-both-player-skins").querySelector(".player-two-section").hasAttribute("data-waiting") == false) {
+
         // change the player 2 total value
         let pTwoTotal;
-        game.playerTwoSkinValues.forEach(val => {
+        
+        game.PlayerTwoSkinValues.forEach(val => {
             pTwoTotal += val;
         })
 
@@ -140,6 +142,7 @@ export async function playerTwoAcceptedTrade(game) {
 
         viewMenu.querySelector(".player-two-section").querySelector(".view-player-value").textContent = "$" + pTwoTotal
 
+        // finding the slots of skins grid
         let classSlot;
 
         if (game.playerTwoSide == "red") {
@@ -152,18 +155,18 @@ export async function playerTwoAcceptedTrade(game) {
 
         let playerSkinsSide = viewMenu.querySelector(".view-both-player-skins").querySelector(".player-two-section");
 
-        for (let i = 0; i < game.playerTwoSkins.length; i++) {
+        for (let i = 0; i < game.PlayerTwoSkins.length; i++) {
             let slot = document.createElement("div");
             slot.className = classSlot;
 
             let slotSkinImg = document.createElement("img");
-            slotSkinImg.src = game.playerTwoSkinPictures[i];
+            slotSkinImg.src = game.PlayerTwoSkinPictures[i];
             slotSkinImg.alt = "N/A";
             slotSkinImg.className = "view-slot-img";
 
             let slotSkinValue = document.createElement("p");
             slotSkinValue.textContent =
-                "$" + (game.playerTwoSkinValues[i] / 100).toFixed(2);
+                "$" + (game.PlayerTwoSkinValues[i] / 100).toFixed(2);
             slotSkinValue.className = "view-slot-value";
 
             slot.appendChild(slotSkinImg);

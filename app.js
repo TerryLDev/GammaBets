@@ -34,20 +34,18 @@ const SteamTotp = require("steam-totp");
 const SteamCommunity = require("steamcommunity");
 const TradeOfferManager = require("steam-tradeoffer-manager");
 
-const selectWinner = require("./serverScripts/jackpotwinner");
+const selectWinner = require("./gammabets/jackpotwinner");
 
 const community = new SteamCommunity();
 const manager = new TradeOfferManager();
 const client = new SteamUser();
 
-const { SteamBot } = require("./serverScripts/steam/steam-bot");
+const updateValues = require("./gammabets/updateskinvalues");
+const { CoinFlipHandler, cfEvents } = require("./gammabets/handler/coinflip-handler");
+const cfGameHandler = new CoinFlipHandler();
 
-const updateValues = require("./serverScripts/updateskinvalues");
-const coinFlipUpdater = require("./serverScripts/coinflipgame");
-const cfGames = require("./serverScripts/revisedcoinflip");
-const cfGameHandler = new cfGames.ActiveCoinFlipGame();
-
-const { CoinFlipBot } = require("./serverScripts/steam/coinflip-bot");
+const { CoinFlipBot } = require("./gammabets/steam/coinflip-bot");
+const { JackPotBot } = require("./gammabets/steam/jackpot-bot");
 
 let lastUsedCFBot = "none";
 
@@ -66,56 +64,53 @@ let readyToRoll = false;
 let countDown = false;
 
 // Connect to MongoDB
-mongoose.connect(
-	mongo_uri,
-	{ useNewUrlParser: true, useUnifiedTopology: true },
-	(err) => {
-		if (err) throw err;
-		else {
-			console.log("Connected to MongoDB...");
+mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+	if (err) throw err;
 
-			MarketPrice.find({}, (err, skinsList) => {
-				if (err) throw err;
-				skins = skinsList;
-				console.log("done: Skins");
-			});
+	else {
+		console.log("Connected to MongoDB...");
 
-			User.find({}, (err, data) => {
-				if (err) throw err;
-				allUsers = data;
-				console.log("done: User");
-			});
+		MarketPrice.find({}, (err, skinsList) => {
+			if (err) throw err;
+			skins = skinsList;
+			console.log("done: Skins");
+		});
 
-			JackpotGame.findOne({ Status: true }, (err, jp) => {
-				if (err) throw err;
-				else if (jp != null) {
-					currentJPGame = jp;
-					activeJPGameID = jp.GameID;
+		User.find({}, (err, data) => {
+			if (err) throw err;
+			allUsers = data;
+			console.log("done: User");
+		});
 
-					if (jp.Players.length > 1) {
-						countDown = true;
-					}
+		JackpotGame.findOne({ Status: true }, (err, jp) => {
+			if (err) throw err;
+			else if (jp != null) {
+				currentJPGame = jp;
+				activeJPGameID = jp.GameID;
+
+				if (jp.Players.length > 1) {
+					countDown = true;
 				}
+			}
 
-				console.log("done: JP");
-			});
+			console.log("done: JP");
+		});
 
-			
-            // Dev Purpose ONLY
-			/*
-            CoinFlipGame.find({}, (err, cfs) => {
-                if(err) console.log(err);
-                else {
-                    cfs.forEach(cf => {
-                        cfGameHandler.createNewGame(cf);
-                    })
-                }
-            })
-			*/
-            
-		}
+		
+		// Dev Purpose ONLY
+		/*
+		CoinFlipGame.find({}, (err, cfs) => {
+			if(err) console.log(err);
+			else {
+				cfs.forEach(cf => {
+					cfGameHandler.createNewGame(cf);
+				})
+			}
+		})
+		*/
+		
 	}
-);
+});
 
 User.watch().on("change", change => {
 	console.log(change);
@@ -141,11 +136,11 @@ app.use(
 const port = process.env.PORT || 3000;
 
 // Intialize Bots
-const bot = new SteamBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET));
+const jpBotZero = new JackPotBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET), process.env.JP_BOT_0_IDENTITY_SECRET, process.env.JP_BOT_0_SHARED_SECRET, process.env.JP_BOT_0_SERVERID)
 
-const cfBotZero = new CoinFlipBot(process.env.CF_BOT_0_USERNAME, process.env.CF_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_0_SHARED_SECRET), process.env.CF_BOT_0_SERVERID);
+const cfBotZero = new CoinFlipBot(process.env.CF_BOT_0_USERNAME, process.env.CF_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_0_SHARED_SECRET), process.env.CF_BOT_0_IDENTITY_SECRET, process.env.CF_BOT_0_SHARED_SECRET, process.env.CF_BOT_0_SERVERID);
 
-const cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_SERVERID);
+const cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVERID);
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -433,7 +428,7 @@ io.on("connection", (socket) => {
 
 			if (lastUsedCFBot == "CF0") {
 
-				cfBotOne.sendCoinFlipTradeOfferPlayerOne(data.steamID, data.skins, data.tradeURL, data.side, await gameID);
+				cfBotOne.newCoinFlipTrade(data.steamID, data.skins, data.tradeURL, data.side, await gameID);
 
 				lastUsedCFBot = cfBotOne.botID;
 
@@ -441,7 +436,7 @@ io.on("connection", (socket) => {
 
 			else {
 
-				cfBotZero.sendCoinFlipTradeOfferPlayerOne(data.steamID, data.skins, data.tradeURL, data.side, await gameID);
+				cfBotZero.newCoinFlipTrade(data.steamID, data.skins, data.tradeURL, data.side, await gameID);
 
 				lastUsedCFBot = cfBotZero.botID;
 
@@ -498,11 +493,13 @@ io.on("connection", (socket) => {
 		
 	});
 
+	/*
 	socket.on("makeJackpotDeposit", async (data) => {
 
 		bot.sendJPDepositTradeOffer(data.user, data.skins, data.tradeURL);
 
 	});
+	*/
 
 });
 
@@ -1017,7 +1014,7 @@ setInterval(function () {
 }, 1000);
 
 // need more work
-cfGames.cfEvents.on("timer", (data) => {
+cfEvents.on("timer", (data) => {
 
 	// data format (array)
 	// data = [{GameID: **, currentTime: **}]
@@ -1027,7 +1024,7 @@ cfGames.cfEvents.on("timer", (data) => {
 });
 
 // need more work
-cfGames.cfEvents.on("newCFGame", (data) => {
+cfEvents.on("newCFGame", (data) => {
 	
 	// data format
 	// data = GameObject (game obejct from the json file)
@@ -1037,7 +1034,7 @@ cfGames.cfEvents.on("newCFGame", (data) => {
 });
 
 // need more work
-cfGames.cfEvents.on("secondPlayerJoiningCFGame", (data) => {
+cfEvents.on("secondPlayerJoiningCFGame", (data) => {
 	
 	// data format
 	/* data = {
@@ -1050,29 +1047,55 @@ cfGames.cfEvents.on("secondPlayerJoiningCFGame", (data) => {
 	}
 	*/
 
-	io.emit("secondPlayerJoiningCFGame", data)
+	io.emit("secondPlayerJoiningCFGame", data);
 
 });
 
 // need more work
-cfGames.cfEvents.on("secondPlayerDeclinedTrade", (data) => {
+cfEvents.on("secondPlayerDeclinedTrade", (data) => {
 
 });
 
 // need more work
-cfGames.cfEvents.on("secondPlayerAccepctedTrade", (data) => {
+cfEvents.on("secondPlayerAccepctedTrade", (data) => {
+
+	// data format
+	/*  data.GameID = gameObject.GameID;
+    	data.PlayerTwoSkins = gameObject.Players[1].skins;
+		data.PlayerTwoSkinValues = gameObject.Players[1].skinValues;
+		data.PlayerTwoSkinPictures = gameObject.Players[1].skinPictures;
+		data.Timer = "Flipping in... " + process.env.COIN_FLIP_COUNTDOWN_TIME;
+	*/
+
+	io.emit("secondPlayerAccepctedTrade", data);
 
 });
 
 // need more work
-cfGames.cfEvents.on("cancelCFGame", async (data) => {
+///////////////////////
+//// It might work ////
+///////////////////////
+cfEvents.on("cancelCFGame", async (data) => {
 
 	// data format
 	// data = {GameID: **};
 
 	try {
+
 		// bot cancels trade
-		bot.cancelOpponentCoinFlipTradeOffer(data.GameID);
+		let cfBot = cfGameHandler.findCFBot(data.GameID);
+
+		if (await cfBot == "CF1") {
+
+			cfBotOne.cancelOpponentCoinFlipTradeOffer(data.GameID);
+
+		}
+
+		else {
+
+			cfBotZero.cancelOpponentCoinFlipTradeOffer(data.GameID);
+
+		}
 
 		// handler updates json file and returns the {gameobject} from the json file
 		const update = await cfGameHandler.cancelOpponentTrade(data.GameID);
@@ -1088,7 +1111,7 @@ cfGames.cfEvents.on("cancelCFGame", async (data) => {
 });
 
 // need more work
-cfGames.cfEvents.on("decideWinner", async (data) => {
+cfEvents.on("decideWinner", async (data) => {
 	// given data format
 	// data = {GameID: **, GameState: ** (just false)}
 
@@ -1125,6 +1148,6 @@ cfGames.cfEvents.on("decideWinner", async (data) => {
 });
 
 // need more work
-cfGames.cfEvents.on("removeCFGame", (data) => {
+cfEvents.on("removeCFGame", (data) => {
 
 });

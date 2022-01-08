@@ -52,7 +52,7 @@ socket.on("secondPlayerJoiningCFGame", async (data) => {
 
     try {
 
-        gameInteraction.secondPlayerJoining(data.GameID, data.PlayerTwoSide, data.UserPicURL, data.Username);
+        await gameInteraction.secondPlayerJoining(data.GameID, data.PlayerTwoSide, data.UserPicURL, data.Username);
 
     }
 

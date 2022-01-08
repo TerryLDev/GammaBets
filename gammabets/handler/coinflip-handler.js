@@ -1,20 +1,16 @@
 require("dotenv").config(__dirname + "/.env");
 const fs = require("fs");
 
-const CoinFlipGame = require("../models/coinflipgame.model");
-const User = require("../models/user.model");
+const CoinFlipGame = require("../../models/coinflipgame.model");
+const User = require("../../models/user.model");
 const emitter = require('events').EventEmitter;
 const cfEvents = new emitter();
 
-class ActiveCoinFlipGame {
+class CoinFlipHandler {
 
-    constructor() {
-
-        this.defaultTimer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
-        this.countDown = process.env.COIN_FLIP_COUNTDOWN_TIME
-        this.waitTime = process.env.COIN_FLIP_ENDING_WAIT_TIME;
-
-    }
+    defaultTimer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
+    countDown = process.env.COIN_FLIP_COUNTDOWN_TIME
+    waitTime = process.env.COIN_FLIP_ENDING_WAIT_TIME
 
     findCFBot(gameID) {
         CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
@@ -32,6 +28,7 @@ class ActiveCoinFlipGame {
 
     // Pulling parsed game json
 
+    // done
     gameJson() {
 
         let rawJson = fs.readFileSync(`${__dirname}/cf-games.json`, {encoding: "utf-8"});
@@ -40,14 +37,15 @@ class ActiveCoinFlipGame {
 
     }
 
-    editJson(modifiedJson) {
+    // done
+    #editJson(modifiedJson) {
 
         fs.writeFileSync(`${__dirname}/cf-games.json`, JSON.stringify(modifiedJson));
 
     }
 
     // Updates Methods
-
+    // needs work
     updateJsonGameState(update) {
 
         let modifier = this.gameJson();
@@ -62,10 +60,11 @@ class ActiveCoinFlipGame {
 
         });
 
-        this.editJson(modifier);
+        this.#editJson(modifier);
 
     }
 
+    // needs work
     updateJsonWinner(update) {
 
         // update format
@@ -87,6 +86,7 @@ class ActiveCoinFlipGame {
 
     // Winner methods
 
+    // needs work
     decideWinner(gameID) {
 
         CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
@@ -131,15 +131,36 @@ class ActiveCoinFlipGame {
     
     }
 
+    // needs work
     takeProfitAndWithdrawal() {
+
+    }
+
+    // IDK yet
+    #checkCancelation(gameID) {
+
+        let modifier = this.gameJson();
+
+        modifier.forEach(obj => {
+            if (obj.gameID == gameID) {
+                if (obj.playerTwoState == "Accepted") {
+                    return false;
+                }
+
+                else {
+                    return true;
+                }
+            }
+        })
 
     }
 
     ////////////////
 
     // Call Methods (runnning functions that handle big task for async functions)
-
-    callNewGame(gameObject) {
+    
+    // needs work
+    #callNewGame(gameObject) {
 
         let modifier = this.gameJson();
 
@@ -182,13 +203,14 @@ class ActiveCoinFlipGame {
 
         modifier.push(newEntry);
 
-        this.editJson(modifier);
+        this.#editJson(modifier);
 
         return newEntry;
 
     }
 
-    callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
+    // needs work
+    #callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
 
         let modifier = this.gameJson();
         let data = {};
@@ -214,13 +236,45 @@ class ActiveCoinFlipGame {
 
         });
 
-        this.editJson(modifier);
+        this.#editJson(modifier);
 
         return data;
 
     }
 
-    callOpponentAcceptedTrade() {
+    #callOpponentAcceptedTrade(gameObject) {
+
+        let modifier = this.gameJson();
+
+        let data = {};
+
+        modifier.forEach(obj => {
+
+            if (obj.gameID == gameObject.GameID) {
+
+                obj.playerTwoSkins = gameObject.Players[1].skins;
+                obj.playerTwoSkinValues = gameObject.Players[1].skinValues;
+                obj.playerTwoSkinPictures = gameObject.Players[1].skinPictures;
+                obj.playerTwoState = gameObject.PlayerTwoTradeState;
+                obj.timer = "Flipping in... " + process.env.COIN_FLIP_COUNTDOWN_TIME;
+
+                data.GameID = gameObject.GameID;
+                data.PlayerTwoSkins = gameObject.Players[1].skins;
+                data.PlayerTwoSkinValues = gameObject.Players[1].skinValues;
+                data.PlayerTwoSkinPictures = gameObject.Players[1].skinPictures;
+                data.Timer = "Flipping in... " + process.env.COIN_FLIP_COUNTDOWN_TIME;
+
+                gameObject.Players[1].skinValues.forEach(val => {
+
+                    obj.totalValue += val;
+
+                });
+            }
+
+        });
+
+        this.#editJson(modifier);
+        return data;
 
     }
 
@@ -228,10 +282,11 @@ class ActiveCoinFlipGame {
 
     // Main Methods
 
+    // needs work
     async createNewGame(gameObject) {
 
         try {
-            const data = await this.callNewGame(gameObject);
+            const data = await this.#callNewGame(gameObject);
 
             cfEvents.emit("newCFGame", await data);
         }
@@ -243,11 +298,12 @@ class ActiveCoinFlipGame {
 
     }
 
+    // needs work
     async opponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
 
         try {
 
-            let data = await this.callOpponentJoiningGame(gameID,steamID, username, tradeState, userPicURL);
+            let data = await this.#callOpponentJoiningGame(gameID,steamID, username, tradeState, userPicURL);
 
             cfEvents.emit("secondPlayerJoiningCFGame", await data);
 
@@ -262,10 +318,24 @@ class ActiveCoinFlipGame {
 
     }
 
+    // needs work
     async opponentAcceptedTrade() {
+
+        // oof
+        try {
+
+            let data = await this.#callOpponentAcceptedTrade();
+            
+            cfEvents.emit("secondPlayerAccepctedTrade", data);
+
+        }
+        catch (err) {
+
+        }
 
     }
 
+    // needs work
     cancelOpponentTrade(gameID) {
 
         let modifier = this.gameJson();
@@ -290,7 +360,7 @@ class ActiveCoinFlipGame {
             }
         })
     
-        this.editJson(modifier);
+        this.#editJson(modifier);
         return gameObject;
 
     }
@@ -299,8 +369,8 @@ class ActiveCoinFlipGame {
 
     // Timer Methods
 
-    // might need some more changes
-    updateTimer() {
+    // needs work
+    #updateTimer() {
 
         let modifier = this.gameJson();
 
@@ -322,7 +392,15 @@ class ActiveCoinFlipGame {
                         if (gameObj.timer == 0) {
 
                             // cancel trade offer sent to opponent
-                            cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
+                            setTimeout(async () => {
+
+                                let result = await this.#checkCancelation(gameObj.gameID);
+
+                                if (await result) {
+                                    cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
+                                }
+
+                            }, 2500);
 
                         }
 
@@ -376,6 +454,7 @@ class ActiveCoinFlipGame {
 
             })
 
+            this.#editJson(modifier);
             return data;
         }
 
@@ -387,11 +466,12 @@ class ActiveCoinFlipGame {
         }
     }
 
+    // needs work
     async timer() {
 
         try {
 
-            const result = await this.updateTimer();
+            const result = await this.#updateTimer();
 
             if (await result != false) {
 
@@ -414,4 +494,4 @@ class ActiveCoinFlipGame {
 
 }
 
-module.exports = {ActiveCoinFlipGame, cfEvents};
+module.exports = {CoinFlipHandler, cfEvents};

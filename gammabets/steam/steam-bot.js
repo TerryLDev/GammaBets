@@ -16,11 +16,13 @@ class SteamBot {
 
 	loginAttempts = 0;
 
-	constructor(username, password, twoFactorCode, botID) {
+	constructor(username, password, twoFactorCode, indentitySecret, sharedSecret, botID) {
 
 		this.username = username;
 		this.password = password;
 		this.twoFactorCode = twoFactorCode;
+		this.indentitySecret = indentitySecret;
+		this.sharedSecret = sharedSecret;
 		this.botID = botID;
 
 		this.client = new SteamUser();
@@ -53,7 +55,8 @@ class SteamBot {
 
 			else {
 				console.log("Skins Loaded");
-				return skins
+				this.skins = skins;
+				return skins;
 			}
 		});
 
@@ -83,7 +86,7 @@ class SteamBot {
 			this.manager.setCookies(cookies);
 
 			this.community.setCookies(cookies)
-			this.community.startConfirmationChecker(3000, process.env.IDENTITY_SECRET);
+			this.community.startConfirmationChecker(3000, this.indentitySecret);
 		})
 
 		this.client.on("error", (err) => {
@@ -125,13 +128,15 @@ class SteamBot {
 		});
 
 		this.client.on("steamGuard", (domain, callback, lastCodeWrong) => {
+
+			let shared = this.sharedSecret;
 	
 			setTimeout(function () {
 
 				if (lastCodeWrong) {
 
 					console.log("Wrong Code for Bot: " + this.botID);
-					let code = SteamTotp.generateAuthCode(process.env.SHARED_SECRET);
+					let code = SteamTotp.generateAuthCode(shared);
 					callback(code);
 
 				}
