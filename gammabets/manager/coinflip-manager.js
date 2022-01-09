@@ -22,6 +22,7 @@ class CoinFlipManager extends GameManager {
     // Second Opponent accepted their trade and is joining the active coin flip
     #joiningGame(tradeDBObject, dbSkins, gameDoc) {
 
+        // needs more work
         User.findOne({SteamID: tradeDBObject.SteamID}, (err, user) => {
 
             if(err) {
@@ -60,7 +61,7 @@ class CoinFlipManager extends GameManager {
 
                         console.log("New Coin Flip game was created: " + cf.GameID);
 
-                        this.cfGameHandler.createNewGame(cf);
+                        this.cfGameHandler.opponentAcceptedTrade(cf);
 
                     }
                 });
@@ -116,7 +117,7 @@ class CoinFlipManager extends GameManager {
 
                             console.log("New Coin Flip game was created: " + cf.GameID);
 
-                            this.cfGameHandler.opponentAcceptedTrade();
+                            this.cfGameHandler.createNewGame(cf);
 
                         }
                     }
@@ -200,6 +201,10 @@ class CoinFlipManager extends GameManager {
 
                 console.log("Withdrawal was successfully received \nTradeID: " + offerID + "\nUser: " + tradeOfferObject.partner);
 
+            }
+
+            else {
+                console.log("Some error IDK");
             }
 
         });

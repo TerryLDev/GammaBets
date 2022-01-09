@@ -32,40 +32,50 @@ class CoinFlipBot extends SteamBot{
 
 	// Event Listeners
 
-	#cfSteamEventListners() {
+	async #cfSteamEventListners() {
+
+		try {
+			
+			//////////////////////////////////
+			//// NEED TO BE DONE TOMORROW ////
+			//////////////////////////////////
+			this.manager.on("sentOfferChanged", (offer, oldState) => {
+
+				if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
+
+					console.log("Steam User: " + offer.partner + "\nCanceled Trade: " + offer.id);
+
+					this.cfManager.tradeCanceled(offer, offer.id);
+
+				}
+
+				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Declined") {
+
+					console.log("Steam User: " + offer.partner + "\nDeclined Trade: " + offer.id);
+
+					this.cfManager.tradeDeclined(offer, offer.id);
+
+				}
+
+				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
+
+					console.log("Steam User: " + offer.partner + "\nAccepted Trade: " + offer.id);
+
+					this.cfManager.tradeAccepted(offer, offer.id, this.skins);
+
+				}
+
+			});
+
+		}
+
+		catch (err) {
+
+			console.log(err);
+
+		}
 
 		// MAIN EVENT FOR GAME FUNCTIONS
-		
-		//////////////////////////////////
-		//// NEED TO BE DONE TOMORROW ////
-		//////////////////////////////////
-		this.manager.on("sentOfferChanged", async (offer, oldState) => {
-
-			if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
-
-				console.log("Steam User: " + offer.partner + "\nCanceled Trade: " + offer.id);
-
-				this.cfManager.tradeCanceled(offer, offer.id);
-
-			}
-
-			else if (TradeOfferManager.ETradeOfferState[offer.state] == "Declined") {
-
-				console.log("Steam User: " + offer.partner + "\nDeclined Trade: " + offer.id);
-
-				this.cfManager.tradeDeclined(offer, offer.id);
-
-			}
-
-			else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
-
-				console.log("Steam User: " + offer.partner + "\nAccepted Trade: " + offer.id);
-
-				this.cfManager.tradeAccepted(offer, offer.id, this.skins);
-
-			}
-
-		});
 		
 	}
 

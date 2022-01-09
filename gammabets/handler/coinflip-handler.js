@@ -319,13 +319,13 @@ class CoinFlipHandler {
     }
 
     // needs work
-    async opponentAcceptedTrade() {
+    async opponentAcceptedTrade(cf) {
 
         // oof
         try {
 
-            let data = await this.#callOpponentAcceptedTrade();
-            
+            let data = await this.#callOpponentAcceptedTrade(cf);
+
             cfEvents.emit("secondPlayerAccepctedTrade", data);
 
         }
