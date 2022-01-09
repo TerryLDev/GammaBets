@@ -219,7 +219,7 @@ class CoinFlipBot extends SteamBot{
 
 	// Calls
 
-	#callNewCoinFlipTrade(steamID, skins, tradeURL, side, gameI) {
+	#callNewCoinFlipTrade(steamID, skins, tradeURL, side, gameID) {
 
 		console.log(steamID, skins, tradeURL, side, gameID);
 
