@@ -1,48 +1,61 @@
-async function updateSkinPrices() {
+const axios = require('axios');
+require("dotenv").config(__dirname + "/.env");
+const MarketPrice = require("../models/marketprice.model");
+
+function updateSkinPrices() {
+
 	console.log("Updating prices of skins...");
 
-	try {
-		const community = new SteamCommunity();
+	// get list of skins from api
+	axios.get(`https://api.steamapis.com/market/items/252490?api_key=${process.env.STEAM_APIS_KEY}`)
+	.then(res => {
 
-		community.marketSearch({ appid: 252490 }, (err, items) => {
-			if (err) return console.error(err);
+		let listOfSkins = res.data.data;
 
-			items.forEach((item) => {
-				MarketPrice.exists({ SkinName: item["market_hash_name"] })
-					.then((result) => {
-						if (result) {
-							MarketPrice.findOneAndUpdate(
-								{ SkinName: item["market_hash_name"] },
-								{ Value: item["price"] },
-								{ upsert: true },
-								(err, data) => {
-									if (err) return console.error(err);
-									console.log(data);
-								}
-							);
-						} else {
-							MarketPrice.create(
-								{
-									SkinName: item["market_hash_name"],
-									SkinPictureURL: item["image"],
-									Value: item["price"],
-									DateLogged: Date.now(),
-								},
-								(err, data) => {
-									if (err) return console.error(err);
-								}
-							);
-						}
-					})
-
-					.catch((err) => {
-						return console.error(err);
-					});
-			});
+		listOfSkins.forEach(skin => {
+			updatePrice(skin);
 		});
-	} catch (err) {
-		throw new Error(err);
-	}
+
+		console.log("Logged All Skins");
+	})
+	.catch(err => {
+		console.log(err);
+	});
 }
 
-module.exports = updateSkinPrices;
+function updatePrice(skin) {
+
+
+	MarketPrice.exists({ SkinName: skin["market_hash_name"] })
+	.then((result) => {
+
+		if (result) {
+
+			MarketPrice.findOneAndUpdate(
+				{ SkinName: skin["market_hash_name"] },
+				{ Value: skin.prices.safe },
+				{ upsert: true }, (err, data) => {
+					if (err) return console.error(err);
+				});
+		}
+		
+		else {
+
+			console.log("New Skin Found: " + skin["market_hash_name"]);
+			MarketPrice.create({
+					SkinName: skin["market_hash_name"],
+					SkinPictureURL: skin.image,
+					Value: skin.prices.safe,
+				}, (err, data) => {
+					if (err) return console.error(err);
+				});
+		}
+	})
+	.catch(err => {
+		return console.error(err);
+	});
+
+}
+
+module.exports = {updateSkinPrices};
+

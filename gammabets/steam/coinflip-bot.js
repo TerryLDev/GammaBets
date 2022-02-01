@@ -90,7 +90,9 @@ class CoinFlipBot extends SteamBot{
 		}
 
 		catch(err) {
+
 			console.log(err);
+
 		}
 	}
 
@@ -102,7 +104,7 @@ class CoinFlipBot extends SteamBot{
                 
 				if (err) return console.log(err);
 
-				else if (game.PlayerTwoTradeState == "Active") {
+				else if (game.PlayerTwoTradeState == "Active" || game.PlayerTwoTradeState == "Accepted") {
 
 					// alert user with na error message
 					console.log('User tried to join an already active game');
@@ -211,7 +213,7 @@ class CoinFlipBot extends SteamBot{
 						User.findOne({SteamID: steamID}, (err, user) => {
 							if (err) return console.error(err);
 							else {
-								cfGameHandler.opponentJoiningGame(doc.GameID, user.SteamID, user.Username, TradeOfferManager.ETradeOfferState[tradeObj.state], user.ProfilePictureURL)
+								this.cfGameHandler.opponentJoiningGame(doc.GameID, user.SteamID, user.Username, TradeOfferManager.ETradeOfferState[tradeObj.state], user.ProfilePictureURL)
 							}
 						})
 					}
@@ -274,7 +276,6 @@ class CoinFlipBot extends SteamBot{
 						TradeHistory.create({
 							TradeID: offer.id,
 							SteamID: steamID,
-							BotID: '2',
 							Items: skins,
 							ItemNames: itemNames,
 							TransactionType: 'Deposit',
@@ -389,7 +390,7 @@ class CoinFlipBot extends SteamBot{
 
 							TradeID: offer.id,
 							SteamID: steamID,
-							BotID: '2',
+							BotID: this.botID,
 							Items: skins,
 							ItemNames: itemNames,
 							TransactionType: 'Deposit',
@@ -460,4 +461,4 @@ class CoinFlipBot extends SteamBot{
 
 }
 
-module.exports = {CoinFlipBot};
+module.exports = { CoinFlipBot };

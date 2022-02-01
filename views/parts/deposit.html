@@ -1,14 +1,17 @@
-<div id="deposit-menu" class="deposit-menu" style="display: none">
-    <div id="player-inventory">
-        <img
-            id="player-inventory-background-img"
-            src="/static/images/gammalogo.png"
-            alt=""
-        />
-        <div id="player-inventory-slots"></div>
-    </div>
-    <div id="deposit-info">
-        <p>Total Value: $<span id="deposit-total-value">0.00</span></p>
-        <button id="deposit-button">Deposit</button>
-    </div>
+<div
+	style="display: none"
+	id="deposit-container"
+	class="popup-cell primary-color-popup accent-color"
+>
+	<div
+		class="deposit-top-info default-secondary-cell secondary-color accent-color"
+	>
+		<h4>Selected Desired Items</h4>
+		<p><span id="num-of-skins-selected">0</span>/20</p>
+	</div>
+	<div id="player-inventory"></div>
+	<div id="deposit-bottom-info">
+		<h5>Total Value: $<span id="deposit-total">0.00</span></h5>
+		<button id="deposit-button">Deposit</button>
+	</div>
 </div>

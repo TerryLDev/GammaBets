@@ -1,37 +1,44 @@
-<nav id="top-nav">
-    <div id="top-nav-left">
-        {% if user == "welcome" %}
-
-        <a href="/auth/steam">
-            <img src="/static/images/steam.png" alt="sign in through steam" />
-            <p id="top-nav-username">Sign In</p>
-        </a>
-
-        {% else %}
-
-        <a href="{{ user.ProfileURL }}" target="_blank">
-            <img src="{{ user.ProfilePictureURL }}" alt="profile picture" />
-            <p id="top-nav-username">{{ user.Username }}</p>
-        </a>
-
-        {% endif %}
-    </div>
-
-    <div id="top-nav-center">
-        <a href="">
-            <img src="/static/images/twitter.png" />
-        </a>
-        <h1 id="logo-text">Gamma Bets</h1>
-        <a href="">
-            <img src="/static/images/discord.png" />
-        </a>
-    </div>
-
-    <div id="top-nav-right">
-        <a href="/"> Jackpot </a>
-        <a href="/coinflip"> Coin Flip </a>
-        <a href="/trading"> Trading </a>
-        <a href="/tos"> TOS </a>
-        <a href="/support"> Support </a>
-    </div>
+<nav id="top-nav" class="primary-color default-cell accent-color">
+	<a href="/" id="jp-top-nav" class="selected-page top-nav-text">
+		<img
+			class="selected-icon top-nav-icon top-nav-text"
+			src="/static/images/icons/bullseye.png"
+			alt=""
+		/>
+		Jackpot
+	</a>
+	<a href="/coinflip" id="cf-top-nav" class="unselected-page top-nav-text"
+		><img
+			class="unselected-icon top-nav-icon top-nav-text"
+			src="/static/images/icons/coinflip icon.png"
+			alt=""
+		/>Coin Flip</a
+	>
+	<a href="/trading" class="unselected-page top-nav-text"
+		><img
+			class="unselected-icon top-nav-icon top-nav-text"
+			src="/static/images/icons/tradev2.png"
+			alt=""
+		/>Trading</a
+	>
+	<div class="nav-line"></div>
+	<img
+		class="unselected-icon top-nav-text"
+		src="/static/images/icons/quest.png"
+		alt=""
+		style="margin-right: auto"
+	/>
+	<!-- Divider -->
+	<a href="/">
+		<img
+			class="unselected-icon top-nav-icon top-nav-text"
+			src="/static/images/icons/twitter.png"
+	/></a>
+	<a href="/"
+		><img
+			class="unselected-icon top-nav-icon top-nav-text"
+			src="/static/images/icons/discord.png"
+	/></a>
+	<a href="/tos" class="unselected-page top-nav-text"> TOS </a>
+	<a href="/support" class="unselected-page top-nav-text">Support</a>
 </nav>

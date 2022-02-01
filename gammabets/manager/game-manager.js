@@ -49,6 +49,25 @@ class GameManager {
 
     }
 
+    userTotalValue(skinVals) {
+        
+        if (skinVals.length >= 1) {
+            let total = 0;
+
+            skinVals.forEach(val => {
+
+                total+=val;
+
+            });
+
+            return total;
+        }
+
+        else {
+            return total;
+        }
+    }
+
 }
 
 module.exports = {GameManager}

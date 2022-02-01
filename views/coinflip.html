@@ -3,9 +3,10 @@
 	<head>
 		<title>GammaBets | Coin Flip</title>
 		<script
-			src="https://cdn.socket.io/4.2.0/socket.io.min.js"
-			integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
+			src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"
+			integrity="sha512-WL6WGKMPBiM9PnHRYIn5YEtq0Z8XP4fkVb4qy7PP4vhmYQErJ/dySyXuFIMDf1eEYCXCrQrMJfkNwKc9gsjTjA=="
 			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
 		></script>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,27 +21,12 @@
 		/>
 		<link
 			rel="stylesheet"
-			href="/static/stylesheets/topnav.css"
-			type="text/css"
-		/>
-		<link
-			rel="stylesheet"
 			href="/static/stylesheets/deposit.css"
 			type="text/css"
 		/>
 		<link
 			rel="stylesheet"
-			href="/static/stylesheets/coinflip/coinflip.css"
-			type="text/css"
-		/>
-		<link
-			rel="stylesheet"
-			href="/static/stylesheets/coinflip/viewmenu.css"
-			type="text/css"
-		/>
-		<link
-			rel="stylesheet"
-			href="/static/stylesheets/coinflip/cfhistory.css"
+			href="/static/stylesheets/topnav.css"
 			type="text/css"
 		/>
 		<link
@@ -48,73 +34,59 @@
 			href="/static/stylesheets/chat.css"
 			type="text/css"
 		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/history.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/login.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/left.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/quickplay.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/coinflip/coinchoice.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/coinflip/cflistings.css"
+			type="text/css"
+		/>
 	</head>
 	<body>
 		<div class="layer">
 			<div id="popup-menu-background" style="display: none"></div>
-			<div class="coinflip-grid-layout">
-				{% include "parts/topnav.html" %}
-
-				<div id="coinflip-mid-section">
-					<div id="coin-selection">
-						<button id="coin-red" value="red">
-							<h2>Red</h2>
-							<h4 class="red-percent">percent</h4>
-						</button>
-
-						<button id="create-a-coinflip">
-							<div id="create-coinflip-text">
-								<p>Create</p>
-								<p>A</p>
-								<p>CoinFlip</p>
-							</div>
-						</button>
-
-						<button id="coin-black" value="black">
-							<h2>Black</h2>
-							<h4 class="black-percent">percent</h4>
-						</button>
-					</div>
-
-					<div id="coinflip-percent-bar">
-						<div id="coinflip-percent-bar-red">
-							<p>Red - <span class="red-percent">50%</span></p>
-						</div>
-						<div id="coinflip-percent-bar-black">
-							<p>
-								Black - <span class="black-percent">50%</span>
-							</p>
-						</div>
-					</div>
-				</div>
-
-				<div id="coinflip-history">
-					<h3 class="side-menu-title">Coin Flip History</h3>
-				</div>
-
-				<div id="coinflip-listing-area">
-					<h3 class="side-menu-title">Coin Flips</h3>
-				</div>
-
-				{% include "parts/chat.html" %} {% include "parts/deposit.html"
-				%} {% include "parts/userdata.html" %} {% include
-				"parts/coinflip/viewmenus.html" %}
-
-				<script src="/static/scripts/homepage.js"></script>
-				<script type="module" src="/static/scripts/deposit.js"></script>
-				<script
-					type="module"
-					src="/static/scripts/coinflip/coinflip.js"
-				></script>
-				<script
-					type="module"
-					src="/static/scripts/coinflip/coinflip-listener.js"
-				></script>
-				<script
-					type="module"
-					src="/static/scripts/coinflip/gameinteraction.js"
-				></script>
+			{% include "leftcolumn.html" %}
+			<div class="main">
+				{% include "parts/topnav.html" %} {% include
+				"parts/quickplay.html" %} {% include
+				"parts/coinflip/coinchoice.html" %} {% include
+				"parts/coinflip/cflistings.html" %} {% include
+				"parts/history.html" %}
 			</div>
 		</div>
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="module" src="/static/scripts/index.js"></script>
+		<script
+			type="module"
+			src="/static/scripts/handlers/s-handler.js"
+		></script>
+		<script
+			type="module"
+			src="/static/scripts/handlers/main-handler.js"
+		></script>
+		<script type="module" src="/static/scripts/s-listener.js"></script>
 	</body>
 </html>

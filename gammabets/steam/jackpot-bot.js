@@ -13,15 +13,62 @@ const JackpotGame = require('../../models/jackpotgame.model');
 
 const {SteamBot} = require('./steam-bot');
 
-class JackPotBot extends SteamBot {
+const {JackpotManager} = require("../manager/jackpot-manager");
+
+class JackpotBot extends SteamBot {
 
 	constructor(username, password, twoFactorCode, indentitySecret, sharedSecret, botID) {
 
         super(username, password, twoFactorCode, indentitySecret, sharedSecret, botID);
+		this.jpManager = new JackpotManager();
+
+		this.#cfSteamEventListners();
 
     }
 
-	sendJPDepositTradeOffer(steamid, itemArray, tradeurl) {
+	async #cfSteamEventListners() {
+
+		try {
+			
+			this.manager.on("sentOfferChanged", (offer, oldState) => {
+
+				if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
+
+					console.log("Steam User: " + offer.partner + "\nCanceled Trade: " + offer.id);
+
+
+
+				}
+
+				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Declined") {
+
+					console.log("Steam User: " + offer.partner + "\nDeclined Trade: " + offer.id);
+
+				}
+
+				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
+
+					console.log("Steam User: " + offer.partner + "\nAccepted Trade: " + offer.id);
+
+					this.jpManager.tradeAccepted(offer.id, this.skins);
+
+				}
+
+			});
+
+		}
+
+		catch (err) {
+
+			console.log(err);
+
+		}
+
+		// MAIN EVENT FOR GAME FUNCTIONS
+		
+	}
+
+	sendJPDepositTradeOffer(steamid, itemArray, tradeurl, potType) {
 
 		const offer = this.manager.createOffer(steamid);
 
@@ -34,9 +81,9 @@ class JackPotBot extends SteamBot {
 				itemArray.forEach(desired => {
 					// might break
 
-					////////////////////////////////
-					// double check this in future// 
-					////////////////////////////////
+					////////////////////////////////////
+					// double check this in the future// 
+					////////////////////////////////////
 					const item = inv.find(item => item.assetid == desired);
 
 					if(item) {
@@ -60,6 +107,19 @@ class JackPotBot extends SteamBot {
 					if (err) return console.error(err);
 
 					else {
+						let gmQuery;
+
+						if (potType == "high") {
+
+							gmQuery = "High Stakes"
+
+						}
+
+						else {
+
+							gmQuery = "Low Stakes";
+
+						}
 						
 						console.log(status, offer.id);
 
@@ -67,13 +127,12 @@ class JackPotBot extends SteamBot {
 						TradeHistory.create({
 							TradeID: offer.id,
 							SteamID: steamid,
-							BotID: '1',
+							BotID: this.botID,
 							Items: itemArray,
 							ItemNames: itemNames,
 							TransactionType: 'Deposit',
 							State: TradeOfferManager.ETradeOfferState[offer.state],
-							GameMode: "Jackpot",
-							DateCreated: Date.now()
+							GameMode: gmQuery
 						})
 							.then((result) => {
 								User.updateOne({"SteamID": steamid}, {$push: {"Trades": offer.id} }, (err, doc) => {
@@ -92,4 +151,4 @@ class JackPotBot extends SteamBot {
 
 }
 
-module.exports = {JackPotBot};
+module.exports = {JackpotBot};

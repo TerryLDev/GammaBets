@@ -1,0 +1,242 @@
+require("dotenv").config(__dirname + "/.env");
+const fs = require("fs");
+
+const mainApp = require("../../app");
+
+const HighStakesJackpot = require('../../models/highstakes.model');
+const User = require("../../models/user.model");
+const emitter = require('events').EventEmitter;
+const highStakesEvents = new emitter();
+
+class HighStakesHandler {
+
+    jpTimer = parseFloat(process.env.JACKPOT_TIMER);
+
+    // Generate Game ID
+    createGameID() {
+
+        const chars = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    
+        let id = "";
+    
+        for(let i = 0; i < 32; i++) {
+    
+            let index = Math.floor(Math.random() * chars.length);
+            id += chars[index]
+    
+        }
+    
+        return id;
+    }
+
+    // Calls
+	#callCreateNewGame(hsGame) {
+
+        // if theres a queue, add them to the game first
+        if (this.checkQueue()) {
+
+            mainApp.isThereAnActiveHighStakesGame = true;
+
+            mainApp.highStakesActiveGame = highStakesQueue;
+            mainApp.highStakesActiveGame.Time = this.jpTimer;
+
+            hsGame.Players.forEach(player => {
+
+                mainApp.highStakesActiveGame.Players.push(player);
+
+            });
+
+            if (mainApp.highStakesActiveGame.Players.length > 1) {
+
+                this.#startTimer();
+    
+            }
+    
+            return mainApp.highStakesActiveGame;
+
+        }
+
+        else {
+
+            mainApp.isThereAnActiveHighStakesGame = true;
+
+            mainApp.highStakesActiveGame.GameID = hsGame.GameID;
+
+            hsGame.Players.forEach(player => {
+
+                mainApp.highStakesActiveGame.Players.push(player);
+
+            })
+
+            mainApp.highStakesActiveGame.TotalPotValue = hsGame.TotalPotValue;
+            mainApp.highStakesActiveGame.Time = this.jpTimer;
+
+            if (mainApp.highStakesActiveGame.Players.length >= 2) {
+
+                this.#startTimer();
+
+            }
+
+            return mainApp.highStakesActiveGame;
+
+        }
+
+	}
+
+    #callCreateNewQueue() {
+
+    }
+
+    #callAddPlayerToPot(totalPot, playerBet) {
+
+        mainApp.highStakesActiveGame.Players.push(playerBet);
+        mainApp.highStakesActiveGame.TotalPotValue = totalPot;
+
+        const data = {
+            Player: playerBet,
+            TotalPotValue: mainApp.highStakesActiveGame.TotalPotValue
+        }
+
+        if (mainApp.highStakesActiveGame.Players.length == 2) {
+
+            this.#startTimer();
+
+        }
+
+        return data;
+
+    }
+
+    #callAddToHistory() {
+
+    }
+
+    #callCreateQueue(hsGame) {
+
+    }
+
+	#callAddPlayerToQueue() {
+
+	}
+
+    #startTimer() {
+
+        highStakesEvents.emit("startHighStakesTimer", {Time: `${mainApp.highStakesActiveGame.Time}`});
+
+        const hsTimer = setInterval(() => {
+
+
+            if (mainApp.highStakesActiveGame.Time > 0) {
+
+                mainApp.highStakesActiveGame.Time--;
+
+            }
+
+            else {
+
+                clearInterval(hsTimer);
+
+                // call to choose a winner
+
+            }
+
+        }, 1000)
+
+    }
+
+    timer() {
+
+        mainApp.highStakesActiveGame.Time = this.jpTimer
+
+        highStakesEvents.emit("startHighStakesTimer", {Time: mainApp.highStakesActiveGame.Time});
+
+        const hsTimer = setInterval(() => {
+
+
+            if (mainApp.highStakesActiveGame.Time > 0) {
+
+                mainApp.highStakesActiveGame.Time--;
+
+            }
+
+            else {
+
+                clearInterval(hsTimer);
+
+                // call to choose a winner
+
+            }
+
+        }, 1000)
+
+    }
+
+    // Async Methods
+    async addPlayerToPot(totalPot, playerBet) {
+
+        try {
+
+            const data = await this.#callAddPlayerToPot(totalPot, playerBet);
+
+            highStakesEvents.emit("newHighStakesPlayer", await data);
+
+        }
+
+        catch(err) {
+
+            console.log("An Error Occurred while creating a new High Stakes Jackpot locally")
+            return console.log(err);
+
+        }
+
+    }
+
+    async addPlayerToQueue(totalPot, playerBet) {
+
+    }
+
+    async createNewGame(hsGame) {
+
+        try {
+
+            const data = await this.#callCreateNewGame(hsGame);
+
+            highStakesEvents.emit("newHighStakesPot", await data);
+
+        }
+
+        catch(err) {
+
+            return console.log(err);
+
+        }
+
+	}
+
+    async createNewQueue(hsGame) {
+
+    }
+
+    checkQueue() {
+
+        if (mainApp.highStakesQueue.GameID == undefined || mainApp.highStakesQueue.GameID == null) {
+
+            return false;
+
+        }
+
+        else {
+            return true;
+        }
+    }
+
+    async addToHistory() {
+    }
+
+    async startHighStakesTimer() {
+
+    }
+    
+}
+
+module.exports = {HighStakesHandler, highStakesEvents};

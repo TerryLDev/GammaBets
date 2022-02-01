@@ -1,137 +1,109 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>GammaBets | Jackpot</title>
-        <script
-            src="https://cdn.socket.io/4.2.0/socket.io.min.js"
-            integrity="sha384-PiBR5S00EtOj2Lto9Uu81cmoyZqR57XcOna1oAuVuIEjzj0wpqDVfD0JA9eXlRsj"
-            crossorigin="anonymous"
-        ></script>
-        <link
-            rel="stylesheet"
-            href="/static/stylesheets/index.css"
-            type="text/css"
-        />
-        <link
-            rel="stylesheet"
-            href="/static/stylesheets/deposit.css"
-            type="text/css"
-        />
-        <link
-            rel="stylesheet"
-            href="/static/stylesheets/jackpot/jackpot.css"
-            type="text/css"
-        />
-    </head>
-    <body>
-        <div class="layer">
-            <header>
-                <div id="sidebar">
-                    <div id="logo-login">
-                        <h1>RustSite</h1>
-
-                        {% if user == "welcome" %}
-                        <a href="/auth/steam">
-                            <img
-                                src="https://community.akamai.steamstatic.com/public/images/signinthroughsteam/sits_01.png"
-                                alt="Sign in Through Steam"
-                            />
-                        </a>
-                        {% else %}
-                        <h2>
-                            Welcome,
-                            <a id="this should pull up their website profile"
-                                >{{ user.Username }}</a
-                            >
-                        </h2>
-                        {% endif %}
-                    </div>
-
-                    <div id="chat">
-                        <div id="chat-feed">
-                            <div id="chat-message-out"></div>
-                        </div>
-                        <div id="chat-options">
-                            <input
-                                id="user-message-name"
-                                style="display: none"
-                                ;
-                                value="{{ user.Username }}"
-                            />
-                            <input
-                                id="user-message-url"
-                                style="display: none"
-                                ;
-                                value="{{ user.ProfileURL }}"
-                            />
-                            {% if user == "welcome" %}
-                            <input
-                                id="message"
-                                type="text"
-                                name="message"
-                                placeholder="Sign In To Chat"
-                                disabled
-                            />
-                            <input
-                                type="button"
-                                id="send-message"
-                                disabled
-                                value="Send"
-                            />
-
-                            {% else %}
-                            <input id="message" type="text" name="message" />
-                            <input
-                                type="button"
-                                id="send-message"
-                                value="Send"
-                            />
-                            {% endif %}
-                            <a href="">Support</a>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main id="main">
-                {% include "parts/topnav.html" %}
-
-                <div class="main-section">
-                    <div id="spinner">
-                        Waiting for Next Jackpot Game To Start
-                    </div>
-
-                    <div id="deposit">
-                        <div id="jackpot-info">
-                            <p id="total-pot-value"></p>
-                        </div>
-
-                        {% if user == "welcome" %}
-                        <button
-                            id="show-deposit-button"
-                            onclick="openScreen()"
-                            disabled
-                        >
-                            Deposit
-                        </button>
-
-                        {% else %}
-                        <button id="show-deposit-button" onclick="openScreen()">
-                            Deposit
-                        </button>
-
-                        {% endif %}
-                    </div>
-
-                    <div id="player-bets"></div>
-                </div>
-
-                {% include "parts/deposit.html" %}
-            </main>
-
-            <script src="/static/scripts/homepage.js"></script>
-            <script src="/static/scripts/jackpot.js"></script>
-            <script src="/static/scripts/deposit.js"></script>
-        </div>
-    </body>
+	<head>
+		<title>GammaBets | Jackpot</title>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.min.js"
+			integrity="sha512-2hIBfT6wur46uR5ayhmyICuA8s15BvJhagB+jZImgktQAy832P7EuY8njl1HGp4YS0Sk8DXRo9dByhvD3jfDxA=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.25.0/axios.min.js"
+			integrity="sha512-/Q6t3CASm04EliI1QyIDAA/nDo9R8FQ/BULoUFyN4n/BDdyIxeH7u++Z+eobdmr11gG5D/6nPFyDlnisDwhpYA=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@400;500;700;900&display=swap"
+			rel="stylesheet"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/index.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/deposit.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/topnav.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/chat.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/history.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/login.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/left.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/quickplay.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/jackpot/jpspinnerarea.css"
+			type="text/css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/static/stylesheets/jackpot/jpplayarea.css"
+			type="text/css"
+		/>
+	</head>
+	<body id="app">
+		<div class="layer">
+			<div style="display: none" id="popup-background"></div>
+			{% include "leftcolumn.html" %}
+			<div class="main">
+				{% include "parts/topnav.html" %}{% include
+				"parts/quickplay.html" %} {% include
+				"parts/jackpot/spinnerarea.html" %} {% include
+				"parts/jackpot/playarea.html" %} {% include "parts/history.html"
+				%}
+			</div>
+			{% include "parts/deposit.html" %}
+		</div>
+		<script type="module" src="/static/scripts/index.js"></script>
+		<script type="module" src="/static/scripts/main-handler.js"></script>
+		<script type="module" src="/static/scripts/socket-listener.js"></script>
+		<script type="module" src="/static/scripts/deposit.js"></script>
+		<script
+			type="module"
+			src="/static/scripts/games/jackpot/jackpot.js"
+		></script>
+		<script
+			type="module"
+			src="/static/scripts/games/jackpot/jp-listener.js"
+		></script>
+		<script
+			type="module"
+			src="/static/scripts/games/jackpot/jp-handler.js"
+		></script>
+		<script
+			type="module"
+			src="/static/scripts/games/jackpot/jp-vue.js"
+		></script>
+	</body>
 </html>

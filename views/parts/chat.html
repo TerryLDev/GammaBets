@@ -1,14 +1,44 @@
-<div id="chat">
-    <h3 class="side-menu-title">Live Chat</h3>
-    <div id="chat-feed"></div>
-    <div id="chat-input">
-        <input id="message" type="text" name="message" />
-        <input
-            id="send-message"
-            type="button"
-            name="send"
-            value="Send"
-            maxlength="50"
-        />
-    </div>
+<div id="chat" class="primary-color default-cell accent-color">
+	<h3 class="side-menu-title">Live Chat</h3>
+	<div id="chat-feed"></div>
+	<div id="chat-input">
+		{% if found %}
+		<input
+			id="chat-message-input"
+			class="secondary-color default-secondary-cell accent-color"
+			type="text"
+			name="message"
+			placeholder="Type something..."
+			maxlength="250"
+		/>
+		<button
+			class="secondary-color default-secondary-cell accent-color"
+			id="send-message-button"
+			type="submit"
+		>
+			<img class="arrow" src="/static/images/Arrow 1.png" />
+		</button>
+
+		{% else %}
+
+		<input
+			id="chat-message-input"
+			class="secondary-color default-secondary-cell accent-color"
+			type="text"
+			name="message"
+			placeholder="Type something..."
+			maxlength="250"
+			disabled
+		/>
+		<button
+			class="secondary-color default-secondary-cell accent-color"
+			id="send-message-button"
+			type="submit"
+			disabled
+		>
+			<img class="arrow" src="/static/images/Arrow 1.png" />
+		</button>
+
+		{% endif %}
+	</div>
 </div>

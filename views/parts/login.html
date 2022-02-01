@@ -1,0 +1,26 @@
+<div id="login-container" class="primary-color accent-color default-cell">
+	<div id="logo">
+		<img src="/static/images/gammalogo.png" alt="Logo" />
+		<h1 id="logo-text">GAMMABETS</h1>
+	</div>
+
+	{% if found %}
+
+	<div id="logged-in">
+		<img src="{{ data.user.ProfilePictureURL }}" />
+		<h4>{{ data.user.Username }}</h4>
+	</div>
+
+	{% else %}
+
+	<a href="/auth/steam" class="login-a">
+		<div
+			id="login-box"
+			class="secondary-color accent-color default-secondary-cell"
+		>
+			<h1 id="login-text">Login</h1>
+		</div>
+	</a>
+
+	{% endif %}
+</div>

@@ -1,0 +1,8 @@
+#quick-play {
+	display: inline-block;
+	margin-top: 20px;
+	margin-left: 20px;
+	width: 350px;
+	height: 250px;
+	float: right;
+}

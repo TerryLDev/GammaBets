@@ -13,9 +13,7 @@ const jackpotGameSchema = Schema({
     Status: Boolean,
     Winner: String,
     DateCreated: Date
-}, {
-    timestamps: true
-});
+    }, {timestamps: true});
 
 const JackpotGame = mongoose.model("JackpotGame", jackpotGameSchema)
 

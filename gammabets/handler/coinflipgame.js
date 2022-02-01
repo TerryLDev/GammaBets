@@ -319,9 +319,7 @@ const coinFlipUpdates = () => {
 				
 				// checks if an opponent was sent a trade
 				if (gameObj["playerOneState"] == "Accepted" && gameObj["playerTwoState"] == "Active" && gameObj["timer"] === false) {
-					gameObj["timer"] = parseInt(
-						process.env.COIN_FLIP_OPPONENT_JOINING_TIME
-					);
+					gameObj["timer"] = parseInt(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
 				}
 
 				// changes the timer while waiting for the opponent to join

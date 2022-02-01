@@ -1,131 +1,116 @@
+/* Main Div */
 #chat {
-	grid-area: 3 / 4 / span 10 / span 1;
-	background: rgba(43, 255, 38, 0.08);
-	border: 2px solid rgba(255, 255, 255, 0.15);
-	box-sizing: border-box;
-	box-shadow: 0px 4px 30px rgba(51, 255, 0, 0.15),
-		0px 2px 30px rgba(2, 2, 2, 0.3);
-	backdrop-filter: blur(15px);
-	border-radius: 15px;
 	display: flex;
 	flex-direction: column;
-	color: white;
-	height: 877px;
-	width: 450px;
-	margin-right: auto;
+	align-items: center;
+	width: 100%;
+	height: calc(100% - (20px + 200px));
+	padding: 0px 10px 10px 10px;
 }
 
+/* Feed Container */
 #chat-feed {
 	overflow-y: scroll;
 	overflow-x: hidden;
-	display: block;
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 50px;
 }
 
+/* Div For Inputs */
 #chat-input {
+	bottom: 0;
 	display: flex;
 	gap: 5px;
+	margin-top: 15px;
 	font-family: Montserrat;
 	flex-direction: row;
 	bottom: 0;
 	position: absolute;
-	margin: 40px 20px 20px 20px;
-	width: 91%;
+	align-items: center;
+	margin-bottom: 10px;
 }
 
-#chat-input input {
-	background: rgba(255, 255, 255, 0);
-	border: 2px solid rgba(255, 255, 255, 0.15);
-	box-sizing: border-box;
-	box-shadow: 0px 2px 30px rgba(2, 2, 2, 0.3);
-	border-radius: 5px;
-	height: 45px;
+#chat-message-input {
+	width: 289px;
+	height: 36px;
+	font-family: Montserrat;
 	font-style: normal;
 	font-weight: 500;
 	font-size: 14px;
 	line-height: 17px;
-	color: rgba(255, 255, 255, 0.6);
-	text-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
-}
-
-#send-message {
-	flex: 1;
-}
-
-#message {
-	flex: 9;
-}
-
-.chat-message {
 	display: flex;
-	flex-direction: row;
-	padding-bottom: 15px;
-	margin-left: 32px;
-	margin-right: 32px;
-	padding-top: 15px;
-	padding-bottom: 15px;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-	justify-content: flex-start;
-	align-self: flex-end;
-}
-
-.chat-message-img {
-	width: 45px;
-	height: 45px;
-	border-radius: 10px;
-	margin-right: 13px;
-}
-
-.chat-message-response {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: 500;
-	font-size: 14px;
-	line-height: 17px;
-	color: rgba(255, 255, 255, 0.6);
-	text-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
-}
-
-.chat-message-response p {
-	line-height: 17px;
-	margin: 0;
-}
-
-.chat-message-time {
-	font-family: Montserrat;
-	font-style: normal;
-	font-weight: 500;
-	font-size: 14px;
-	line-height: 17px;
-	color: rgba(255, 255, 255, 0.6);
-	text-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
-}
-
-.chat-message-sender-name {
-	font-family: Montserrat;
-	font-style: normal;
-	font-weight: bold;
-	font-size: 18px;
-	line-height: 22px;
+	align-items: center;
 	color: #ffffff;
-	text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
-	margin: 0 10px 0 0;
-	text-decoration: none;
+	text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.5);
+	padding-left: 5px;
+	padding-right: 5px;
+	border-radius: 5px;
 }
 
-.chat-message-sender-info {
+#send-message-button {
+	width: 36px;
+	height: 36px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 5px;
+}
+
+.arrow {
+	width: 21px;
+}
+
+#chat-input input::placeholder {
+	font-style: normal;
+	font-weight: 500;
+	font-size: 14px;
+	line-height: 17px;
+	color: #fff;
+	text-shadow: 1px 2px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Message Format */
+.message {
 	display: flex;
 	flex-direction: row;
-	justify-content: space-between;
-	margin: 0px;
-	padding: 0px;
+	gap: 10px;
 	align-items: flex-start;
 }
 
-@media screen and (max-width: 1800px) {
-	#coinflip-history {
-		width: 400px;
-	}
-	#chat {
-		width: 400px;
-	}
+.message-img {
+	width: 40px;
+	height: 40px;
+	border-radius: 5px;
+}
+
+/* Holds username and actual text */
+.message-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
+
+.message-user {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: 500;
+	font-size: 16px;
+	line-height: 20px;
+	color: #ffffff;
+	margin: 0;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+.message-text {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: 500;
+	font-size: 12px;
+	line-height: 15px;
+	color: #ffffff;
+	margin: 0;
 }

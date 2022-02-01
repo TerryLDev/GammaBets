@@ -6,41 +6,46 @@ const User = require("../../models/user.model");
 const emitter = require('events').EventEmitter;
 const cfEvents = new emitter();
 
+let allCFGames = [];
+let cfHistory = [];
+
 class CoinFlipHandler {
 
     defaultTimer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
-    countDown = process.env.COIN_FLIP_COUNTDOWN_TIME
-    waitTime = process.env.COIN_FLIP_ENDING_WAIT_TIME
+    countDown = process.env.COIN_FLIP_COUNTDOWN_TIME;
+    waitTime = process.env.COIN_FLIP_ENDING_WAIT_TIME;
+
+    createGameID() {
+
+        const chars = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    
+        let id = "";
+    
+        for(let i = 0; i < 32; i++) {
+    
+            let index = Math.floor(Math.random() * chars.length);
+            id += chars[index]
+    
+        }
+    
+        return id;
+    }
 
     findCFBot(gameID) {
-        CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
 
-            if (err) return console.log(err);
+        let bot = "none";
 
-            else {
+        allCFGames.forEach(obj => {
 
-                return cf.BotID
+            if (obj.gameID == gameID) {
+
+                bot = obj.bot;
 
             }
 
-        })
-    }
+        });
 
-    // Pulling parsed game json
-
-    // done
-    gameJson() {
-
-        let rawJson = fs.readFileSync(`${__dirname}/cf-games.json`, {encoding: "utf-8"});
-        const parsedJson = JSON.parse(rawJson);
-        return parsedJson;
-
-    }
-
-    // done
-    #editJson(modifiedJson) {
-
-        fs.writeFileSync(`${__dirname}/cf-games.json`, JSON.stringify(modifiedJson));
+        return bot;
 
     }
 
@@ -48,9 +53,7 @@ class CoinFlipHandler {
     // needs work
     updateJsonGameState(update) {
 
-        let modifier = this.gameJson();
-
-        modifier.forEach(gameObj => {
+        allCFGames.forEach(gameObj => {
 
             if (update.GameID == gameObj.gameID) {
 
@@ -60,8 +63,6 @@ class CoinFlipHandler {
 
         });
 
-        this.#editJson(modifier);
-
     }
 
     // needs work
@@ -70,15 +71,13 @@ class CoinFlipHandler {
         // update format
         // update = {GameID: gameID, SteamID: winner}
 
-        let modifier = this.gameJson();
+        allCFGames.forEach(gameObj => {
 
-        modifier.forEach(gameObj => {
             if (gameObj.gameID == update.GameID) {
                 gameObj.winner = update.SteamID;
             }
-        });
 
-        this.editJson(modifier);
+        });
 
     }
 
@@ -104,6 +103,7 @@ class CoinFlipHandler {
                     player["skinValues"].forEach((val) => {
 
                         playerTotalVal += val;
+
                     });
 
                     for (let i = 0; i < playerTotalVal; i++) {
@@ -136,22 +136,36 @@ class CoinFlipHandler {
 
     }
 
-    // IDK yet
+    // done
     #checkCancelation(gameID) {
 
-        let modifier = this.gameJson();
+        let result;
 
-        modifier.forEach(obj => {
+        allCFGames.forEach(obj => {
+            
             if (obj.gameID == gameID) {
+
                 if (obj.playerTwoState == "Accepted") {
-                    return false;
+                    
+                    result = false;
+                }
+
+                else if (obj.cancelRequest == true) {
+
+                    result = false;
+
                 }
 
                 else {
-                    return true;
+
+                    obj.cancelRequest = true;
+                    result = true;
+                
                 }
             }
         })
+        
+        return result;
 
     }
 
@@ -159,10 +173,8 @@ class CoinFlipHandler {
 
     // Call Methods (runnning functions that handle big task for async functions)
     
-    // needs work
+    // done
     #callNewGame(gameObject) {
-
-        let modifier = this.gameJson();
 
         let newEntry = {
             gameID: gameObject.GameID,
@@ -189,33 +201,31 @@ class CoinFlipHandler {
             winner: "none",
             wait: parseInt(process.env.COIN_FLIP_ENDING_WAIT_TIME),
             slicerDelay: 3,
+            cancelRequest: false
         };
 
-        if (gameObject.Red == "" || gameObject.Red == undefined) {
-            newEntry.playerOneSide = "black";
-            newEntry.playerTwoSide = "red";
-        }
-        
-        else {
+        if (gameObject.Red == gameObject.Players[0].userSteamId) {
             newEntry.playerOneSide = "red";
             newEntry.playerTwoSide = "black";
         }
+        
+        else {
+            newEntry.playerOneSide = "black";
+            newEntry.playerTwoSide = "red";
+        }
 
-        modifier.push(newEntry);
-
-        this.#editJson(modifier);
+        allCFGames.push(newEntry);
 
         return newEntry;
 
     }
 
-    // needs work
+    // done
     #callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
 
-        let modifier = this.gameJson();
         let data = {};
 
-        modifier.forEach((gameobj) => {
+        allCFGames.forEach((gameobj) => {
 
             if (gameobj.gameID == gameID) {
 
@@ -223,7 +233,7 @@ class CoinFlipHandler {
                 gameobj.playerTwoId = steamID;
                 gameobj.playerTwoUser = username;
                 gameobj.playerTwoPicture = userPicURL;
-                gameobj.timer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
+                gameobj.timer = parseInt(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
 
                 data.SteamID = steamID;
                 data.Username = username;
@@ -236,19 +246,16 @@ class CoinFlipHandler {
 
         });
 
-        this.#editJson(modifier);
-
         return data;
 
     }
 
+    // needs work
     #callOpponentAcceptedTrade(gameObject) {
 
-        let modifier = this.gameJson();
+        let data;
 
-        let data = {};
-
-        modifier.forEach(obj => {
+        allCFGames.forEach(obj => {
 
             if (obj.gameID == gameObject.GameID) {
 
@@ -256,13 +263,13 @@ class CoinFlipHandler {
                 obj.playerTwoSkinValues = gameObject.Players[1].skinValues;
                 obj.playerTwoSkinPictures = gameObject.Players[1].skinPictures;
                 obj.playerTwoState = gameObject.PlayerTwoTradeState;
-                obj.timer = "Flipping in... " + process.env.COIN_FLIP_COUNTDOWN_TIME;
+                obj.timer = parseInt(process.env.COIN_FLIP_COUNTDOWN_TIME);
 
                 data.GameID = gameObject.GameID;
                 data.PlayerTwoSkins = gameObject.Players[1].skins;
                 data.PlayerTwoSkinValues = gameObject.Players[1].skinValues;
                 data.PlayerTwoSkinPictures = gameObject.Players[1].skinPictures;
-                data.Timer = "Flipping in... " + process.env.COIN_FLIP_COUNTDOWN_TIME;
+                data.PlayerTwoSide = gameObject.playerTwoSide;
 
                 gameObject.Players[1].skinValues.forEach(val => {
 
@@ -273,7 +280,6 @@ class CoinFlipHandler {
 
         });
 
-        this.#editJson(modifier);
         return data;
 
     }
@@ -286,9 +292,11 @@ class CoinFlipHandler {
     async createNewGame(gameObject) {
 
         try {
-            const data = await this.#callNewGame(gameObject);
+
+            let data = await this.#callNewGame(gameObject);
 
             cfEvents.emit("newCFGame", await data);
+
         }
 
         catch (err) {
@@ -319,14 +327,14 @@ class CoinFlipHandler {
     }
 
     // needs work
-    async opponentAcceptedTrade(cf) {
+    async opponentAcceptedTrade(gameObject) {
 
         // oof
         try {
 
-            let data = await this.#callOpponentAcceptedTrade(cf);
+            let data = await this.#callOpponentAcceptedTrade(gameObject);
 
-            cfEvents.emit("secondPlayerAccepctedTrade", data);
+            cfEvents.emit("secondPlayerAccepctedTrade", await data);
 
         }
         catch (err) {
@@ -338,11 +346,9 @@ class CoinFlipHandler {
     // needs work
     cancelOpponentTrade(gameID) {
 
-        let modifier = this.gameJson();
-
         let gameObject;
 
-        modifier.forEach(gameObj => {
+        allCFGames.forEach(gameObj => {
 
             if (gameObj.gameID == gameID) {
 
@@ -356,11 +362,11 @@ class CoinFlipHandler {
                 gameObj.playerTwoSkinPictures = "none";
                 gameObj.playerTwoState = "none";
                 gameObj.timer = false;
+                gameObj.cancelRequest = false;
 
             }
         })
     
-        this.#editJson(modifier);
         return gameObject;
 
     }
@@ -372,26 +378,34 @@ class CoinFlipHandler {
     // needs work
     #updateTimer() {
 
-        let modifier = this.gameJson();
-
         let data = [];
 
         // go through each game in the json list
-        if (modifier.length > 0) {
+        if (allCFGames.length > 0) {
 
-            modifier.forEach(gameObj => {
+            allCFGames.forEach(gameObj => {
 
                 let newEntry = {};
 
                 // checks if game is active
                 if (gameObj.gameState == true) {
 
-                    // checks if the timer is a int (waiting for opponent to accept trade)
-                    if (typeof(gameObj.timer) == "number") {
+                    if (gameObj.playerTwoState == "Active") {
 
-                        if (gameObj.timer == 0) {
+                        let getTimer = parseInt(gameObj.timer);
 
-                            // cancel trade offer sent to opponent
+                        if (getTimer > 0) {
+
+                            gameObj.timer = getTimer - 1;
+
+                            newEntry.GameID = gameObj.gameID;
+                            newEntry.CurrentTime = gameObj.timer;
+                            newEntry.State = "waiting";
+
+                        }
+
+                        else {
+
                             setTimeout(async () => {
 
                                 let result = await this.#checkCancelation(gameObj.gameID);
@@ -403,46 +417,28 @@ class CoinFlipHandler {
                             }, 2500);
 
                         }
-
-                        else {
-
-                            gameObj.timer--;
-
-                            newEntry.GameID = gameObj.gameID;
-                            newEntry.CurrentTime = gameObj.timer;
-                            
-                        }
-
                     }
 
-                    // if the timer is a string
-                    // this means the coin is counting down for the flip
-                    else if (typeof(gameObj.timer) == "string") {
+                    else if (gameObj.playerTwoState == "Accepted") {
 
-                        let currentFlipTime = parseInt(gameObj.timer.split("Flipping in... ")[1]);
+                        let getTimer = parseInt(gameObj.timer);
 
-                        if (currentFlipTime >= 0) {
+                        if (getTimer > 0) {
 
-                            currentFlipTime--;
-                            newTime = "Flipping in... " + currentFlipTime;
-
-                            gameObj.timer = newTime;
+                            gameObj.timer = getTimer - 1;
 
                             newEntry.GameID = gameObj.gameID;
                             newEntry.CurrentTime = gameObj.timer;
+                            newEntry.State = "flipping";
 
                         }
 
                         else {
 
-                            // emit event to decide a winner
                             cfEvents.emit("decideWinner", {
-
                                 GameID: gameObj.gameID,
                                 GameState: false
-
                             });
-                            
 
                         }
 
@@ -454,7 +450,6 @@ class CoinFlipHandler {
 
             })
 
-            this.#editJson(modifier);
             return data;
         }
 
@@ -475,7 +470,7 @@ class CoinFlipHandler {
 
             if (await result != false) {
 
-                cfEvents.emit("timer", result);
+                cfEvents.emit("cfTimer", result);
 
             }
 
@@ -490,8 +485,6 @@ class CoinFlipHandler {
 
     };
 
-    ////////////////
-
 }
 
-module.exports = {CoinFlipHandler, cfEvents};
+module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory};

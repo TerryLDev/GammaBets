@@ -24,6 +24,7 @@ class SteamBot {
 		this.indentitySecret = indentitySecret;
 		this.sharedSecret = sharedSecret;
 		this.botID = botID;
+		this.skins;
 
 		this.client = new SteamUser();
 		this.community = new SteamCommunity();
@@ -35,7 +36,7 @@ class SteamBot {
 
 		this.logIntoSteam();
 		this.runEventListeners();
-		this.skins = this.getSkins();
+		this.getSkins();
 
 	}
 
@@ -43,21 +44,21 @@ class SteamBot {
 
 		this.client.logOn({accountName: this.username, password: this.password, twoFactorCode: this.twoFactorCode});
 
-		this.loginAttempts++;
-		console.log("Login Attempts: " + this.loginAttempts)
+		this.loginAttemptsCounter(1);
 
 	}
 
 	getSkins() {
 
 		MarketPrice.find({}, (err, skins) => {
+
 			if (err) return console.log(err);
 
 			else {
-				console.log("Skins Loaded");
+				console.log("Skins Loaded: " + this.botID);
 				this.skins = skins;
-				return skins;
 			}
+
 		});
 
 		setInterval(function() {
@@ -129,19 +130,22 @@ class SteamBot {
 
 		this.client.on("steamGuard", (domain, callback, lastCodeWrong) => {
 
-			let shared = this.sharedSecret;
-	
-			setTimeout(function () {
+			if (lastCodeWrong) {
 
-				if (lastCodeWrong) {
+				let shared = this.sharedSecret;
+				let bot = this.botID;
+				console.log("Wrong Code for Bot: " + bot);
 
-					console.log("Wrong Code for Bot: " + this.botID);
+				this.loginAttemptsCounter(1);
+
+				setTimeout(function () {
+
 					let code = SteamTotp.generateAuthCode(shared);
 					callback(code);
+	
+				}, 1000 * 30);
 
-				}
-
-			}, 1500);
+			}
 		
 		});
 
@@ -161,6 +165,13 @@ class SteamBot {
 
 		});
 		
+	}
+
+	loginAttemptsCounter(num) {
+
+		this.loginAttempts+=num;
+		console.log("Login Attempts: " + this.loginAttempts + " Bot: " + this.botID);
+
 	}
 
 	sendWithdraw(skins, userObject, callback) {

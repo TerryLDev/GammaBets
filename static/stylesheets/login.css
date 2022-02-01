@@ -1,0 +1,82 @@
+#login-container {
+	grid-area: 1 / 1 / span 4 / span 1;
+	/**/
+	height: 200px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+}
+
+.login-a {
+	text-decoration: none;
+}
+
+#logo {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+#logo img {
+	width: 70px;
+	height: 70px;
+	margin-right: 5px;
+}
+
+#logo-text {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 32px;
+	line-height: 39px;
+	color: #ffffff;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#login-text {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 24px;
+	line-height: 29px;
+	margin: auto;
+	text-align: center;
+	color: #ffffff;
+	text-decoration: none;
+}
+
+#login-box {
+	width: 170px;
+	height: 70px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 5px;
+}
+
+/* when user is logged in */
+#logged-in {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	justify-content: center;
+	align-items: center;
+}
+
+#logged-in img {
+	width: 75px;
+	height: 75px;
+	border-radius: 10px;
+}
+
+#logged-in h4 {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 18px;
+	line-height: 22px;
+	color: #ffffff;
+	text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
+}

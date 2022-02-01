@@ -1,12 +1,11 @@
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-const { CoinFlipHandler, cfEvents } = require("../handler/coinflip-handler");
+const { CoinFlipHandler } = require("../handler/coinflip-handler");
 
 const mongoose = require("mongoose");
 const TradeHistory = require('../../models/tradehistory.model');
 const CoinFlipGame = require('../../models/coinflipgame.model');
 const User = require('../../models/user.model');
-const MarketPrice = require('../../models/marketprice.model');
 
 const { GameManager } = require('./game-manager');
 
@@ -20,15 +19,17 @@ class CoinFlipManager extends GameManager {
     }
 
     // Second Opponent accepted their trade and is joining the active coin flip
-    #joiningGame(tradeDBObject, dbSkins, gameDoc) {
+    #joiningGame(tradeDBObject, offerObject, dbSkins, gameDoc) {
 
         // needs more work
         User.findOne({SteamID: tradeDBObject.SteamID}, (err, user) => {
 
-            if(err) {
+            if (err) {
+
                 console.log('an error');
                 console.log(err);
                 return false;
+
             }
 
             else if (user == null || user == undefined) {
@@ -50,16 +51,22 @@ class CoinFlipManager extends GameManager {
 
                 });
 
+                console.log(userBet);
+                console.log(TradeOfferManager.ETradeOfferState[offerObject.state]);
+                console.log(totalVal);
+
                 CoinFlipGame.findOneAndUpdate({ GameID: gameDoc.GameID }, { $push: { Players: userBet }, $set: {
                     TotalValue: totalVal,
-                    PlayerOneTradeState: tradeDBObject.State
+                    PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offerObject.state]
                 }}, { new: true }, (err, cf) => {
 
                     if (err) return console.error(err);
 
                     else {
 
-                        console.log("New Coin Flip game was created: " + cf.GameID);
+                        console.log(cf);
+
+                        console.log("Player Joined a Coin Flip: " + cf.GameID);
 
                         this.cfGameHandler.opponentAcceptedTrade(cf);
 
@@ -128,11 +135,22 @@ class CoinFlipManager extends GameManager {
         });
 
     }
-
+    
     tradeCanceled(tradeOfferObject, offerID) {
 
-        console.log(tradeOfferObject);
-        console.log(offerID);
+        // this should update the coin flip in db
+        TradeHistory.findOneAndUpdate({TradeID: offerID}, {State: TradeOfferManager.ETradeOfferState[tradeOfferObject.state]}, {new: true}, (err, tradeDoc) => {
+            if (err) console.log(err);
+
+            else {
+                CoinFlipGame.updateOne({GameID: tradeDoc.GameID}, {$unset : {
+                    PlayerTwoTradeID: "",
+                    PlayerTwoTradeState: ""
+                }}, (err, doc) => {
+                    if (err) console.log(err);
+                });
+            }
+        });
         
     }
 
@@ -153,7 +171,7 @@ class CoinFlipManager extends GameManager {
 
             else if (tradeDoc == null || tradeDoc.SteamID == null) {
 
-                return console.error("Invalid TradeID Lookup or Manual Change");
+                return console.log("Invalid TradeID Lookup or Manual Change");
 
             }
 
@@ -171,10 +189,10 @@ class CoinFlipManager extends GameManager {
                     else if (gameDoc.Status == true) {
 
                         // check if it's an active game
-                        if ((gameDoc.PlayerTwoTradeState == "Active" || gameDoc.PlayerTwoTradeState == "Sent") && gameDoc.PlayerTwoTradeID == offerID) {
+                        if (gameDoc.PlayerTwoTradeState == "Active" && gameDoc.PlayerTwoTradeID == offerID) {
 
                             // oof
-                            this.#joiningGame(tradeDoc, dbSkins, gameDoc);
+                            this.#joiningGame(tradeDoc, tradeOfferObject, dbSkins, gameDoc);
 
                         }
 
