@@ -29,12 +29,11 @@ router.get("/", (req, res) => {
 	req.player.page = pageFormat;
 
 	if (req.player.found != undefined) {
-		console.log(req.player);
-		res.render("index",  req.player);
+		res.json(req.player);
 	}
 
 	else {
-		res.render("index", req.player);
+		res.json(req.player);
 	}
 
 });

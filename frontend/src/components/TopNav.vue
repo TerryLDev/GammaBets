@@ -16,7 +16,8 @@
         class="top-nav-icon top-nav-text"
         src="@/assets/icons/coinflipIcon.png"
         alt=""
-      />Coin Flip</router-link>
+      />Coin Flip</router-link
+    >
     <router-link to="/trading" class="default-link top-nav-text"
       ><img
         class="top-nav-icon top-nav-text"
@@ -33,19 +34,16 @@
     />
     <!-- Divider -->
     <router-link to="/" class="default-link">
-      <img
-        class="top-nav-text"
-        src="@/assets/icons/twitter.png"
+      <img class="top-nav-text" src="@/assets/icons/twitter.png"
     /></router-link>
     <router-link to="/"
       ><img
         class="default-link top-nav-icon top-nav-text"
         src="@/assets/icons/discord.png"
     /></router-link>
-    <router-link to="/tos" class="default-link top-nav-text">
-      TOS
-    </router-link>
-    <router-link to="/support" class="default-link top-nav-text">Support</router-link
+    <router-link to="/tos" class="default-link top-nav-text"> TOS </router-link>
+    <router-link to="/support" class="default-link top-nav-text"
+      >Support</router-link
     >
   </nav>
   <router-view />

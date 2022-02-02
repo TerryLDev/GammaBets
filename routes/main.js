@@ -54,7 +54,7 @@ router.use((req, res, next) => {
 
 })
 
-router.use("/user.json", (req, res, next) => {
+router.use("/api/user", (req, res, next) => {
     res.json(req.player);
     next();
 })

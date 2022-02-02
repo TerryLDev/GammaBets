@@ -12,9 +12,14 @@ const socket = require("socket.io");
 const async = require("async");
 const helmet = require("helmet");
 const fs = require("fs");
+const bodyParser = require("body-parser");
 
 const app = express();
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 
 // Models
 const User = require("./models/user.model");
@@ -131,7 +136,7 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
 // Setting up cookies
 app.use(
 	session({
-		secret: "this is gonna be kinda funny ya know",
+		secret: "gammabets more like gamma kill myself",
 		store: MongoStore.create({
 			mongoUrl: mongo_uri,
 		}),
@@ -145,7 +150,9 @@ app.use(
 );
 
 // Localhost port
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
+
+/*
 
 // Intialize Bots
 // Random Login Time to avoid request Errors
@@ -179,6 +186,7 @@ setTimeout(() => {
 
 
 }, randomThree);
+*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -190,16 +198,18 @@ passport.deserializeUser((user, done) => {
 	done(null, user);
 });
 
+
+
 passport.use(
 	new SteamStrategy(
 		{
 			returnURL:
 				process.env.DEV_ENV == "true"
-					? "http://localhost:3000/auth/steam/return"
+					? "http://localhost:4000/auth/steam/return"
 					: `http://www.gammabets.com/auth/steam/return`,
 			realm:
 				process.env.DEV_ENV == "true"
-					? "http://localhost:3000"
+					? "http://localhost:4000"
 					: `http://www.gammabets.com/`,
 			apiKey:
 				process.env.DEV_ENV == "true"
@@ -207,58 +217,10 @@ passport.use(
 					: process.env.API_KEY_PRO,
 		},
 
-		function (identifier, profile, done) {
-			process.nextTick(function () {
-				profile.identifier = identifier;
-
-				let user = profile["_json"];
-
-				User.exists({ SteamID: user["steamid"] })
-					.then((result) => {
-
-						if (result == false) {
-
-							User.create({
-								SteamID: user["steamid"],
-								Username: user["personaname"],
-								ProfilePictureURL: user["avatarfull"],
-								ProfileURL: user["profileurl"],
-								DateJoined: Date.now(),
-							})
-								.then((result) => {
-
-									console.log(result);
-
-								})
-								.catch((err) => {
-
-									console.error(err);
-
-								});
-
-						}
-						
-						else {
-							console.log("User Exists");
-
-							User.findOneAndUpdate({ SteamID: user["steamid"] }, { $set : {
-									Username: user["personaname"],
-									ProfilePictureURL: user["avatarfull"],
-									ProfileURL: user["profileurl"],
-								}}, { new: true }, (err, doc) => {
-
-									if (err) return console.log(err);
-
-								}
-							);
-						}
-					})
-					.catch((err) => {
-						console.error(err);
-					});
-
-				return done(null, profile);
-			});
+		function(identifier, profile, done) {
+			console.log(identifier);
+			console.log(profile);
+			return done(null, profile);
 		}
 	)
 );
@@ -267,29 +229,21 @@ passport.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-nunjucks.configure("views", {
-	autoescape: true,
-	express: app,
-});
-
-app.set("view engine", "nunjucks");
-app.use("/static", express.static("static"));
-app.set("views", "./views");
-app.set("view engine", "html");
-
 app.use("/", mainRoutes, jackpotRoutes, coinflipRoutes, supportRoutes);
 
-app.get("/auth/steam", passport.authenticate("steam"), function (req, res) {
-	// The request will be redirected to Steam for authentication, so
-	// this function will not be called.
-});
+app.get('/auth/steam',
+  passport.authenticate('steam'),
+  function(req, res) {
+    // The request will be redirected to Steam for authentication, so
+    // this function will not be called.
+  });
 
-app.get("/auth/steam/return", passport.authenticate("steam", { failureRedirect: "/" }),function (req, res) {
-		// Successful authentication, redirect home
-		req.session.isAuth = true;
-		res.redirect("/");
-	}
-);
+app.get('/auth/steam/return',
+  passport.authenticate('steam', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('http://localhost:8080/');
+  });
 
 const server = app.listen(port, (err) => {
 
@@ -298,7 +252,10 @@ const server = app.listen(port, (err) => {
 
 });
 
-const io = socket(server, cors());
+const io = socket(server, {cors: {
+	origin: "http://localhost:8080"
+}
+});
 app.set("socketio", io);
 
 const messages = [];
