@@ -1,18 +1,13 @@
 const router = require("express").Router();
 const express = require('express');
-const nunjucks = require("nunjucks");
 
 const User = require("../models/user.model");
 const app = express();
-
-app.set('views', '../views')
-app.set('view engine', 'html')
-
 router.use((req, res, next) => {
 
     if (req.user == undefined || req.user == null) {
         req.player = {
-            found: false,
+            auth: false,
             data: false
         }
         next();
@@ -24,7 +19,7 @@ router.use((req, res, next) => {
             
             if (err) {
                 req.player = {
-                    found: false,
+                    auth: false,
                     data: false
                 }
                 next();
@@ -32,7 +27,7 @@ router.use((req, res, next) => {
 
             else if(userProfile == undefined || userProfile == null) {
                 req.player = {
-                    found: false,
+                    auth: false,
                     data: false
                 }
                 next();
@@ -42,7 +37,7 @@ router.use((req, res, next) => {
                 const data = {steam: req.user, user: userProfile}
 
                 req.player = {
-                    found: true,
+                    auth: true,
                     data: data
                 }
 

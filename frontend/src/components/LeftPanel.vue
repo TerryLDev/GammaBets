@@ -1,5 +1,6 @@
 <template>
   <div id="left-column">
+    <!-- Logo/Login/User -->
     <div id="login-container" class="primary-color accent-color default-cell">
       <div id="logo">
         <img src="@/assets/gammalogo.png" alt="Logo" />
@@ -7,10 +8,11 @@
       </div>
 
       <div id="logged-in">
-        <img src="@/assets/user/defaultProfile.png" />
+        <img v-bind:src={profilePictureURL} />
         <h4>Username</h4>
       </div>
     </div>
+    <!-- Chat -->
     <div id="chat" class="primary-color default-cell accent-color">
       <h3 class="side-menu-title">Live Chat</h3>
       <div id="chat-feed"></div>
@@ -37,6 +39,11 @@
 
 <script>
 export default {
+  props: {
+    auth: Boolean,
+    username: String,
+    profilePictureURL: String,
+  },
   name: "LeftPanel",
 };
 </script>

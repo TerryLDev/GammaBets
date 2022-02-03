@@ -1,16 +1,18 @@
 <template>
-	<LeftPanel />
+	<LeftPanel v-bind:username=/>
 	<div class="main">
 		<TopNav />
 	</div>
 </template>
 
 <script>
-// import axios from "axios";
+import {computed} from 'vue';
+import {useStore} from 'vuex';
+
 import TopNav from "./components/TopNav.vue";
 import LeftPanel from "./components/LeftPanel.vue";
 
-//import axios from "axios";
+import axios from "axios";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:4000");
@@ -19,14 +21,17 @@ socket.on("", (data) => {
 	console.log(data);
 });
 
+let user;
+
 export default {
-	/*
   setup() {
-    axios.get("http://localhost:4000/api/user").then((res) => {
-      console.log(res);
+    axios.get("/api/user").then((res) => {
+      user = res.data;
     });
+
+
   },
-  */
+	data: user,
 	name: "App",
 	components: { TopNav, LeftPanel },
 };

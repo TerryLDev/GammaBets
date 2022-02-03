@@ -9,7 +9,7 @@ import axios from "axios";
 
 export default {
 	setup() {
-		axios.get("/api/user").then((res) => {
+		axios.get("/api/jackpot/highstakes").then((res) => {
 			console.log(res.data);
 		});
 	},
