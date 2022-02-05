@@ -1,20 +1,30 @@
 <template>
-	<div>High Stakes</div>
-	<a href="/auth/steam">Login</a>
+  <div>High Stakes</div>
 </template>
 
 <script>
 // @ is an alias to /src
-import axios from "axios";
+//import axios from "axios";
 
 export default {
-	setup() {
-		axios.get("/api/jackpot/highstakes").then((res) => {
-			console.log(res.data);
-		});
-	},
-	name: "Home",
-	methods: {},
+  data() {
+    return {
+      GameID: "",
+      Players: [],
+      Time: 0,
+      TotalPotValue: 0,
+    };
+  },
+  name: "Home",
+  /*
+  methods: {
+    getCurrentGame() {
+      axios.get("/api/jackpot/highstakes").then((res) => {
+        ;
+      });
+    }
+  },
+  */
 };
 </script>
 

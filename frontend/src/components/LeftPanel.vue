@@ -7,10 +7,18 @@
         <h1 id="logo-text">GAMMABETS</h1>
       </div>
 
-      <div id="logged-in">
-        <img v-bind:src={profilePictureURL} />
-        <h4>Username</h4>
+      <div id="logged-in" v-if="auth">
+        <img :src="userPictureURL" />
+        <h4>{{ username }}</h4>
       </div>
+      <a href="/auth/steam" class="login-a" v-else>
+        <div
+          id="login-box"
+          class="secondary-color accent-color default-secondary-cell"
+        >
+          <h1 id="login-text">Login</h1>
+        </div>
+      </a>
     </div>
     <!-- Chat -->
     <div id="chat" class="primary-color default-cell accent-color">
@@ -40,9 +48,17 @@
 <script>
 export default {
   props: {
-    auth: Boolean,
-    username: String,
-    profilePictureURL: String,
+    auth: {
+      type: Boolean,
+      required: true,
+    },
+    username: {
+      type: String,
+    },
+    userPictureURL: {
+      type: String,
+      required: true,
+    },
   },
   name: "LeftPanel",
 };

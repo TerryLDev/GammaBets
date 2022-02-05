@@ -20,7 +20,7 @@ router.use((req, res, next) => {
             if (err) {
                 req.player = {
                     auth: false,
-                    data: false
+                    user: false
                 }
                 next();
             }
@@ -28,17 +28,16 @@ router.use((req, res, next) => {
             else if(userProfile == undefined || userProfile == null) {
                 req.player = {
                     auth: false,
-                    data: false
+                    user: false
                 }
                 next();
             }
 
             else {
-                const data = {steam: req.user, user: userProfile}
 
                 req.player = {
                     auth: true,
-                    data: data
+                    user: userProfile
                 }
 
                 next();
@@ -49,7 +48,8 @@ router.use((req, res, next) => {
 
 })
 
-router.use("/api/user", (req, res, next) => {
+router.get("/user", (req, res, next) => {
+    console.log("getting user info");
     res.json(req.player);
     next();
 })

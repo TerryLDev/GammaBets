@@ -229,7 +229,7 @@ passport.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use("/", mainRoutes, jackpotRoutes, coinflipRoutes, supportRoutes);
+app.use("/api", mainRoutes, jackpotRoutes, coinflipRoutes, supportRoutes);
 
 app.get('/auth/steam',
   passport.authenticate('steam'),

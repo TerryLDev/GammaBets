@@ -12,7 +12,7 @@ app.set('view engine', 'html');
 
 // When user accesses the page, send the most recent pot info (pull array of people in pot)
 
-router.get("/api/jackpot/highstakes", (req, res) => {
+router.get("/jackpot/highstakes", (req, res) => {
 
 	console.log("ping")
 
