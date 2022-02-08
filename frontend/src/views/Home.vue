@@ -1,30 +1,24 @@
 <template>
-  <div>High Stakes</div>
+  <JackpotTimer />
+  <JackpotPlayArea :potMin="potMin" :potName="potName" :potMax="potMax"/>
 </template>
 
 <script>
 // @ is an alias to /src
 //import axios from "axios";
+import JackpotTimer from "../components/jackpot/JackpotTimer.vue";
+import JackpotPlayArea from "../components/jackpot/JackpotPlayerArea.vue";
 
 export default {
   data() {
     return {
-      GameID: "",
-      Players: [],
-      Time: 0,
-      TotalPotValue: 0,
-    };
-  },
-  name: "Home",
-  /*
-  methods: {
-    getCurrentGame() {
-      axios.get("/api/jackpot/highstakes").then((res) => {
-        ;
-      });
+      potMin: "1.00",
+      potName: "High Stakes",
+      potMax: "20.00"
     }
   },
-  */
+  name: "Home",
+  components: { JackpotTimer, JackpotPlayArea }
 };
 </script>
 

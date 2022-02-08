@@ -1,0 +1,176 @@
+<template>
+
+<div id="jp-play-area" class="primary-color default-cell accent-color">
+	<div class="pot-info secondary-color default-secondary-cell accent-color">
+		<h3>Min: ${{ potMin }}</h3>
+		<h3>{{ potName }} Pot</h3>
+		<h3>Max: ${{ potMax }}</h3>
+	</div>
+	<div id="jp-pot">
+		<div id="user-bet"></div>
+	</div>
+</div>
+</template>
+
+<script>
+export default {
+  props: ["potMin", "potName", "potMax"],
+  name: "JackpotPlayerArea"
+}
+</script>
+
+<style>
+#jp-play-area {
+	display: inline-flex;
+	margin-top: 20px;
+	width: calc(100% - (20px + 350px));
+	height: calc(100% - (20px + 60px + 20px + 250px + 20px));
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+	padding: 10px;
+}
+
+#jp-pot {
+	margin-top: 10px;
+	height: 100%;
+	width: 100%;
+	border-radius: 0px 0px 10px 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+
+#jp-pot::-webkit-scrollbar {
+	display: none;
+}
+
+.pot-info {
+	width: calc(100% - 40px);
+	height: 30px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 30px;
+	margin: 5px 0px;
+}
+
+.pot-info h3 {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 18px;
+	line-height: 22px;
+	text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+	margin: 0;
+	color: #ffffff;
+}
+
+.player-bet {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	height: 90px;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid rgba(229, 239, 172, 0.5);
+	box-sizing: border-box;
+	border-radius: 10px;
+}
+
+.player-bet-profile-img {
+	width: 70px;
+	height: 70px;
+	box-sizing: border-box;
+	border-radius: 10px;
+	margin-left: 10px;
+	margin-right: auto;
+}
+
+.user-bet-border {
+	border: 2px solid rgba(236, 31, 39, 0.5);
+}
+
+.player-bet-skins {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.player-skin-img {
+	width: 44px;
+	height: 44px;
+}
+
+.player-bet-skins p {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: 600;
+	font-size: 12px;
+	line-height: 15px;
+	color: rgba(255, 255, 255, 0.5);
+	margin: 0;
+}
+
+.player-bet-val-and-name {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-end;
+	gap: 5px;
+	margin-right: 10px;
+	margin-left: auto;
+}
+
+.player-bet-val-and-name h5 {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 18px;
+	color: #ffffff;
+	text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+	margin: 0;
+}
+
+.player-bet-val-and-name h6 {
+	font-family: Montserrat;
+	font-style: normal;
+	font-weight: bold;
+	font-size: 14px;
+	color: #ffffff;
+	text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
+	margin: 0;
+}
+
+/* Backgounds for player bets */
+.top-player-bet {
+	background: rgba(212, 175, 55, 0.5);
+}
+
+.first-player-bet {
+	background: rgba(255, 255, 255, 0.5);
+}
+
+.second-player-bet {
+	background: rgba(255, 255, 255, 0.4);
+}
+
+.third-player-bet {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+.fourth-player-bet {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.fifth-player-bet {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+</style>

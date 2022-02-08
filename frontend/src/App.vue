@@ -1,8 +1,8 @@
 <template>
   <LeftPanel
-    :auth="auth"
-    :userPictureURL="ProfilePictureURL"
-    :username="Username"
+    :auth="user.auth"
+    :userPictureURL="user.profile.ProfilePictureURL"
+    :username="user.profile.Username"
   />
   <div class="main">
     <TopNav />
@@ -10,12 +10,9 @@
 </template>
 
 <script>
-//mport { computed } from "vue";
-import { useStore } from "vuex";
-
 import TopNav from "./components/TopNav.vue";
 import LeftPanel from "./components/LeftPanel.vue";
-import axios from "axios";
+//import axios from "axios";
 
 //import axios from "axios";
 /*
@@ -29,42 +26,13 @@ socket.on("test", (data) => {
 */
 
 export default {
-  setup() {
-    const store = useStore();
-
-    return {
-      setAuth: () => store.commit(),
-    };
-  },
-  data() {
-    return {
-      auth: false,
-      SteamID: "",
-      Username: "",
-      ProfilePictureURL: "",
-      ProfileURL: "",
-      Trades: [],
-      TradeURL: "",
-    };
-  },
-  created() {
-    this.getUser();
-  },
-  methods: {
-    getUser() {
-      axios
-        .get("/api/user")
-        .then((res) => {
-          this.auth = res.data.auth;
-          this.SteamID = res.data.user.SteamID;
-          this.ProfilePictureURL = res.data.user.ProfilePictureURL;
-          this.Username = res.data.user.Username;
-          this.ProfileURL = res.data.user.ProfileURL;
-          this.Trades = res.data.user.Trades;
-          this.TradeURL = res.data.user.TradeURL;
-        })
-        .catch((err) => console.log(err));
+  computed: {
+    user() {
+      return this.$store.state.user;
     },
+  },
+  mounted() {
+    this.$store.dispatch("getUser");
   },
   name: "App",
   components: { TopNav, LeftPanel },
