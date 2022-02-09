@@ -260,6 +260,10 @@ app.set("socketio", io);
 
 const messages = [];
 
+app.get("/api/messages", (res, req) => {
+	req.json(messages);
+})
+
 io.on("connection", (socket) => {
 
 	socket.on("join", data => {
@@ -276,9 +280,7 @@ io.on("connection", (socket) => {
 
 	});
 
-	socket.emit("allChat", messages);
-
-	socket.on("singleChat", async (data) => {
+	socket.on("message", async (data) => {
 
 		/*
 		username: localStorage.Username,
@@ -301,7 +303,7 @@ io.on("connection", (socket) => {
 
 			await messages.push(data);
 
-			io.emit("singleChat", await data);
+			io.emit("message", await data);
 
 		}
 
@@ -738,27 +740,3 @@ highStakesEvents.on("startHighStakesTimer", data => {
 	io.emit("startHighStakesTimer", data);
 
 });
-
-/*
-
-setTimeout(function() {
-
-	hsHandler.timer();
-
-}, 10000);
-
-let tester = this.highStakesActiveGame
-
-setInterval(function() {
-
-	console.log(tester);
-
-}, 1000);
-
-*/
-
-setInterval(function() {
-	
-	io.emit("test", {message: "HI"});
-
-}, 2000)

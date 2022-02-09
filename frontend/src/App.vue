@@ -12,9 +12,9 @@
 <script>
 import TopNav from "./components/TopNav.vue";
 import LeftPanel from "./components/LeftPanel.vue";
-//import axios from "axios";
 
 //import axios from "axios";
+
 /*
 import { io } from "socket.io-client";
 
@@ -32,7 +32,7 @@ export default {
     },
   },
   mounted() {
-    this.$store.dispatch("getUser");
+    this.$store.dispatch("getAPIUser");
   },
   name: "App",
   components: { TopNav, LeftPanel },

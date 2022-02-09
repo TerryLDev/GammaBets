@@ -15,7 +15,7 @@ app.set('view engine', 'html');
 router.get("/jackpot/highstakes", (req, res) => {
 
 	console.log("ping")
-
+	
 	res.json(mainApp.highStakesActiveGame);
 
 });

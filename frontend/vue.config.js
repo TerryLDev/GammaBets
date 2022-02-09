@@ -21,6 +21,11 @@ module.exports = {
         changeOrigin: true,
         secure: false,
       },
+      "^/api/messages": {
+        target: "http://localhost:4000",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 };

@@ -53,81 +53,81 @@
 
 <script>
 export default {
-  name: "JackpotTimer"
+  name: "JackpotTimer",
 };
 </script>
 
 <style>
 #spinner-area {
-	display: inline-block;
-	margin-top: 20px;
-	width: calc(100% - (350px + 20px));
-	height: 250px;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-evenly;
-	align-items: center;
+  display: inline-block;
+  margin-top: 20px;
+  width: calc(100% - (350px + 20px));
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
 }
 
 .top-spinner-area {
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	gap: 30px;
-	align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 30px;
+  align-items: center;
 }
 
 .top-spinner-area-h {
-	font-family: Roboto;
-	font-style: normal;
-	font-weight: bold;
-	font-size: 24px;
-	line-height: 28px;
-	color: #ffffff;
-	margin: 0;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 28px;
+  color: #ffffff;
+  margin: 0;
 }
 
 .top-spinner-area-t {
-	font-family: Roboto;
-	font-style: normal;
-	font-weight: 600;
-	font-size: 18px;
-	line-height: 21px;
-	color: #ffffff;
-	margin: 0;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 21px;
+  color: #ffffff;
+  margin: 0;
 }
 
 #jp-total-amount {
-	width: 250px;
-	height: 90px;
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-	justify-content: center;
+  width: 250px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 }
 
 #jp-total-item {
-	width: 250px;
-	height: 90px;
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-	justify-content: center;
+  width: 250px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 }
 
 #jp-deposit {
-	width: 660px;
-	height: 90px;
-	font-family: Roboto;
-	font-style: normal;
-	font-weight: bold;
-	font-size: 32px;
-	line-height: 37px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	text-align: center;
-	color: #ffffff;
+  width: 660px;
+  height: 90px;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 32px;
+  line-height: 37px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
 }
 
 #jp-total-amount-text {
@@ -139,43 +139,43 @@ export default {
 /* Timer */
 
 #jp-timer {
-	height: 100px;
-	width: 100px;
-	display: grid;
-	grid-template: 1 fr / 1 fr;
-	place-items: center;
+  height: 100px;
+  width: 100px;
+  display: grid;
+  grid-template: 1 fr / 1 fr;
+  place-items: center;
 }
 
 .jp-timer-border {
-	height: 100px;
-	width: 100px;
-	border: 10px solid rgba(255, 255, 255, 0.5);
-	box-sizing: border-box;
-	filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.25));
-	border-radius: 50%;
-	grid-area: 1 / 1 / span 1 / span 1;
-	justify-content: center;
-	align-items: center;
+  height: 100px;
+  width: 100px;
+  border: 10px solid rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.25));
+  border-radius: 50%;
+  grid-area: 1 / 1 / span 1 / span 1;
+  justify-content: center;
+  align-items: center;
 }
 
 #svg-circle {
-	grid-area: 1 / 1 / span 1 / span 1;
+  grid-area: 1 / 1 / span 1 / span 1;
 }
 
 #jp-timer-circle {
-	grid-area: 1 / 1 / span 1 / span 1;
+  grid-area: 1 / 1 / span 1 / span 1;
 }
 
 #jp-current-time {
-	font-family: Roboto;
-	font-style: normal;
-	font-weight: bold;
-	font-size: 32px;
-	line-height: 37px;
-	display: flex;
-	align-items: center;
-	text-align: center;
-	color: #ffffff;
-	grid-area: 1 / 1 / span 1 / span 1;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 32px;
+  line-height: 37px;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+  grid-area: 1 / 1 / span 1 / span 1;
 }
 </style>

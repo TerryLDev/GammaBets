@@ -23,9 +23,13 @@
     <!-- Chat -->
     <div id="chat" class="primary-color default-cell accent-color">
       <h3 class="side-menu-title">Live Chat</h3>
-      <div id="chat-feed"></div>
-      <div id="chat-input">
+      <div ref="chatFeed" id="chat-feed">
+        <ChatMessage :messages="messages" />
+      </div>
+      <div id="chat-input" v-if="auth">
         <input
+          v-model="chatMessage"
+          v-on:keydown.enter="sendMessage()"
           id="chat-message-input"
           class="secondary-color default-secondary-cell accent-color"
           type="text"
@@ -34,6 +38,26 @@
           maxlength="250"
         />
         <button
+          v-on:click="sendMessage()"
+          class="secondary-color default-secondary-cell accent-color"
+          id="send-message-button"
+          type="submit"
+        >
+          <img class="arrow" src="@/assets/Arrow1.png" />
+        </button>
+      </div>
+      <div id="chat-input" v-else>
+        <input
+          disabled
+          id="chat-message-input"
+          class="secondary-color default-secondary-cell accent-color"
+          type="text"
+          name="message"
+          placeholder="Please Login to Chat"
+        />
+        <button
+          disabled
+          v-on:click="sendMessage()"
           class="secondary-color default-secondary-cell accent-color"
           id="send-message-button"
           type="submit"
@@ -46,7 +70,44 @@
 </template>
 
 <script>
+import { useStore } from "vuex";
+import { ref, onMounted } from "vue";
+
+import ChatMessage from "./widgets/ChatMessage.vue";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
+
 export default {
+  setup() {
+    const store = useStore();
+
+    const chatFeed = ref(null);
+
+    socket.on("message", (data) => {
+      // add it to the state
+      newMessage(data);
+    });
+
+    store.dispatch("getAPIMessages");
+
+    onMounted(() => {
+      scrollDown();
+    });
+
+    function newMessage(message) {
+      store.dispatch("addNewMessage", message).then(() => scrollDown());
+    }
+
+    function scrollDown() {
+      chatFeed.value.scrollTop =
+        chatFeed.value.scrollHeight - chatFeed.value.clientHeight;
+    }
+
+    return {
+      chatFeed,
+    };
+  },
   props: {
     auth: {
       type: Boolean,
@@ -60,7 +121,30 @@ export default {
       required: true,
     },
   },
+  computed: {
+    messages() {
+      return this.$store.state.messages;
+    },
+  },
+  data() {
+    return {
+      chatMessage: "",
+    };
+  },
+  methods: {
+    sendMessage() {
+      if (this.chatMessage.length > 0) {
+        const messageData = this.$store.getters.getMessageFormat;
+
+        messageData.message = this.chatMessage;
+
+        socket.emit("message", messageData);
+        this.chatMessage = "";
+      }
+    },
+  },
   name: "LeftPanel",
+  components: { ChatMessage },
 };
 </script>
 
