@@ -693,7 +693,7 @@ cfEvents.on("removeCFGame", (data) => {
 
 const hsHandler = new HighStakesHandler();
 
-exports.highStakesActiveGame = {GameID: "", Players: [], TotalPotValue: 0, Time: parseFloat(process.env.JACKPOT_TIMER)};
+exports.highStakesActiveGame = {GameID: "", Players: [{username:"Daddy Disappointment",userSteamId:"76561198072093858",userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg",skins:["Black Hoodie"],skinValues:[0.5],skinIDs:["3509994123859633414"],skinPictures:["https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ja5WXMfCk4nReh8DEiv5daPqk5q7IxRv2_CuOfQ1k/"]},{username:"Daddy Disappointment",userSteamId:"76561198072093858",userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg",skins:["Epidemic Roadsign Vest"],skinValues:[0.82],"skinIDs":["3509994123859633419"],skinPictures:["https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc7GLCfCk4nReh8DEiv5dYO6k6pLU-Q_28hhmLJOc/"]}], TotalPotValue: 1.30, Time: parseFloat(process.env.JACKPOT_TIMER)};
 /* ^ Format ^
 {
     GameID: **

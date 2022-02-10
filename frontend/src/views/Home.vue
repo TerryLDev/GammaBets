@@ -6,6 +6,7 @@
     :potName="potName"
     :potMax="potMax"
     :bets="playerBets"
+    :totalPotVal="totalPotVal"
   />
   <GameHistory :historyTitle="potName" />
 </template>
@@ -29,6 +30,9 @@ export default {
   computed: {
     playerBets() {
       return this.$store.state.highStakes.game.Players;
+    },
+    totalPotVal() {
+      return this.$store.state.highStakes.game.TotalPotValue;
     },
   },
   mounted() {

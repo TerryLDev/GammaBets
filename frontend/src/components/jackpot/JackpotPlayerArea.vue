@@ -7,7 +7,7 @@
     </div>
     <div id="jp-pot">
       <div v-for="player in bets" v-bind:key="player" id="user-bet">
-        <UserBetEntry :player="player"/>
+        <UserBetEntry :player="player" />
       </div>
     </div>
   </div>
@@ -17,9 +17,14 @@
 import UserBetEntry from "./UserBetEntry.vue";
 
 export default {
-  props: {"potMin": {type: String}, "potName": {type: String}, "potMax": {type: String}, "bets": {type: Array}},
+  props: {
+    potMin: { type: String },
+    potName: { type: String },
+    potMax: { type: String },
+    bets: { type: Array },
+  },
   name: "JackpotPlayerArea",
-  components: { UserBetEntry }
+  components: { UserBetEntry },
 };
 </script>
 

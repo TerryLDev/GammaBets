@@ -11,7 +11,7 @@ export default createStore({
     },
     lowStakes: {
       active: false,
-      game: { GameID: "", Players: [], TotalPotValue: 0 },
+      game: { GameID: "", Players: [], TotalPotValue: 0, Time: 120 },
     },
     coinflips: [],
   },
@@ -43,8 +43,14 @@ export default createStore({
     setMessages(state, messages) {
       state.messages = messages;
     },
-    setHighStakesGame(state, game) {
-      state.highStakes.game = game;
+    setHighStakesGameID(state, gameID) {
+      state.highStakes.game.GameID = gameID;
+    },
+    setHighStakesPlayers(state, players) {
+      state.highStakes.game.Players = players;
+    },
+    setHighStakesTotalPotValue(state, val) {
+      state.highStakes.game.TotalPotValue = val;
     },
     setHighStakesState(state, active) {
       state.highStakes.active = active;
@@ -81,7 +87,10 @@ export default createStore({
       axios
         .get("/api/jackpot/highstakes")
         .then((res) => {
-          commit("setHighStakesGame", res.data);
+          commit("setHighStakesGameID", res.data.GameID);
+          commit("setHighStakesPlayers", res.data.Players);
+          commit("setHighStakesTotalPotValue", res.data.TotalPotValue);
+          console.log(res.data)
         })
         .catch((err) => {
           console.log(err);
