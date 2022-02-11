@@ -3,7 +3,8 @@
     <div class="pot-info secondary-color default-secondary-cell accent-color">
       <h3>Min: ${{ potMin }}</h3>
       <h3>{{ potName }} Pot</h3>
-      <h3>Max: ${{ potMax }}</h3>
+      <h3 v-if="potMax == 'No Limit'">Max: {{ potMax }}</h3>
+      <h3 v-else>Max: ${{ potMax }}</h3>
     </div>
     <div id="jp-pot">
       <UserBetEntry

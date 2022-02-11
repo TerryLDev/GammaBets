@@ -1,19 +1,43 @@
 const deposit = {
   state: {
     skins: [],
-    selected: [],
+    selectedSkins: [],
+    selectedPrice: 0,
   },
-  getters: {},
+  getters: {
+    getNumberOfSelectedSkins(state) {
+
+      return state.selectedSkins.length;
+
+    },
+    getSelectedTotal(state) {
+      if(state.selectedPrice < 0) {
+        return (0).toFixed(2);
+      }
+      else {
+        return (state.selectedPrice).toFixed(2);
+      }
+    }
+  },
   mutations: {
     setSkins(state, skins) {
       state.skins = skins;
     },
     addSelectedSkin(state, skin) {
-      state.selected.push(skin);
+      state.selectedSkins.push(skin);
     },
     removeSelectedSkin(state, skin) {
-      const index = state.selected.indexOf(skin);
-      state.selected.splice(index, 1);
+      const index = state.selectedSkins.indexOf(skin);
+      state.selectedSkins.splice(index, 1);
+    },
+    addSelectedPrice(state, price) {
+      state.selectedPrice += price;
+    },
+    subtractSelectedPrice(state, price) {
+      state.selectedPrice -= price;
+    },
+    resetSelectedPrice(state) {
+      state.selectedPrice = 0;
     },
   },
   actions: {
@@ -25,6 +49,15 @@ const deposit = {
     },
     removeSelectedSkin({ commit }, skin) {
       commit("removeSelectedSkin", skin);
+    },
+    resetSelectedPrice({ commit }) {
+      commit("resetSelectedPrice");
+    },
+    addSelectedPrice({ commit }, price) {
+      commit("addSelectedPrice", price);
+    },
+    substractSelectedPrice({ commit }, price) {
+      commit("subtractSelectedPrice", price);
     },
   },
 };

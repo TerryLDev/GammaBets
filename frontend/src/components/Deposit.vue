@@ -6,37 +6,64 @@
     <div
       class="deposit-top-info default-secondary-cell secondary-color accent-color"
     >
-      <h4>Selected Desired Items</h4>
-      <p>{{this.$store.state.deposit.selected.length}}/20</p>
+      <p style="margin: auto auto auto 0; padding-left: 10px; font-size: 14px">
+        Min: ${{ minPrice.toFixed(2) }}
+      </p>
+      <div id="selected-desired-skins">
+        <h4>Selected Desired Items</h4>
+        <p>{{ numberSelected }}/20</p>
+      </div>
+      <p
+        style="margin: auto 0 auto auto; padding-right: 10px; font-size: 14px"
+        v-if="maxPrice == 0"
+      >
+        Max: No Limit
+      </p>
+      <p
+        style="margin: auto 0 auto auto; padding-right: 10px; font-size: 14px"
+        v-else
+      >
+        Max: ${{ maxPrice }}
+      </p>
     </div>
     <div id="player-inventory">
       <DepositSkinSlot v-for="skin in skins" v-bind:key="skin" :skin="skin" />
     </div>
     <div id="deposit-bottom-info">
-      <h5>Total Value: ${{}}</h5>
-      <button id="deposit-button">Deposit</button>
+      <h5>
+        Total Value: ${{ selectedTotal }}
+      </h5>
+      <button id="deposit-button" @click="sendDeposit">Deposit</button>
     </div>
   </div>
 </template>
 
 <script>
-import {useStore} from "vuex";
+//import {useStore} from "vuex";
 import DepositSkinSlot from "./widgets/DepositSkinSlot.vue";
 
 export default {
-	setup() {
-		const store = useStore();
-		
-	},
+  setup() {
+    //const store = useStore();
+  },
   props: {
     depositType: String,
     minPrice: Number,
     maxPrice: Number, // if it equals 0, that means there is no limit
   },
-  data() {
-    return {
-      skins: this.$store.state.deposit.skins,
-    };
+  computed: {
+    skins() {
+      return this.$store.state.deposit.skins;
+    },
+    numberSelected() {
+      return this.$store.getters.getNumberOfSelectedSkins;
+    },
+    selectedTotal() {
+      return this.$store.getters.getSelectedTotal;
+    },
+  },
+  methods: {
+    sendDeposit() {},
   },
   name: "DepositMenu",
   components: { DepositSkinSlot },
@@ -64,10 +91,8 @@ export default {
 .deposit-top-info {
   width: 630px;
   height: 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template: 1fr / 1fr 2fr 1fr;
   gap: 0px;
   margin-top: 10px;
 }
@@ -81,6 +106,11 @@ export default {
   color: #ffffff;
   text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.5);
   margin: 0;
+}
+
+#selected-desired-skins {
+  text-align: center;
+  margin: auto;
 }
 
 .deposit-top-info p {

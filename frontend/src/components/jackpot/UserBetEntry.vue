@@ -1,5 +1,5 @@
 <template>
-  <div class="player-bet" v-if="player">
+  <div class="player-bet" v-bind:class="getUserBetClass(player)" v-if="player">
     <img class="player-bet-profile-img" :src="player.userPicture" />
 
     <div v-if="player.skinPictures.length > 9" class="player-bet-skins">
@@ -47,6 +47,23 @@ export default {
       ).toFixed(2);
 
       return percent;
+    },
+    getUserBetClass(player) {
+      let percent = this.getPlayerPercent(player);
+
+      if (percent > 50) {
+        return "top-player-bet";
+      } else if (percent > 40) {
+        return "first-player-bet";
+      } else if (percent > 30) {
+        return "second-player-bet";
+      } else if (percent > 20) {
+        return "third-player-bet";
+      } else if (percent > 10) {
+        return "fourth-player-bet";
+      } else {
+        return "fifth-player-bet";
+      }
     },
   },
   name: "UserBetEntry",

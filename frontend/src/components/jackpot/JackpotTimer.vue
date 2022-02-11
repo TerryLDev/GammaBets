@@ -59,7 +59,11 @@
       v-if="showDepositMenuVisible && this.$store.state.user.auth"
       @click="closeMenu"
     >
-      <DepositMenu :depositType="depositType" :minPrice="depositMin" :maxPrice="depositMax"/>
+      <DepositMenu
+        :depositType="depositType"
+        :minPrice="depositMin"
+        :maxPrice="depositMax"
+      />
     </div>
   </Transition>
 </template>
@@ -85,8 +89,8 @@ export default {
     return {
       showDepositMenuVisible: false,
       depositType: "High Stakes",
-      depositMin: 1.00,
-      depositMax: 0
+      depositMin: 1.0,
+      depositMax: 0,
     };
   },
   methods: {
@@ -95,16 +99,15 @@ export default {
         event.path[0] == document.getElementById("deposit-background-layer")
       ) {
         this.showDepositMenuVisible = !this.showDepositMenuVisible;
-        this.$store.state.deposit.selected = [];
       }
     },
     openDeposit() {
       const data = {
         SteamID: this.$store.state.user.profile.SteamID,
       };
-
-      console.log(data);
       socket.emit("getInventory", data);
+      this.$store.dispatch("resetSelectedPrice");
+      this.$store.state.deposit.selectedSkins = [];
     },
   },
   name: "JackpotTimer",

@@ -1,8 +1,13 @@
 <template>
-  <div class="inventory-skin-slot" v-on:click="selectSkin($event, skin.id)">
+  <div
+    class="inventory-skin-slot"
+    :id="skin.id"
+    v-on:click="selectSkin($event, skin.id, skin.price)"
+    v-bind:class="{ selected: selectedClass }"
+  >
     <img class="inventory-skin-slot-img" :src="skin.imageURL" />
     <p class="inventory-skin-slot-name">{{ skin.name }}</p>
-    <p class="inventory-skin-slot-price">{{ skin.price }}</p>
+    <p class="inventory-skin-slot-price">{{ skin.price.toFixed(2) }}</p>
   </div>
 </template>
 
@@ -11,18 +16,23 @@ export default {
   props: {
     skin: Object, // skin = {name, id, price, imageURL}
   },
+  data() {
+    return {
+      selectedClass: this.$store.state.deposit.selectedSkins.includes(
+        this.skin.id
+      ),
+    };
+  },
   methods: {
-    selectSkin(event, id) {
-      if (this.$store.state.deposit.selected.includes(id)) {
-        console.log(event);
-        console.log(id);
+    selectSkin(event, id, price) {
+      if (this.$store.state.deposit.selectedSkins.includes(id)) {
+        document.getElementById(id).classList.remove("selected");
         this.$store.dispatch("removeSelectedSkin", id);
-        console.log(this.$store.state.deposit.selected);
+        this.$store.dispatch("substractSelectedPrice", price);
       } else {
-        console.log(event);
-        console.log(id);
+        document.getElementById(id).classList.add("selected");
         this.$store.dispatch("addSelectedSkin", id);
-        console.log(this.$store.state.deposit.selected);
+        this.$store.dispatch("addSelectedPrice", price);
       }
     },
   },
@@ -32,6 +42,7 @@ export default {
 
 <style>
 .inventory-skin-slot {
+  cursor: pointer;
   width: 113px;
   height: 130px;
   background: rgba(255, 255, 255, 0.35);
@@ -42,10 +53,6 @@ export default {
   justify-content: center;
   align-items: center;
   text-align: center;
-}
-
-.inventory-skin-slot-label:hover {
-  cursor: pointer;
 }
 
 .inventory-skin-slot-img {
@@ -59,7 +66,7 @@ export default {
   color: black;
   font-style: normal;
   font-weight: normal;
-  font-size: 14px;
+  font-size: 12px;
   margin: 0;
 }
 
@@ -69,11 +76,15 @@ export default {
   font-family: Montserrat;
   font-style: normal;
   font-weight: normal;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
   margin: 0;
 }
 
 .skin-slot {
+}
+
+.selected {
+  background: rgba(255, 255, 255, 0.75);
 }
 </style>

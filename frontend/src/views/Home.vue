@@ -24,7 +24,7 @@ export default {
     return {
       potMin: "1.00",
       potName: "High Stakes",
-      potMax: "20.00",
+      potMax: "No Limit",
     };
   },
   computed: {
