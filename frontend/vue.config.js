@@ -11,19 +11,8 @@ module.exports = {
         changeOrigin: true,
         secure: true,
       },
-      "^/api/user": {
+      "^/api/*": {
         target: "http://localhost:4000",
-        changeOrigin: true,
-        secure: false,
-      },
-      "^/api/jackpot/highstakes": {
-        target: "http://localhost:4000",
-        changeOrigin: true,
-        secure: false,
-      },
-      "^/api/messages": {
-        target: "http://localhost:4000",
-        changeOrigin: true,
         secure: false,
       },
     },

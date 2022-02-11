@@ -373,8 +373,6 @@ io.on("connection", (socket) => {
 									a.price < b.price ? 1 : -1
 								);
 
-								console.log(doc["SteamID"]);
-
 								socket.emit("getInventory", userInv);
 							}
 						}

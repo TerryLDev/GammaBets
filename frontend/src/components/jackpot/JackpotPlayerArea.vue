@@ -6,9 +6,11 @@
       <h3>Max: ${{ potMax }}</h3>
     </div>
     <div id="jp-pot">
-      <div v-for="player in bets" v-bind:key="player" id="user-bet">
-        <UserBetEntry :player="player" />
-      </div>
+      <UserBetEntry
+        v-for="player in bets"
+        v-bind:key="player"
+        :player="player"
+      />
     </div>
   </div>
 </template>

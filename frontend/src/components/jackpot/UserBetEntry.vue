@@ -1,5 +1,5 @@
 <template>
-  <div id="default-player-bet" class="player-bet" v-if="player">
+  <div class="player-bet" v-if="player">
     <img class="player-bet-profile-img" :src="player.userPicture" />
 
     <div v-if="player.skinPictures.length > 9" class="player-bet-skins">
@@ -17,7 +17,9 @@
     </div>
 
     <div class="player-bet-val-and-name">
-      <h5>${{playerValue(player.skinValues)}} {{getPlayerPercent(player)}}%</h5>
+      <h5>
+        ${{ playerValue(player.skinValues) }} {{ getPlayerPercent(player) }}%
+      </h5>
       <h6>Username</h6>
     </div>
   </div>
@@ -25,10 +27,9 @@
 
 <script>
 export default {
-  props: { player: { type: Object }},
+  props: { player: { type: Object } },
   methods: {
     playerValue(playerValues) {
-
       let totalVal = 0;
 
       playerValues.forEach((val) => {
@@ -36,16 +37,17 @@ export default {
       });
 
       return totalVal;
-
     },
     getPlayerPercent(player) {
       const total = this.$store.state.highStakes.game.TotalPotValue;
 
-      let percent = ((this.playerValue(player.skinValues) / total) * 100).toFixed(2);
+      let percent = (
+        (this.playerValue(player.skinValues) / total) *
+        100
+      ).toFixed(2);
 
       return percent;
-
-    }
+    },
   },
   name: "UserBetEntry",
 };

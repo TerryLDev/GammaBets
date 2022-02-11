@@ -45,15 +45,70 @@
     <button
       id="jp-deposit"
       class="secondary-color default-secondary-cell accent-color"
+      @click="
+        showDepositMenuVisible = !showDepositMenuVisible;
+        openDeposit();
+      "
     >
       Deposit
     </button>
   </div>
+  <Transition name="show-deposit">
+    <div
+      id="deposit-background-layer"
+      v-if="showDepositMenuVisible && this.$store.state.user.auth"
+      @click="closeMenu"
+    >
+      <DepositMenu :depositType="depositType" :minPrice="depositMin" :maxPrice="depositMax"/>
+    </div>
+  </Transition>
 </template>
 
 <script>
+import { useStore } from "vuex";
+import DepositMenu from "../Deposit.vue";
+
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
+
 export default {
+  setup() {
+    const store = useStore();
+
+    socket.on("getInventory", (data) => {
+      console.log(data);
+      store.dispatch("addSkins", data);
+    });
+  },
+  data() {
+    return {
+      showDepositMenuVisible: false,
+      depositType: "High Stakes",
+      depositMin: 1.00,
+      depositMax: 0
+    };
+  },
+  methods: {
+    closeMenu(event) {
+      if (
+        event.path[0] == document.getElementById("deposit-background-layer")
+      ) {
+        this.showDepositMenuVisible = !this.showDepositMenuVisible;
+        this.$store.state.deposit.selected = [];
+      }
+    },
+    openDeposit() {
+      const data = {
+        SteamID: this.$store.state.user.profile.SteamID,
+      };
+
+      console.log(data);
+      socket.emit("getInventory", data);
+    },
+  },
   name: "JackpotTimer",
+  components: { DepositMenu },
 };
 </script>
 
@@ -128,6 +183,7 @@ export default {
   align-items: center;
   text-align: center;
   color: #ffffff;
+  cursor: pointer;
 }
 
 #jp-total-amount-text {
@@ -177,5 +233,17 @@ export default {
   text-align: center;
   color: #ffffff;
   grid-area: 1 / 1 / span 1 / span 1;
+}
+
+#deposit-background-layer {
+  background-color: rgba(0, 0, 0, 0.5);
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
 }
 </style>

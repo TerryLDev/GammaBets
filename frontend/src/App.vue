@@ -143,24 +143,6 @@ body {
   height: 100%;
 }
 
-/* Animation for popup background */
-@keyframes fadein-background {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Class for fadein background animation */
-.fade-background {
-  animation-name: fadein-background;
-  animation-duration: 1s;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
-}
-
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -178,5 +160,15 @@ body {
 }
 
 ::-webkit-scrollbar-corner {
+}
+
+.show-deposit-enter-active,
+.show-deposit-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.show-deposit-enter-from,
+.show-deposit-leave-to {
+  opacity: 0;
 }
 </style>
