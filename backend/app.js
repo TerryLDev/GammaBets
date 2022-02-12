@@ -125,6 +125,8 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
 					cfGameHandler.createNewGame(cf);
 
 				})
+
+				console.log("done: Coinflip")
 			}
 
 		})

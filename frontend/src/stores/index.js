@@ -3,6 +3,7 @@ import axios from "axios";
 import user from "./modules/user";
 import highStakes from "./modules/highstakes";
 import deposit from "./modules/deposit";
+import coinflip from "./modules/coinflip";
 
 export default createStore({
   state: {
@@ -11,7 +12,6 @@ export default createStore({
       active: false,
       game: { GameID: "", Players: [], TotalPotValue: 0, Time: 120 },
     },
-    coinflips: [],
   },
   getters: {
     getMessageFormat(state) {
@@ -51,5 +51,6 @@ export default createStore({
     user,
     deposit,
     highStakes,
+    coinflip
   },
 });

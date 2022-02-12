@@ -1,13 +1,21 @@
 <template>
   <div id="cf-main" class="primary-color default-cell accent-color">
     <h3 class="side-menu-title">Coin Flips</h3>
-    <div id="cf-listings"></div>
+    <div id="cf-listings">
+      <UserCFListing v-for="game in activeGames" v-bind:key="game" :game="game" />
+    </div>
   </div>
 </template>
 
 <script>
+import UserCFListing from "./UserCFListing.vue"
+
 export default {
+  props: {
+    activeGames: Array,
+  },
   name: "CoinFlipListings",
+  components: {UserCFListing}
 };
 </script>
 
@@ -28,5 +36,9 @@ export default {
   height: 100%;
   width: 100%;
   border-radius: 0px 0px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  gap: 5px;
 }
 </style>
