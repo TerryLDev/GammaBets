@@ -2,20 +2,24 @@
   <div id="cf-main" class="primary-color default-cell accent-color">
     <h3 class="side-menu-title">Coin Flips</h3>
     <div id="cf-listings">
-      <UserCFListing v-for="game in activeGames" v-bind:key="game" :game="game" />
+      <UserCFListing
+        v-for="game in activeGames"
+        v-bind:key="game"
+        :game="game"
+      />
     </div>
   </div>
 </template>
 
 <script>
-import UserCFListing from "./UserCFListing.vue"
+import UserCFListing from "./UserCFListing.vue";
 
 export default {
   props: {
     activeGames: Array,
   },
   name: "CoinFlipListings",
-  components: {UserCFListing}
+  components: { UserCFListing },
 };
 </script>
 

@@ -20,7 +20,7 @@
       <h5>
         ${{ playerValue(player.skinValues) }} {{ getPlayerPercent(player) }}%
       </h5>
-      <h6>Username</h6>
+      <h6>{{ player.username }}</h6>
     </div>
   </div>
 </template>
@@ -36,7 +36,7 @@ export default {
         totalVal += val;
       });
 
-      return totalVal;
+      return totalVal.toFixed(2);
     },
     getPlayerPercent(player) {
       const total = this.$store.state.highStakes.game.TotalPotValue;
@@ -72,11 +72,10 @@ export default {
 
 <style>
 .player-bet {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template: auto / 1fr auto 1fr;
   width: 100%;
   height: 90px;
-  justify-content: center;
   align-items: center;
   border: 2px solid rgba(229, 239, 172, 0.5);
   box-sizing: border-box;
@@ -97,6 +96,7 @@ export default {
 }
 
 .player-bet-skins {
+  text-align: center;
   display: flex;
   flex-direction: row;
   justify-content: center;

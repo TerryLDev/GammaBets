@@ -5,7 +5,7 @@
         id="jp-total-amount"
         class="secondary-color default-secondary-cell accent-color"
       >
-        <h2 id="jp-total-amount-text" class="top-spinner-area-h">$0.00</h2>
+        <h2 id="jp-total-amount-text" class="top-spinner-area-h">${{totalPotValue}}</h2>
         <p class="top-spinner-area-t">Total Amount:</p>
       </div>
       <!-- If anyone is ready this, this timer was a pain in the ass to make -->
@@ -36,7 +36,7 @@
         class="secondary-color default-secondary-cell accent-color"
       >
         <h2 class="top-spinner-area-h">
-          <span id="jp-total-item-text">0</span>/100
+          {{itemTotal}}/100
         </h2>
         <p class="top-spinner-area-t">Total Items:</p>
       </div>
@@ -45,73 +45,47 @@
     <button
       id="jp-deposit"
       class="secondary-color default-secondary-cell accent-color"
-      @click="
-        showDepositMenuVisible = !showDepositMenuVisible;
-        openDeposit();
-      "
+      @click="openDepositMenu"
     >
       Deposit
     </button>
   </div>
-  <Transition name="show-deposit">
-    <div
-      id="deposit-background-layer"
-      v-if="showDepositMenuVisible && this.$store.state.user.auth"
-      @click="closeMenu"
-    >
-      <DepositMenu
-        :depositType="depositType"
-        :minPrice="depositMin"
-        :maxPrice="depositMax"
-      />
-    </div>
-  </Transition>
 </template>
 
 <script>
-import { useStore } from "vuex";
-import DepositMenu from "../Deposit.vue";
-
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:4000");
+import {useStore} from "vuex";
+import {computed} from "vue";
 
 export default {
   setup() {
     const store = useStore();
 
-    socket.on("getInventory", (data) => {
-      console.log(data);
-      store.dispatch("addSkins", data);
-    });
+    const itemTotal = computed(() => store.getters.getHighStakesTotalItems);
+    const totalPotValue = computed(() => store.getters.getHighStakesTotalPotValue);
+
+    return {
+      itemTotal,
+      totalPotValue
+    }
   },
   data() {
     return {
-      showDepositMenuVisible: false,
       depositType: "High Stakes",
       depositMin: 1.0,
       depositMax: 0,
     };
   },
   methods: {
-    closeMenu(event) {
-      if (
-        event.path[0] == document.getElementById("deposit-background-layer")
-      ) {
-        this.showDepositMenuVisible = !this.showDepositMenuVisible;
-      }
-    },
-    openDeposit() {
-      const data = {
-        SteamID: this.$store.state.user.profile.SteamID,
-      };
-      socket.emit("getInventory", data);
-      this.$store.dispatch("resetSelectedPrice");
-      this.$store.state.deposit.selectedSkins = [];
+    openDepositMenu() {
+      const store = this.$store;
+
+      store.dispatch("setDepositMin", this.depositMin);
+      store.dispatch("setDepositMax", this.depositMax);
+      store.dispatch("isVisibleToggle");
+      store.dispatch("setDepositType", this.depositType);
     },
   },
   name: "JackpotTimer",
-  components: { DepositMenu },
 };
 </script>
 
@@ -236,17 +210,5 @@ export default {
   text-align: center;
   color: #ffffff;
   grid-area: 1 / 1 / span 1 / span 1;
-}
-
-#deposit-background-layer {
-  background-color: rgba(0, 0, 0, 0.5);
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
 }
 </style>

@@ -1,22 +1,67 @@
 <template>
   <div id="cf-top-container">
     <div id="coin-choice" class="primary-color default-cell accent-color">
-      <button id="red-button-side" class="button-flex">
+      <button
+        v-if="redSideChosen"
+        style="
+          background: rgba(236, 31, 39, 1);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+        "
+        id="red-button-side"
+        class="button-flex"
+        @click="chooseSide('red')"
+      >
         <h3 class="choice-button-text">Red</h3>
         <p class="choice-button-percent-text">
           <span id="red-percent-num">50</span>%
         </p>
       </button>
+
+      <button
+        v-else
+        id="red-button-side"
+        class="button-flex"
+        @click="chooseSide('red')"
+      >
+        <h3 class="choice-button-text">Red</h3>
+        <p class="choice-button-percent-text">
+          <span id="red-percent-num">50</span>%
+        </p>
+      </button>
+
       <div id="cf-deposit-container">
         <h3>Choose a Side</h3>
         <button
           id="cf-deposit-button"
           class="secondary-color default-secondary-cell accent-color"
+          @click="openDepositMenu"
         >
           Deposit
         </button>
       </div>
-      <button id="black-button-side" class="button-flex">
+
+      <button
+        v-if="blackSideChosen"
+        style="
+          background: rgba(32, 29, 30, 1);
+          border: 2px solid rgba(255, 255, 255, 0.5);
+        "
+        id="black-button-side"
+        class="button-flex"
+        @click="chooseSide('black')"
+      >
+        <h3 class="choice-button-text">Black</h3>
+        <p class="choice-button-percent-text">
+          <span id="black-percent-num">50</span>%
+        </p>
+      </button>
+
+      <button
+        v-else
+        id="black-button-side"
+        class="button-flex"
+        @click="chooseSide('black')"
+      >
         <h3 class="choice-button-text">Black</h3>
         <p class="choice-button-percent-text">
           <span id="black-percent-num">50</span>%
@@ -41,6 +86,36 @@
 
 <script>
 export default {
+  data() {
+    return {
+      minPrice: 1.0,
+      maxPrice: 0,
+    };
+  },
+  computed: {
+    redSideChosen() {
+      return this.$store.state.coinflip.chosenSide == "red";
+    },
+    blackSideChosen() {
+      return this.$store.state.coinflip.chosenSide == "black";
+    },
+  },
+  methods: {
+    chooseSide(side) {
+      this.$store.dispatch("setCoinSide", side);
+    },
+    openDepositMenu() {
+      const store = this.$store;
+      const side = store.state.coinflip.chosenSide;
+
+      if (side == "red" || side == "black") {
+        store.dispatch("setDepositMin", this.minPrice);
+        store.dispatch("setDepositMax", this.maxPrice);
+        store.dispatch("isVisibleToggle");
+        store.dispatch("setDepositType", "Coinflip");
+      }
+    },
+  },
   name: "CoinFlipChoice",
 };
 </script>

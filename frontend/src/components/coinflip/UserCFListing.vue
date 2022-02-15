@@ -1,98 +1,192 @@
 <template>
-  <div class="coinflip-listing">
-      {{game}}
+  <div class="coinflip-listing" v-bind:class="playerOneSide(game)">
+    <div class="listing-profile-div">
+      <img class="listing-profile-div-img" :src="game.playerOnePicture" />
+      <div class="listing-profile-div-user-and-val">
+        <p>{{ game.playerOneUser }}</p>
+        <p>${{ playerValue(game.playerOneSkinValues) }}</p>
+      </div>
+    </div>
+
+    <div
+      class="listing-player-skins"
+      v-if="game.playerOneSkinPictures.length > 5"
+    >
+      <template
+        v-for="(skinPic, index) in game.playerOneSkinPictures"
+        :key="skinPic"
+      >
+        <img v-if="index < 5" :src="skinPic" />
+      </template>
+      <p>+{{ game.playerOneSkinPictures.length - 5 }}</p>
+    </div>
+
+    <div v-else class="listing-player-skins">
+      <img
+        v-for="skinPic in game.playerOneSkinPictures"
+        :key="skinPic"
+        :src="skinPic"
+      />
+    </div>
+
+    <div class="listing-buttons-div">
+      <button
+        class="listing-button"
+        :class="buttonClass(game.playerOneSide)"
+        @click="openDepositMenu"
+      >
+        Join
+      </button>
+      <button class="listing-button" :class="buttonClass(game.playerOneSide)">
+        View
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-    props: {game: Object},
-    name: "UserCFListing"
+  props: { game: Object },
+  data() {
+    return {
+      depositType: "Coinflip",
+      showDepositMenuVisible: false,
+    };
+  },
+  methods: {
+    playerOneSide(game) {
+      if (game.playerOneSide == "red") {
+        return "red-listing";
+      } else {
+        return "black-listing";
+      }
+    },
+    playerValue(playerSkinVals) {
+      let totalVal = 0;
+      playerSkinVals.forEach((val) => (totalVal += val));
+      return totalVal.toFixed(2);
+    },
+    buttonClass(playerSide) {
+      if (playerSide == "red") {
+        return "red-listing-button";
+      } else {
+        return "black-listing-button";
+      }
+    },
+    openDepositMenu() {
+      const store = this.$store;
 
-}
+      let min = this.playerValue(this.game.playerOneSkinValues) * 0.95;
+      let max = this.playerValue(this.game.playerOneSkinValues) * 1.05;
+
+      console.log(max, min);
+
+      store.dispatch("setDepositMin", min);
+      store.dispatch("setDepositMax", max);
+      store.dispatch("setSelectedGameID", this.game.gameID);
+      store.dispatch("isVisibleToggle");
+      store.dispatch("setDepositType", "Coinflip");
+    },
+    openViewMenu() {},
+  },
+  name: "UserCFListing",
+};
 </script>
 
 <style>
 .coinflip-listing {
-width: 100%;
-height: 90px;
-border: 2px solid rgba(255, 255, 255, 0.25);
-box-sizing: border-box;
-border-radius: 10px;
+  width: 100%;
+  height: 90px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-sizing: border-box;
+  border-radius: 10px;
+  display: inline-grid;
+  grid-template: auto / 1fr auto 1fr;
+  padding: 10px;
+  align-items: center;
 }
 
 .red-listing {
-
-    background: rgba(236, 31, 39, 0.35);
-
+  background: rgba(236, 31, 39, 0.35);
 }
 
 .black-listing {
-
+  background: rgba(32, 29, 30, 0.6);
 }
 
-.coinflip-listing-img {
-	left: 0;
-	height: 77px;
-	border-radius: 10px;
-	margin: 0px 18px 0px 0px;
+.listing-profile-div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
-.cf-game-user-info {
-	display: flex;
-	flex-direction: column;
+.listing-profile-div-img {
+  width: 70px;
+  height: 70px;
+  border-radius: 10px;
 }
 
-.cf-game-user-info-username {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: bold;
-	font-size: 18px;
-	line-height: 22px;
-	color: white;
-	margin: 0;
+.listing-profile-div-user-and-val {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 16px;
+  color: #ffffff;
 }
 
-.cf-game-user-info-value {
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: bold;
-	font-size: 14px;
-	line-height: 17px;
-	color: white;
-	margin: 0;
+.listing-profile-div-user-and-val p {
+  margin: 0;
 }
 
-.cf-game-buttons {
-	margin-left: auto;
+.listing-player-skins {
+  display: inline-flex;
+  text-align: center;
+  flex-direction: row;
+  align-items: center;
+
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 26px;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.join-button {
-	padding: 7px 12px;
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: bold;
-	font-size: 14px;
-	line-height: 17px;
-	margin-right: 15px;
-	border: 1px solid rgba(255, 255, 255, 0.15);
-	box-sizing: border-box;
-	border-radius: 5px;
-	color: white;
-	cursor: pointer;
+.listing-player-skins img {
+  width: 45px;
+  height: 45px;
 }
 
-.view-button {
-	padding: 7px 12px;
-	font-family: "Montserrat";
-	font-style: normal;
-	font-weight: bold;
-	font-size: 14px;
-	line-height: 17px;
-	border: 1px solid rgba(255, 255, 255, 0.15);
-	box-sizing: border-box;
-	border-radius: 5px;
-	color: white;
-	cursor: pointer;
+.listing-buttons-div {
+  margin: auto 0 auto auto;
+}
+
+.listing-button {
+  width: 60px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  border-radius: 5px;
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 14px;
+  color: #ffffff;
+  margin-left: 15px;
+  cursor: pointer;
+}
+
+.red-listing-button {
+  background: rgba(236, 31, 39, 0.75);
+}
+
+.black-listing-button {
+  background: rgba(32, 29, 30, 0.85);
 }
 </style>

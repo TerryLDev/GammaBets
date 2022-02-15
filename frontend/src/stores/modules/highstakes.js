@@ -5,7 +5,20 @@ const highStakes = {
     active: false,
     game: { GameID: "", Players: [], TotalPotValue: 0 },
   },
-  getters: {},
+  getters: {
+    getHighStakesTotalItems(state) {
+      let itemTotal = 0;
+
+      state.game.Players.forEach((player) => {
+        itemTotal += player.skins.length;
+      })
+
+      return itemTotal;
+    },
+    getHighStakesTotalPotValue(state) {
+      return (state.game.TotalPotValue).toFixed(2);
+    }
+  },
   mutations: {
     setHighStakesGameID(state, gameID) {
       state.game.GameID = gameID;
@@ -25,10 +38,10 @@ const highStakes = {
       axios
         .get("/api/jackpot/highstakes")
         .then((res) => {
+          console.log(res.data)
           commit("setHighStakesGameID", res.data.GameID);
           commit("setHighStakesPlayers", res.data.Players);
           commit("setHighStakesTotalPotValue", res.data.TotalPotValue);
-          console.log(res.data);
         })
         .catch((err) => {
           console.log(err);

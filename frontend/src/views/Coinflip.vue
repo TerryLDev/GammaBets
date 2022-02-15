@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { computed } from '@vue/runtime-core';
+import { computed } from "@vue/runtime-core";
 import { useStore } from "vuex";
 
 import CoinFlipChoice from "../components/coinflip/CoinFlipChoice.vue";
@@ -16,7 +16,6 @@ import QuickPlay from "../components/QuickPlay.vue";
 
 export default {
   setup() {
-
     const store = useStore();
 
     store.dispatch("getAPIActiveCoinflip");
@@ -24,13 +23,14 @@ export default {
 
     const activeGames = computed(() => store.state.coinflip.activeCoinflips);
 
-    const coinflipHistory = computed(() => store.state.coinflip.coinflipHistory);
+    const coinflipHistory = computed(
+      () => store.state.coinflip.coinflipHistory
+    );
 
     return {
       activeGames,
-      coinflipHistory
-    }
-
+      coinflipHistory,
+    };
   },
   data() {
     return {

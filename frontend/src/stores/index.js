@@ -4,6 +4,7 @@ import user from "./modules/user";
 import highStakes from "./modules/highstakes";
 import deposit from "./modules/deposit";
 import coinflip from "./modules/coinflip";
+import request from "./modules/request";
 
 export default createStore({
   state: {
@@ -51,6 +52,7 @@ export default createStore({
     user,
     deposit,
     highStakes,
-    coinflip
+    coinflip,
+    request,
   },
 });

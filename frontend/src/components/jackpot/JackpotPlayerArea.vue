@@ -1,7 +1,7 @@
 <template>
   <div id="jp-play-area" class="primary-color default-cell accent-color">
     <div class="pot-info secondary-color default-secondary-cell accent-color">
-      <h3>Min: ${{ potMin }}</h3>
+      <h3 style="text-align: right">Min: ${{ potMin }}</h3>
       <h3>{{ potName }} Pot</h3>
       <h3 v-if="potMax == 'No Limit'">Max: {{ potMax }}</h3>
       <h3 v-else>Max: ${{ potMax }}</h3>
@@ -61,9 +61,8 @@ export default {
 .pot-info {
   width: calc(100% - 40px);
   height: 30px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
+  display: grid;
+  grid-template: auto / 1fr auto 1fr;
   align-items: center;
   gap: 30px;
   margin: 5px 0px;

@@ -1,0 +1,264 @@
+<template>
+  <div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: {game: Object},
+  name: "ViewMenu",
+};
+</script>
+
+<style>
+.view-menu {
+	z-index: 6;
+	display: grid;
+	position: absolute;
+	width: 800px;
+	height: 750px;
+	background: #0e2a1f;
+	mix-blend-mode: normal;
+	border: 4px solid rgba(255, 255, 255, 0.1);
+	border-radius: 15px;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.view-background-image {
+	z-index: 6;
+	position: absolute;
+	mix-blend-mode: normal;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: 710px;
+	height: 710px;
+	opacity: 0.1;
+}
+
+.main-view-container {
+	z-index: 7;
+	position: absolute;
+	margin: 20px;
+}
+
+.view-players-and-coin {
+	display: grid;
+	grid-template: 250px / repeat(3, 240px);
+	width: 760px;
+	height: 250px;
+	column-gap: 20px;
+	row-gap: 0px;
+	margin-bottom: 20px;
+}
+
+.view-player-profile {
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-self: center;
+	justify-content: center;
+	align-items: center;
+}
+
+.view-player-value {
+	text-align: center;
+	font-family: "Roboto";
+	font-style: normal;
+	font-weight: normal;
+	font-size: 16px;
+	line-height: 19px;
+	color: #ffffff;
+	text-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
+	margin: 0 0 20px 0;
+}
+
+.view-player-name {
+	text-align: center;
+	font-family: "Montserrat";
+	font-style: normal;
+	font-weight: 600;
+	font-size: 16px;
+	line-height: 22px;
+	color: #ffffff;
+	text-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
+	margin: 22px 0 0 0;
+}
+
+.view-coin-section {
+	display: flex;
+	flex-direction: column;
+	margin-top: 20px;
+}
+
+.view-coin-section-img {
+	width: 150px;
+	height: 150px;
+	margin: 0 45px 0px 45px;
+}
+
+.view-coin-section-p {
+	font-family: "Montserrat";
+	font-style: normal;
+	font-weight: 600;
+	font-size: 18px;
+	line-height: 22px;
+	color: #ffffff;
+	text-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
+	margin: 29px auto 0px auto;
+	text-align: center;
+}
+
+.view-both-player-skins {
+	display: flex;
+	justify-content: space-between;
+}
+
+.view-skins-grid {
+	margin: 0;
+	padding: 0;
+	display: grid;
+	row-gap: 0px;
+	column-gap: 0px;
+	grid-template-columns: repeat(4, 80px);
+	grid-auto-rows: 88px;
+	align-items: center;
+	align-self: center;
+	width: 320px;
+	height: 440px;
+}
+
+.red-player-profile-picture {
+	width: 150px;
+	height: 150px;
+	border: 4px solid rgba(138, 14, 14, 0.5);
+	border-radius: 15px;
+	margin-top: 20px;
+}
+
+.red-player-skin-slot {
+	width: 80px;
+	height: 88px;
+	background: rgba(138, 14, 14, 0.5);
+	border: 2px solid #8a0e0e;
+	box-sizing: border-box;
+	border-radius: 10px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	text-align: center;
+}
+
+.black-player-profile-picture {
+	width: 150px;
+	height: 150px;
+	border: 4px solid rgba(24, 24, 24, 0.5);
+	border-radius: 15px;
+	margin-top: 20px;
+}
+
+.black-player-skin-slot {
+	width: 80px;
+	height: 88px;
+	background: rgba(24, 24, 24, 0.5);
+	border: 2px solid #181818;
+	box-sizing: border-box;
+	border-radius: 10px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	text-align: center;
+}
+
+.view-slot-img {
+	width: 65px;
+	height: 65px;
+	margin: 0 auto 0 auto;
+}
+
+.view-slot-value {
+	width: 48px;
+	height: 17px;
+	font-family: "Montserrat";
+	font-style: normal;
+	font-weight: normal;
+	font-size: 14px;
+	line-height: 17px;
+	color: #ffffff;
+	margin: 0 auto 0 auto;
+}
+
+.player-two-section {
+}
+
+.coin-animation {
+	justify-content: center;
+	align-items: center;
+	align-self: center;
+	position: absolute;
+	z-index: 8;
+	height: 260px;
+	width: 260px;
+	margin-left: auto;
+	margin-top: -55px;
+	margin-right: auto;
+}
+
+/* this thing */
+
+@keyframes view-menu-fade-in {
+	from {
+		opacity: 0;
+		left: 0%;
+	}
+	to {
+		opacity: 1;
+		left: 50%;
+	}
+}
+
+.show-selected-view-menu {
+	animation-name: view-menu-fade-in;
+	animation-duration: 1s;
+	animation-iteration-count: 1;
+	animation-fill-mode: forwards;
+}
+
+/* fade out coin animation */
+@keyframes fade-out-coin-animation {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+		display: none;
+	}
+}
+
+@keyframes fade-in-coin-winner {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+.fade-out-coin-animation {
+	animation-name: fade-out-coin-animation;
+	animation-duration: 1.5s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: 1;
+}
+
+.fade-in-coin-winner {
+	z-index: 9;
+	animation-name: fade-in-coin-winner;
+	animation-duration: 1.5s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: 1;
+}
+</style>

@@ -9,6 +9,7 @@
       <p style="margin: auto auto auto 0; padding-left: 10px; font-size: 14px">
         Min: ${{ minPrice.toFixed(2) }}
       </p>
+
       <div id="selected-desired-skins">
         <h4>Selected Desired Items</h4>
         <p>{{ numberSelected }}/20</p>
@@ -23,50 +24,85 @@
         style="margin: auto 0 auto auto; padding-right: 10px; font-size: 14px"
         v-else
       >
-        Max: ${{ maxPrice }}
+        Max: ${{ maxPrice.toFixed(2) }}
       </p>
     </div>
-    <div id="player-inventory">
+
+    <img v-if="isLoading" id="deposit-loading" src="../assets/gammalogo.png" />
+
+    <div v-else id="player-inventory">
       <DepositSkinSlot v-for="skin in skins" v-bind:key="skin" :skin="skin" />
     </div>
+
     <div id="deposit-bottom-info">
-      <h5>
-        Total Value: ${{ selectedTotal }}
-      </h5>
-      <button id="deposit-button" @click="sendDeposit">Deposit</button>
+      <h5>Total Value: ${{ selectedTotal }}</h5>
+      <DepositButton />
     </div>
   </div>
 </template>
 
 <script>
-//import {useStore} from "vuex";
+import DepositButton from "./widgets/DepositButton.vue";
 import DepositSkinSlot from "./widgets/DepositSkinSlot.vue";
+
+import { computed } from "vue";
+import { useStore } from "vuex";
+
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
 
 export default {
   setup() {
-    //const store = useStore();
-  },
-  props: {
-    depositType: String,
-    minPrice: Number,
-    maxPrice: Number, // if it equals 0, that means there is no limit
-  },
-  computed: {
-    skins() {
-      return this.$store.state.deposit.skins;
-    },
-    numberSelected() {
-      return this.$store.getters.getNumberOfSelectedSkins;
-    },
-    selectedTotal() {
-      return this.$store.getters.getSelectedTotal;
-    },
-  },
-  methods: {
-    sendDeposit() {},
+    const store = useStore();
+
+    const emitData = {
+      SteamID: store.state.user.profile.SteamID,
+    };
+
+    const isLoading = computed(() => store.state.deposit.loading);
+
+    if (store.getters.canSendInventoryRequest) {
+      socket.emit("getInventory", emitData);
+      store.dispatch("setLastInventoryRequest");
+    }
+
+    else {
+      const request = store.state.request;
+      let timeLeft = Math.round((request.inventoryWait + (request.lastInventoryRequest - Date.now())) / 100) / 10;
+
+      alert("You must wait " + timeLeft + "s to make another inventory request");
+    }
+
+    socket.on("getInventory", (data) => {
+      store.dispatch("addSkins", data);
+      store.dispatch("resetSelectedPrice");
+      store.dispatch("resetSelectedSkins");
+      store.dispatch("setLoadingFalse");
+    });
+
+    store.dispatch("resetSelectedPrice");
+    store.dispatch("resetSelectedSkins");
+
+    const skins = computed(() => store.state.deposit.skins);
+    const numberSelected = computed(
+      () => store.getters.getNumberOfSelectedSkins
+    );
+    const selectedTotal = computed(() => store.getters.getSelectedTotal);
+    const minPrice = computed(() => store.state.deposit.depositMin);
+    const maxPrice = computed(() => store.state.deposit.depositMax);
+
+    return {
+      skins,
+      numberSelected,
+      selectedTotal,
+      minPrice,
+      maxPrice,
+      isLoading,
+    };
   },
   name: "DepositMenu",
-  components: { DepositSkinSlot },
+  components: { DepositSkinSlot, DepositButton },
 };
 </script>
 
@@ -167,26 +203,21 @@ export default {
   margin-bottom: 0;
 }
 
-#deposit-button {
-  width: 112px;
-  height: 30px;
-  background: rgba(32, 29, 30, 0.7);
-  border: 1px solid rgba(229, 239, 172, 0.5);
-  box-shadow: 3px 3px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 10px;
-  font-family: Montserrat;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  color: #ffffff;
-  margin-right: 10px;
-  margin-top: 0;
-  margin-bottom: 0;
+@keyframes loading-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-#deposit-button:hover {
-  cursor: pointer;
-  background-color: black;
-  color: white;
+#deposit-loading {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 150px;
+  width: 150px;
+  animation: loading-spin linear 1s infinite;
 }
 </style>
