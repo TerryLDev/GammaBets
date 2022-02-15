@@ -37,7 +37,7 @@
       >
         Join
       </button>
-      <button class="listing-button" :class="buttonClass(game.playerOneSide)">
+      <button class="listing-button" :class="buttonClass(game.playerOneSide)" @click="openViewMenu">
         View
       </button>
     </div>
@@ -79,15 +79,16 @@ export default {
       let min = this.playerValue(this.game.playerOneSkinValues) * 0.95;
       let max = this.playerValue(this.game.playerOneSkinValues) * 1.05;
 
-      console.log(max, min);
-
       store.dispatch("setDepositMin", min);
       store.dispatch("setDepositMax", max);
       store.dispatch("setSelectedGameID", this.game.gameID);
       store.dispatch("isVisibleToggle");
       store.dispatch("setDepositType", "Coinflip");
     },
-    openViewMenu() {},
+    openViewMenu() {
+      this.$store.dispatch("toggleViewMenu");
+      this.$store.dispatch("setChosenView", this.game.gameID)
+    },
   },
   name: "UserCFListing",
 };

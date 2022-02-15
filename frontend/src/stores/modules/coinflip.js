@@ -6,6 +6,8 @@ const coinflip = {
     coinflipHistory: [],
     chosenSide: "",
     pastWinningSides: [],
+    viewMenu: {isVisible: false, chosenGame: {}},
+    cfGameTimers: [],
   },
   getters: {
     getCFGame(state, gameID) {
@@ -25,6 +27,21 @@ const coinflip = {
     },
     setCoinSide(state, side) {
       state.chosenSide = side;
+    },
+    toggleViewMenu(state) {
+      state.viewMenu.isVisible = !state.viewMenu.isVisible;
+    },
+    setChosenView(state, gameID) {
+      const game = state.activeCoinflips.find((game) => game.gameID == gameID);
+
+      state.viewMenu.chosenGame = game;
+    },
+    resetChosenView(state) {
+
+      state.viewMenu.chosenGame = {};
+    },
+    changeCFGameTimers(state, cfTimers) {
+      state.cfGameTimers = cfTimers;
     },
   },
   actions: {
@@ -50,6 +67,18 @@ const coinflip = {
     },
     setCoinSide({ commit }, side) {
       commit("setCoinSide", side);
+    },
+    toggleViewMenu({commit}) {
+      commit("toggleViewMenu");
+    },
+    setChosenView({commit}, gameID) {
+      commit("setChosenView", gameID);
+    },
+    resetChosenView({commit}) {
+      commit("resetChosenView");
+    },
+    changeCFGameTimers({commit}, timers) {
+      commit("changeCFGameTimer", timers)
     },
   },
 };

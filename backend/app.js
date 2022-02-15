@@ -394,7 +394,7 @@ io.on("connection", (socket) => {
 
 				let gameID = cfGameHandler.createGameID();
 
-				if (lastUsedCFBot == "CF0") {
+				if (lastUsedCFBot == cfBotZero.botID) {
 
 					cfBotOne.newCoinFlipTrade(data.steamID, data.skins, data.tradeURL, data.side, gameID);
 
@@ -440,13 +440,13 @@ io.on("connection", (socket) => {
 
 			if (findBot == process.env.CF_BOT_0_SERVERID) {
 
-				cfBotZero.joinCFGameAndSendTrade(data.steamID, data.username, data.skins, data.tradeURL, data.gameID);
+				cfBotZero.joiningActiveCFGame(data.steamID, data.username, data.skins, data.tradeURL, data.gameID);
 
 			}
 
 			else if (findBot == process.env.CF_BOT_1_SERVERID) {
 
-				cfBotOne.joinCFGameAndSendTrade(data.steamID, data.username, data.skins, data.tradeURL, data.gameID);
+				cfBotOne.joiningActiveCFGame(data.steamID, data.username, data.skins, data.tradeURL, data.gameID);
 
 			}
 
@@ -545,39 +545,15 @@ setInterval(function () {
 // done
 cfEvents.on("cfTimer", (data) => {
 
-	// data format (array)
-	// data = [{GameID: **, CurrentTime: **, State: ""}]
-
 	io.emit("cfTimer", data);
 
 });
 
 // done
 cfEvents.on("newCFGame", (data) => {
-	
-	// data format
-	// data = GameObject (game obejct from the json file)
 
 	io.emit("newCFGame", data);
 	
-});
-
-// done
-cfEvents.on("secondPlayerJoiningCFGame", (data) => {
-	
-	// data format
-	/* data = {
-		SteamID: steamID,
-		Username: username,
-		GameID: gameID,
-		TradeState: tradeState,
-		UserPicURL: userPicURL,
-		PlayerTwoSide: "red" or "black"
-	}
-	*/
-
-	io.emit("secondPlayerJoiningCFGame", data);
-
 });
 
 // need more work
@@ -587,20 +563,6 @@ cfEvents.on("secondPlayerDeclinedTrade", (data) => {
 
 });
 
-// done I think
-cfEvents.on("secondPlayerAccepctedTrade", (data) => {
-
-	// data format
-	/*  data.GameID = gameObject.GameID;
-    	data.PlayerTwoSkins = gameObject.Players[1].skins;
-		data.PlayerTwoSkinValues = gameObject.Players[1].skinValues;
-		data.PlayerTwoSkinPictures = gameObject.Players[1].skinPictures;
-		data.PlayerTwoSide = gameObject.playerTwoSide;
-	*/
-
-	io.emit("secondPlayerAccepctedTrade", data);
-
-});
 
 // need more work
 ///////////////////////

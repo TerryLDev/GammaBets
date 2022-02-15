@@ -38,7 +38,6 @@ const highStakes = {
       axios
         .get("/api/jackpot/highstakes")
         .then((res) => {
-          console.log(res.data)
           commit("setHighStakesGameID", res.data.GameID);
           commit("setHighStakesPlayers", res.data.Players);
           commit("setHighStakesTotalPotValue", res.data.TotalPotValue);

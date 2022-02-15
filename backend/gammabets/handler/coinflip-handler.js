@@ -7,13 +7,13 @@ const emitter = require('events').EventEmitter;
 const cfEvents = new emitter();
 
 let allCFGames = [];
+let cfGamesTimer = [];
 let cfHistory = [];
 
 class CoinFlipHandler {
 
     defaultTimer = process.env.COIN_FLIP_OPPONENT_JOINING_TIME;
     countDown = process.env.COIN_FLIP_COUNTDOWN_TIME;
-    waitTime = process.env.COIN_FLIP_ENDING_WAIT_TIME;
 
     createGameID() {
 
@@ -46,38 +46,6 @@ class CoinFlipHandler {
         });
 
         return bot;
-
-    }
-
-    // Updates Methods
-    // needs work
-    updateJsonGameState(update) {
-
-        allCFGames.forEach(gameObj => {
-
-            if (update.GameID == gameObj.gameID) {
-
-                gameObj.gameState = update.GameState;
-
-            }
-
-        });
-
-    }
-
-    // needs work
-    updateJsonWinner(update) {
-
-        // update format
-        // update = {GameID: gameID, SteamID: winner}
-
-        allCFGames.forEach(gameObj => {
-
-            if (gameObj.gameID == update.GameID) {
-                gameObj.winner = update.SteamID;
-            }
-
-        });
 
     }
 
@@ -178,31 +146,18 @@ class CoinFlipHandler {
 
         let newEntry = {
             gameID: gameObject.GameID,
-            playerOneUser: gameObject.Players[0].username,
-            playerOneId: gameObject.Players[0].userSteamId,
-            playerOnePicture: gameObject.Players[0].userPicture,
-            playerOneSkins: gameObject.Players[0].skins,
-            playerOneSkinValues: gameObject.Players[0].skinValues,
-            playerOneSkinPictures: gameObject.Players[0].skinPictures,
-            playerOneState: gameObject.PlayerOneTradeState,
-            playerOneSide: "none",
-            playerTwoUser: "none",
-            playerTwoId: "none",
-            playerTwoPicture: "none",
-            playerTwoSkins: "none",
-            playerTwoSkinValues: "none",
-            playerTwoSkinPictures: "none",
-            playerTwoState: "none",
-            playerTwoSide: "none",
-            totalValue: gameObject.TotalValue,
             bot: gameObject.BotID,
-            timer: false,
-            gameState: gameObject.Status,
+            gameState: true,
+            playerOne: gameObject.Players[0],
+            playerOneTradeState: gameObject.PlayerOneTradeState,
+            playerTwo: {},
+            playerTwoTradeState: "none",
+            totalValue: gameObject.TotalValue,
+            secondPlayerJoining: false,
+            waitingToFlip: false,
+            cancelRequest: false,
             winner: "none",
-            wait: parseInt(process.env.COIN_FLIP_ENDING_WAIT_TIME),
-            slicerDelay: 3,
-            cancelRequest: false
-        };
+        }
 
         if (gameObject.Red == gameObject.Players[0].userSteamId) {
             newEntry.playerOneSide = "red";
@@ -215,6 +170,7 @@ class CoinFlipHandler {
         }
 
         allCFGames.push(newEntry);
+        cfGamesTimer.push({gameID: gameObject.GameID, defaultTimer: this.defaultTimer, flippingTimer: this.countDown});
 
         return newEntry;
 
@@ -223,64 +179,27 @@ class CoinFlipHandler {
     // done
     #callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
 
-        let data = {};
+        let gameObj = allCFGames.find(game => game.gameID == gameID);
 
-        allCFGames.forEach((gameobj) => {
-
-            if (gameobj.gameID == gameID) {
-
-                gameobj.playerTwoState = tradeState;
-                gameobj.playerTwoId = steamID;
-                gameobj.playerTwoUser = username;
-                gameobj.playerTwoPicture = userPicURL;
-                gameobj.timer = parseInt(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
-
-                data.SteamID = steamID;
-                data.Username = username;
-                data.GameID = gameID;
-                data.TradeState = tradeState;
-                data.UserPicURL = userPicURL;
-                data.PlayerTwoSide = gameobj.playerTwoSide;
-
-            }
-
-        });
-
-        return data;
+        gameObj.timer = parseInt(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
+        gameObj.playerTwo = {
+            username: username,
+            userSteamId: steamID,
+            userPicture: userPicURL,
+        }
+        gameObj.playerTwoTradeState = tradeState
+        gameObj.secondPlayerJoining = true;
 
     }
 
     // needs work
     #callOpponentAcceptedTrade(gameObject) {
 
-        let data;
+        let gameObj = allCFGames.find(game => game.gameID == gameID);
 
-        allCFGames.forEach(obj => {
-
-            if (obj.gameID == gameObject.GameID) {
-
-                obj.playerTwoSkins = gameObject.Players[1].skins;
-                obj.playerTwoSkinValues = gameObject.Players[1].skinValues;
-                obj.playerTwoSkinPictures = gameObject.Players[1].skinPictures;
-                obj.playerTwoState = gameObject.PlayerTwoTradeState;
-                obj.timer = parseInt(process.env.COIN_FLIP_COUNTDOWN_TIME);
-
-                data.GameID = gameObject.GameID;
-                data.PlayerTwoSkins = gameObject.Players[1].skins;
-                data.PlayerTwoSkinValues = gameObject.Players[1].skinValues;
-                data.PlayerTwoSkinPictures = gameObject.Players[1].skinPictures;
-                data.PlayerTwoSide = gameObject.playerTwoSide;
-
-                gameObject.Players[1].skinValues.forEach(val => {
-
-                    obj.totalValue += val;
-
-                });
-            }
-
-        });
-
-        return data;
+        gameObj.playerTwo = gameObject.Players[1];
+        gameObj.playerTwo = gameObject.PlayerTwoTradeState;
+        gameObj.waitingToFlip = true;
 
     }
 
@@ -293,7 +212,7 @@ class CoinFlipHandler {
 
         try {
 
-            let data = await this.#callNewGame(gameObject);
+            this.#callNewGame(gameObject);
 
             cfEvents.emit("newCFGame", await data);
 
@@ -311,7 +230,7 @@ class CoinFlipHandler {
 
         try {
 
-            let data = await this.#callOpponentJoiningGame(gameID,steamID, username, tradeState, userPicURL);
+            let data = await this.#callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL);
 
             cfEvents.emit("secondPlayerJoiningCFGame", await data);
 
@@ -378,87 +297,69 @@ class CoinFlipHandler {
     // needs work
     #updateTimer() {
 
-        let data = [];
+        /*
+        let newEntry = {
+            gameID: gameObject.GameID,
+            bot: gameObject.BotID,
+            gameState: true,
+            playerOne: gameObject.Players[0],
+            playerOneTradeState: gameObject.PlayerOneTradeState,
+            playerTwo: {},
+            playerTwoTradeState: "none",
+            totalValue: gameObject.TotalValue,
+            secondPlayerJoining: false,
+            defaultTimer: this.defaultTimer,
+            waitingToFlip: false,
+            flippingTimer: this.countDown,
+            cancelRequest: false,
+            winner: "none",
+        }
+        */
 
-        // go through each game in the json list
-        if (allCFGames.length > 0) {
+        allCFGames.forEach(gameObj =>{
 
-            allCFGames.forEach(gameObj => {
+            let gameTimer = cfGamesTimer.find(game => gameObj.gameID == game.gameID)
 
-                let newEntry = {};
+            if(gameObj.waitingToFlip == true && gameObj.playerTwoTradeState == "Accepted") {
 
-                // checks if game is active
-                if (gameObj.gameState == true) {
+                // continue it
+                if (gameTimer.flippingTimer > 0) {
 
-                    if (gameObj.playerTwoState == "Active") {
-
-                        let getTimer = parseInt(gameObj.timer);
-
-                        if (getTimer > 0) {
-
-                            gameObj.timer = getTimer - 1;
-
-                            newEntry.GameID = gameObj.gameID;
-                            newEntry.CurrentTime = gameObj.timer;
-                            newEntry.State = "waiting";
-
-                        }
-
-                        else {
-
-                            setTimeout(async () => {
-
-                                let result = await this.#checkCancelation(gameObj.gameID);
-
-                                if (await result) {
-                                    cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
-                                }
-
-                            }, 2500);
-
-                        }
-                    }
-
-                    else if (gameObj.playerTwoState == "Accepted") {
-
-                        let getTimer = parseInt(gameObj.timer);
-
-                        if (getTimer > 0) {
-
-                            gameObj.timer = getTimer - 1;
-
-                            newEntry.GameID = gameObj.gameID;
-                            newEntry.CurrentTime = gameObj.timer;
-                            newEntry.State = "flipping";
-
-                        }
-
-                        else {
-
-                            cfEvents.emit("decideWinner", {
-                                GameID: gameObj.gameID,
-                                GameState: false
-                            });
-
-                        }
-
-                    }
-
-                    data.push(newEntry);
+                    gameTimer.flippingTimer -= 1
 
                 }
 
-            })
+                // stop timer and choose a winner
+                else {
+                    console.log("choose winner", gameObj.gameID);
+                }
 
-            return data;
-        }
+            }
 
+            else if(gameObj.secondPlayerJoining) {
 
-        else {
+                // continue it
+                if (gameTimer.defaultTimer > 0) {
 
-            return false
+                    gameTimer.defaultTimer -= 1;
 
-        }
+                }
+
+                // cancel trade if it hits 0
+                else {
+                    console.log("cancel Trade for " + gameObj.gameID);
+                }
+
+            }
+
+            else {
+                console.log("yikes the timer brokey")
+            }
+            
+        });
+
+        return cfGamesTimer
+
     }
 
     // needs work
@@ -466,9 +367,9 @@ class CoinFlipHandler {
 
         try {
 
-            const result = await this.#updateTimer();
+            let result = await this.#updateTimer();
 
-            if (await result != false) {
+            if (await result) {
 
                 cfEvents.emit("cfTimer", result);
 
@@ -487,4 +388,4 @@ class CoinFlipHandler {
 
 }
 
-module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory};
+module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, cfGamesTimer};

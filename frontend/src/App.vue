@@ -9,7 +9,7 @@
 
     <Transition name="show-deposit">
       <div
-        id="deposit-background-layer"
+        id="popup-background-layer"
         v-if="isDepositVisible"
         @click="closeMenu"
       >
@@ -49,8 +49,6 @@ export default {
 
     const isDepositVisible = computed(() => store.state.deposit.isVisible);
 
-    console.log(isDepositVisible);
-
     return {
       user,
       isDepositVisible,
@@ -59,7 +57,7 @@ export default {
   methods: {
     closeMenu(event) {
       if (
-        event.path[0] == document.getElementById("deposit-background-layer")
+        event.path[0] == document.getElementById("popup-background-layer")
       ) {
         this.$store.dispatch("resetDepositAll");
         this.$store.dispatch("setLoadingTrue");
@@ -141,7 +139,7 @@ body {
 .accent-color {
   border-style: solid;
   border-width: 2px;
-  border-color: rgba(229, 239, 172, 0.5);
+  border-color: rgba(229, 239, 172, 0.2);
 }
 
 /* Primary color for popup of cell */
@@ -204,7 +202,7 @@ body {
   opacity: 0;
 }
 
-#deposit-background-layer {
+#popup-background-layer {
   display: inline;
   background-color: rgba(0, 0, 0, 0.5);
   margin: 0;

@@ -96,7 +96,7 @@ class CoinFlipBot extends SteamBot{
 		}
 	}
 
-	async joinCFGameAndSendTrade(steamID, username, skins, tradeURL, gameID) {
+	async joiningActiveCFGame(steamID, username, skins, tradeURL, gameID) {
 
 		try {
 
@@ -198,7 +198,7 @@ class CoinFlipBot extends SteamBot{
 			);
 		}
 
-		else if (pOneSide == "black") {
+		else  {
 
 			CoinFlipGame.findOneAndUpdate({ GameID: cfGameObj.GameID },
 				{ $set:
@@ -221,10 +221,6 @@ class CoinFlipBot extends SteamBot{
 			);
 
 		}
-
-		else {
-			console.log("AHHHHHH")
-		}
 	}
 
 	////////////////////////
@@ -232,8 +228,6 @@ class CoinFlipBot extends SteamBot{
 	// Calls
 
 	#callNewCoinFlipTrade(steamID, skins, tradeURL, side, gameID) {
-
-		console.log(steamID, skins, tradeURL, side, gameID);
 
 		const offer = this.manager.createOffer(steamID);
 
