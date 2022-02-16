@@ -190,6 +190,8 @@ class CoinFlipHandler {
         gameObj.playerTwoTradeState = tradeState
         gameObj.secondPlayerJoining = true;
 
+        return gameObj;
+
     }
 
     // needs work
@@ -200,6 +202,8 @@ class CoinFlipHandler {
         gameObj.playerTwo = gameObject.Players[1];
         gameObj.playerTwo = gameObject.PlayerTwoTradeState;
         gameObj.waitingToFlip = true;
+
+        return gameObj;
 
     }
 
@@ -265,29 +269,13 @@ class CoinFlipHandler {
     // needs work
     cancelOpponentTrade(gameID) {
 
-        let gameObject;
+        /*
+        let gameObj = allCFGames.find(game => gameID == game.gameID);
 
-        allCFGames.forEach(gameObj => {
-
-            if (gameObj.gameID == gameID) {
-
-                gameObject = gameObj
-
-                gameObj.playerTwoUser = "none";
-                gameObj.playerTwoId = "none";
-                gameObj.playerTwoPicture = "none";
-                gameObj.playerTwoSkins = "none";
-                gameObj.playerTwoSkinValues = "none";
-                gameObj.playerTwoSkinPictures = "none";
-                gameObj.playerTwoState = "none";
-                gameObj.timer = false;
-                gameObj.cancelRequest = false;
-
-            }
-        })
+        gameObj.
     
         return gameObject;
-
+        */
     }
 
     ////////////////
@@ -320,7 +308,7 @@ class CoinFlipHandler {
 
             let gameTimer = cfGamesTimer.find(game => gameObj.gameID == game.gameID)
 
-            if(gameObj.waitingToFlip == true && gameObj.playerTwoTradeState == "Accepted") {
+            if(gameObj.waitingToFlip && gameObj.playerTwoTradeState == "Accepted") {
 
                 // continue it
                 if (gameTimer.flippingTimer > 0) {

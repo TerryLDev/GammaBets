@@ -544,6 +544,7 @@ setInterval(function () {
 
 // done
 cfEvents.on("cfTimer", (data) => {
+	// returns the list of games timers
 
 	io.emit("cfTimer", data);
 
@@ -551,10 +552,19 @@ cfEvents.on("cfTimer", (data) => {
 
 // done
 cfEvents.on("newCFGame", (data) => {
+	// returns the modified game obj
 
 	io.emit("newCFGame", data);
 	
 });
+
+cfEvents.on("secondPlayerAccepctedTrade", data => {
+	io.emit("secondPlayerAccepctedCFTrade", data);
+})
+
+cfEvents.on("secondPlayerJoiningCFGame", data => {
+	io.emit("secondPlayerJoiningCFGame", data);
+})
 
 // need more work
 cfEvents.on("secondPlayerDeclinedTrade", (data) => {

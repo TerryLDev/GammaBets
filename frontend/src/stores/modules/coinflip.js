@@ -2,7 +2,7 @@ import axios from "axios";
 
 const coinflip = {
   state: {
-    activeCoinflips: [],
+    activeCoinflips: [{gameID: "002", change: 0}, {gameID: "001", change: 0}],
     coinflipHistory: [],
     chosenSide: "",
     pastWinningSides: [],
@@ -43,6 +43,15 @@ const coinflip = {
     changeCFGameTimers(state, cfTimers) {
       state.cfGameTimers = cfTimers;
     },
+    modifyCFGame(state, gameObj) {
+
+      const game = state.activeCoinflips.find(game => game.gameID == gameObj.gameID);
+
+      state.activeCoinflips[game] = gameObj;
+
+      console.log(state.activeCoinflips);
+
+    }
   },
   actions: {
     getAPIActiveCoinflip({ commit }) {
@@ -80,6 +89,9 @@ const coinflip = {
     changeCFGameTimers({commit}, timers) {
       commit("changeCFGameTimer", timers)
     },
+    modifyCFGame({commit}, data) {
+      commit("modifyCFGame", data);
+    }
   },
 };
 

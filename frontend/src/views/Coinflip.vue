@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { computed } from "@vue/runtime-core";
+import { computed} from "@vue/runtime-core";
 import { useStore } from "vuex";
 
 import CoinFlipChoice from "../components/coinflip/CoinFlipChoice.vue";
@@ -32,6 +32,9 @@ export default {
   setup() {
     const store = useStore();
 
+    store.dispatch("modifyCFGame", {gameID: "001", change: 1})
+    store.dispatch("modifyCFGame", {gameID: "002", change: 2})
+
     store.dispatch("getAPIActiveCoinflip");
     store.dispatch("getAPICoinflipHistory");
 
@@ -44,11 +47,18 @@ export default {
     const showViewMenu = computed(() => store.state.coinflip.viewMenu.isVisible);
     const chosenView = computed(() => store.state.coinflip.viewMenu.chosenGame);
 
+    /*
     socket.on("cfTimer", data => {
 
       store.dispatch("changeCFGameTimer", data)
 
-    })
+    });
+
+    */
+
+    socket.on("secondPlayerAccepctedTrade", data => {
+      store.dispatch("modifyCFGame", data)
+    });
 
     return {
       activeGames,
@@ -56,6 +66,7 @@ export default {
       showViewMenu,
       chosenView,
     };
+
   },
   data() {
     return {
