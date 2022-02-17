@@ -12,6 +12,7 @@
     "axios": "^0.25.0",
     "core-js": "^3.6.5",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
     "passport": "^0.5.2",
     "passport-steam": "^1.0.17",
     "socket.io": "^4.4.1",

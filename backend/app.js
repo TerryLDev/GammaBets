@@ -1,6 +1,5 @@
 const express = require("express");
 require("dotenv").config(__dirname + "/.env");
-const nunjucks = require("nunjucks");
 const path = require("path");
 const passport = require("passport");
 const session = require("express-session");
@@ -20,6 +19,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
+if (process.env.DEV_ENV == false) {
+	app.use(express.static(__dirname + "/public/"));
+
+	app.get(/.*/, (req, res) => res.send(__dirname + "/public/index.html"))
+}
 
 // Models
 const User = require("./models/user.model");
@@ -154,6 +159,8 @@ app.use(
 // Localhost port
 const port = process.env.PORT || 4000;
 
+/*
+
 // Intialize Bots
 // Random Login Time to avoid request Errors
 
@@ -186,6 +193,8 @@ setTimeout(() => {
 
 
 }, randomThree);
+
+*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;

@@ -9,10 +9,14 @@ const user = {
     getTradeURL(state) {
       if (state.user.profile.TradeURL) {
         return state.user.profile.TradeURL;
-      } else {
+      }
+      else {
         return false;
       }
     },
+    getUserAuth(state) {
+      return state.auth;
+    }
   },
   mutations: {
     setUser(state, user) {
@@ -25,7 +29,7 @@ const user = {
   actions: {
     getAPIUser({ commit }) {
       axios
-        .get("/api/user")
+        .get("api/user")
         .then((res) => {
           if (res.data.auth) {
             commit("setUser", res.data.user);

@@ -30,9 +30,16 @@ import { computed } from "vue";
 //import axios from "axios";
 
 /*
-import { io } from "socket.io-client";
+import {io} from "socket.io-client"
+const env = process.env.NODE_ENV;
 
-const socket = io("http://localhost:4000");
+if (env == "development") {
+  socket = io("http://localhost:4000");
+}
+
+else {
+  socket = io("https://gammabets.com")
+}
 
 socket.on("test", (data) => {
   console.log(data);

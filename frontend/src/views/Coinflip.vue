@@ -22,7 +22,16 @@ import ViewMenu from "../components/coinflip/ViewMenu.vue";
 
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:4000");
+let socket;
+const env = process.env.NODE_ENV;
+
+if (env == "development") {
+  socket = io("http://localhost:4000");
+}
+
+else {
+  socket = io("https://gammabets.com")
+}
 
 export default {
   setup() {

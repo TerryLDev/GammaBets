@@ -42,6 +42,7 @@
 </template>
 
 <script>
+require("dotenv").config(__dirname + "front.env");
 import DepositButton from "./widgets/DepositButton.vue";
 import DepositSkinSlot from "./widgets/DepositSkinSlot.vue";
 
@@ -49,35 +50,48 @@ import { computed } from "vue";
 import { useStore } from "vuex";
 
 import { io } from "socket.io-client";
+let socket;
 
-const socket = io("http://localhost:4000");
+const env = process.env.NODE_ENV;
+
+if (env == "development") {
+  socket = io("http://localhost:4000");
+}
+
+else {
+  socket = io("https://gammabets.com")
+}
 
 export default {
   setup() {
     const store = useStore();
 
-    const emitData = {
-      SteamID: store.state.user.profile.SteamID,
-    };
+    const isAuth = computed(() => store.getters.getUserAuth);
+
+    if (isAuth.value) {
+      const emitData = {
+        SteamID: store.state.user.profile.SteamID,
+      }; 
+      if (store.getters.canSendInventoryRequest) {
+        socket.emit("getInventory", emitData);
+        store.dispatch("setLastInventoryRequest");
+      }
+      else {
+        const request = store.state.request;
+        let timeLeft =
+          Math.round(
+            (request.inventoryWait +
+              (request.lastInventoryRequest - Date.now())) /
+              100
+          ) / 10;
+
+        alert(
+          "You must wait " + timeLeft + "s to make another inventory request"
+        );
+      }
+    }
 
     const isLoading = computed(() => store.state.deposit.loading);
-
-    if (store.getters.canSendInventoryRequest) {
-      socket.emit("getInventory", emitData);
-      store.dispatch("setLastInventoryRequest");
-    } else {
-      const request = store.state.request;
-      let timeLeft =
-        Math.round(
-          (request.inventoryWait +
-            (request.lastInventoryRequest - Date.now())) /
-            100
-        ) / 10;
-
-      alert(
-        "You must wait " + timeLeft + "s to make another inventory request"
-      );
-    }
 
     socket.on("getInventory", (data) => {
       store.dispatch("addSkins", data);
@@ -104,6 +118,7 @@ export default {
       minPrice,
       maxPrice,
       isLoading,
+      isAuth
     };
   },
   name: "DepositMenu",
