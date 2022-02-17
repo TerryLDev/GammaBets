@@ -3,6 +3,7 @@ const express = require('express');
 
 const User = require("../models/user.model");
 const app = express();
+
 router.use((req, res, next) => {
 
     if (req.user == undefined || req.user == null) {
@@ -48,10 +49,9 @@ router.use((req, res, next) => {
 
 })
 
-router.get("/user", (req, res, next) => {
+router.post("/user", (req, res) => {
     console.log("getting user info");
     res.json(req.player);
-    next();
 })
 
 module.exports = router;

@@ -29,7 +29,7 @@ const user = {
   actions: {
     getAPIUser({ commit }) {
       axios
-        .get("api/user")
+        .post("api/user")
         .then((res) => {
           if (res.data.auth) {
             commit("setUser", res.data.user);

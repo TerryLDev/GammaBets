@@ -1,6 +1,6 @@
 let router = require("express").Router();
 
-router.get("/support", (req, res) => {
+router.post("/support", (req, res) => {
 	res.send("This page does not exist yet");
 });
 

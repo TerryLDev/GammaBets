@@ -268,7 +268,7 @@ app.set("socketio", io);
 
 const messages = [];
 
-app.get("/api/messages", (res, req) => {
+app.post("/api/messages", (res, req) => {
 	req.json(messages);
 })
 

@@ -93,7 +93,7 @@ const coinflip = {
   actions: {
     getAPIActiveCoinflip({ commit }) {
       axios
-        .get("api/coinflip/active")
+        .post("api/coinflip/active")
         .then((res) => {
           commit("setActiveCoinflips", res.data);
         })
@@ -103,7 +103,7 @@ const coinflip = {
     },
     getAPICoinflipHistory({ commit }) {
       axios
-        .get("api/coinflip/history")
+        .post("api/coinflip/history")
         .then((res) => {
           commit("setCoinflipHistory", res.data);
         })

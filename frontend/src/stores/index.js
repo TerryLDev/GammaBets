@@ -36,7 +36,7 @@ export default createStore({
   actions: {
     getAPIMessages({ commit }) {
       axios
-        .get("/api/messages")
+        .post("/api/messages")
         .then((res) => {
           commit("setMessages", res.data);
         })
