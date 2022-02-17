@@ -20,10 +20,10 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-if (process.env.DEV_ENV == false) {
+if (process.env.DEV_ENV == "false") {
 	app.use(express.static(__dirname + "/public/"));
 
-	app.get("/*", (req, res) => res.send(__dirname + "/public/index.html"))
+	app.get(/.*/, (req, res) => res.send(__dirname + "/public/index.html"))
 }
 
 // Models
