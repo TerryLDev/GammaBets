@@ -1,14 +1,10 @@
 const router = require("express").Router();
 const express = require('express');
-const nunjucks = require("nunjucks");
 
 const User = require("../models/user.model");
 const app = express();
 
 const mainApp = require("../app");
-
-app.set('views', '../views');
-app.set('view engine', 'html');
 
 // When user accesses the page, send the most recent pot info (pull array of people in pot)
 
