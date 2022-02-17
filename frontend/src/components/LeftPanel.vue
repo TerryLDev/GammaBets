@@ -84,7 +84,7 @@ if (env == "development") {
 }
 
 else {
-  socket = io("https://gammabets.com")
+  socket = io(window.location.origin);
 }
 
 export default {
