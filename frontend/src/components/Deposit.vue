@@ -65,13 +65,18 @@ export default {
     if (store.getters.canSendInventoryRequest) {
       socket.emit("getInventory", emitData);
       store.dispatch("setLastInventoryRequest");
-    }
-
-    else {
+    } else {
       const request = store.state.request;
-      let timeLeft = Math.round((request.inventoryWait + (request.lastInventoryRequest - Date.now())) / 100) / 10;
+      let timeLeft =
+        Math.round(
+          (request.inventoryWait +
+            (request.lastInventoryRequest - Date.now())) /
+            100
+        ) / 10;
 
-      alert("You must wait " + timeLeft + "s to make another inventory request");
+      alert(
+        "You must wait " + timeLeft + "s to make another inventory request"
+      );
     }
 
     socket.on("getInventory", (data) => {

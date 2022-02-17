@@ -56,9 +56,7 @@ export default {
   },
   methods: {
     closeMenu(event) {
-      if (
-        event.path[0] == document.getElementById("popup-background-layer")
-      ) {
+      if (event.path[0] == document.getElementById("popup-background-layer")) {
         this.$store.dispatch("resetDepositAll");
         this.$store.dispatch("setLoadingTrue");
       }
@@ -137,9 +135,10 @@ body {
 
 /* Accent color or Border color of cell */
 .accent-color {
-  border-style: solid;
-  border-width: 2px;
-  border-color: rgba(229, 239, 172, 0.2);
+  outline-color: rgba(229, 239, 172, 0.5);
+  outline-style: solid;
+  outline-width: 2px;
+  border: 0px;
 }
 
 /* Primary color for popup of cell */

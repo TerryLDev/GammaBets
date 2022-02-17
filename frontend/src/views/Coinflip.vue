@@ -4,25 +4,21 @@
   <CoinFlipListings :activeGames="activeGames" />
   <GameHistory :historyTitle="historyTitle" />
   <Transition>
-    <div
-        id="popup-background-layer"
-        v-if="showViewMenu"
-        @click="closeViewMenu"
-      >
+    <div id="popup-background-layer" v-if="showViewMenu" @click="closeViewMenu">
       <ViewMenu />
     </div>
   </Transition>
 </template>
 
 <script>
-import { computed} from "@vue/runtime-core";
+import { computed } from "@vue/runtime-core";
 import { useStore } from "vuex";
 
 import CoinFlipChoice from "../components/coinflip/CoinFlipChoice.vue";
 import CoinFlipListings from "../components/coinflip/CoinFlipListings.vue";
 import GameHistory from "../components/GameHistory.vue";
 import QuickPlay from "../components/QuickPlay.vue";
-import ViewMenu from "../components/coinflip/ViewMenu.vue"
+import ViewMenu from "../components/coinflip/ViewMenu.vue";
 
 import { io } from "socket.io-client";
 
@@ -31,9 +27,6 @@ const socket = io("http://localhost:4000");
 export default {
   setup() {
     const store = useStore();
-
-    store.dispatch("modifyCFGame", {gameID: "001", change: 1})
-    store.dispatch("modifyCFGame", {gameID: "002", change: 2})
 
     store.dispatch("getAPIActiveCoinflip");
     store.dispatch("getAPICoinflipHistory");
@@ -44,21 +37,30 @@ export default {
       () => store.state.coinflip.coinflipHistory
     );
 
-    const showViewMenu = computed(() => store.state.coinflip.viewMenu.isVisible);
+    const showViewMenu = computed(
+      () => store.state.coinflip.viewMenu.isVisible
+    );
     const chosenView = computed(() => store.state.coinflip.viewMenu.chosenGame);
 
-    /*
-    socket.on("cfTimer", data => {
+    // CF Sockets
 
-      store.dispatch("changeCFGameTimer", data)
-
+    socket.on("cfTimer", (data) => {
+      store.dispatch("changeCFGameTimers", data);
     });
 
-    */
-
-    socket.on("secondPlayerAccepctedTrade", data => {
-      store.dispatch("modifyCFGame", data)
+    socket.on("secondPlayerAccepctedTrade", (data) => {
+      store.dispatch("modifyCFGame", data);
     });
+
+    socket.on("newCFGame", (data) => {
+      store.dispatch("addNewCoinFlip", data);
+    });
+
+    socket.on("secondPlayerAccepctedTrade", (data) => {
+      store.dispatch("modifyCFGame", data);
+    });
+
+    ////////////////////////////////
 
     return {
       activeGames,
@@ -66,7 +68,6 @@ export default {
       showViewMenu,
       chosenView,
     };
-
   },
   data() {
     return {
@@ -75,16 +76,20 @@ export default {
   },
   methods: {
     closeViewMenu(event) {
-      if (
-        event.path[0] == document.getElementById("popup-background-layer")
-      ) {
+      if (event.path[0] == document.getElementById("popup-background-layer")) {
         this.$store.dispatch("toggleViewMenu");
         this.$store.dispatch("resetChosenView");
       }
-    }
+    },
   },
   name: "Coinflip",
-  components: { GameHistory, QuickPlay, CoinFlipChoice, CoinFlipListings, ViewMenu },
+  components: {
+    GameHistory,
+    QuickPlay,
+    CoinFlipChoice,
+    CoinFlipListings,
+    ViewMenu,
+  },
 };
 </script>
 <style></style>

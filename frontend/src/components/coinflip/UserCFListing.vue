@@ -1,29 +1,29 @@
 <template>
   <div class="coinflip-listing" v-bind:class="playerOneSide(game)">
     <div class="listing-profile-div">
-      <img class="listing-profile-div-img" :src="game.playerOnePicture" />
+      <img class="listing-profile-div-img" :src="game.playerOne.userPicture" />
       <div class="listing-profile-div-user-and-val">
-        <p>{{ game.playerOneUser }}</p>
-        <p>${{ playerValue(game.playerOneSkinValues) }}</p>
+        <p>{{ game.playerOne.username }}</p>
+        <p>${{ playerValue(game.playerOne.skinValues) }}</p>
       </div>
     </div>
 
     <div
       class="listing-player-skins"
-      v-if="game.playerOneSkinPictures.length > 5"
+      v-if="game.playerOne.skinPictures.length > 5"
     >
       <template
-        v-for="(skinPic, index) in game.playerOneSkinPictures"
+        v-for="(skinPic, index) in game.playerOne.skinPictures"
         :key="skinPic"
       >
         <img v-if="index < 5" :src="skinPic" />
       </template>
-      <p>+{{ game.playerOneSkinPictures.length - 5 }}</p>
+      <p>+{{ game.playerOne.skinPictures.length - 5 }}</p>
     </div>
 
     <div v-else class="listing-player-skins">
       <img
-        v-for="skinPic in game.playerOneSkinPictures"
+        v-for="skinPic in game.playerOne.skinPictures"
         :key="skinPic"
         :src="skinPic"
       />
@@ -37,7 +37,11 @@
       >
         Join
       </button>
-      <button class="listing-button" :class="buttonClass(game.playerOneSide)" @click="openViewMenu">
+      <button
+        class="listing-button"
+        :class="buttonClass(game.playerOneSide)"
+        @click="openViewMenu"
+      >
         View
       </button>
     </div>
@@ -76,8 +80,8 @@ export default {
     openDepositMenu() {
       const store = this.$store;
 
-      let min = this.playerValue(this.game.playerOneSkinValues) * 0.95;
-      let max = this.playerValue(this.game.playerOneSkinValues) * 1.05;
+      let min = this.playerValue(this.game.playerOne.skinValues) * 0.95;
+      let max = this.playerValue(this.game.playerOne.skinValues) * 1.05;
 
       store.dispatch("setDepositMin", min);
       store.dispatch("setDepositMax", max);
@@ -87,7 +91,7 @@ export default {
     },
     openViewMenu() {
       this.$store.dispatch("toggleViewMenu");
-      this.$store.dispatch("setChosenView", this.game.gameID)
+      this.$store.dispatch("setChosenView", this.game.gameID);
     },
   },
   name: "UserCFListing",

@@ -5,7 +5,9 @@
         id="jp-total-amount"
         class="secondary-color default-secondary-cell accent-color"
       >
-        <h2 id="jp-total-amount-text" class="top-spinner-area-h">${{totalPotValue}}</h2>
+        <h2 id="jp-total-amount-text" class="top-spinner-area-h">
+          ${{ totalPotValue }}
+        </h2>
         <p class="top-spinner-area-t">Total Amount:</p>
       </div>
       <!-- If anyone is ready this, this timer was a pain in the ass to make -->
@@ -35,9 +37,7 @@
         id="jp-total-item"
         class="secondary-color default-secondary-cell accent-color"
       >
-        <h2 class="top-spinner-area-h">
-          {{itemTotal}}/100
-        </h2>
+        <h2 class="top-spinner-area-h">{{ itemTotal }}/100</h2>
         <p class="top-spinner-area-t">Total Items:</p>
       </div>
     </div>
@@ -53,20 +53,22 @@
 </template>
 
 <script>
-import {useStore} from "vuex";
-import {computed} from "vue";
+import { useStore } from "vuex";
+import { computed } from "vue";
 
 export default {
   setup() {
     const store = useStore();
 
     const itemTotal = computed(() => store.getters.getHighStakesTotalItems);
-    const totalPotValue = computed(() => store.getters.getHighStakesTotalPotValue);
+    const totalPotValue = computed(
+      () => store.getters.getHighStakesTotalPotValue
+    );
 
     return {
       itemTotal,
-      totalPotValue
-    }
+      totalPotValue,
+    };
   },
   data() {
     return {

@@ -1,12 +1,53 @@
 <template>
-  <button id="deposit-button">Deposit</button>
+  <button id="deposit-button" @click="sendDeposit">Deposit</button>
 </template>
 
 <script>
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:4000");
+
 export default {
   methods: {
-    checkAndSendDeposit() {
-      //
+    sendDeposit() {
+      const depositState = this.$store.state.deposit;
+      console.log(depositState);
+
+      const choseSkins = depositState.selectedSkins.length > 0;
+
+      // check deposit type
+      if (depositState.depositType == "Coinflip" && choseSkins) {
+        // creating a game
+        if (depositState.selectedGameID == "") {
+          const data = {
+            steamID: this.$store.state.user.profile.SteamID,
+            skins: depositState.selectedSkins,
+            tradeURL: this.$store.state.user.profile.TradeURL,
+            side: this.$store.state.coinflip.chosenSide,
+          };
+
+          console.log(data);
+
+          socket.emit("createNewCoinFlipGame", data);
+        }
+
+        // joining a game
+        else {
+          const data = {
+            steamID: this.$store.state.user.profile.SteamID,
+            skins: depositState.selectedSkins,
+            tradeURL: this.$store.state.user.profile.TradeURL,
+            side: this.$store.state.coinflip.chosenSide,
+            gameID: depositState.selectedGameID,
+          };
+
+          console.log(data);
+
+          socket.emit("joinActiveCoinFlipGame", data);
+        }
+      } else if (depositState.depositType == "High Stakes" && choseSkins) {
+        console.log("err");
+      }
     },
   },
   name: "DepositButton",

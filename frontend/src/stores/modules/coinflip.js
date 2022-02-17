@@ -2,20 +2,49 @@ import axios from "axios";
 
 const coinflip = {
   state: {
-    activeCoinflips: [{gameID: "002", change: 0}, {gameID: "001", change: 0}],
+    activeCoinflips: [],
     coinflipHistory: [],
     chosenSide: "",
     pastWinningSides: [],
-    viewMenu: {isVisible: false, chosenGame: {}},
+    viewMenu: { isVisible: false, chosenGame: {} },
     cfGameTimers: [],
   },
   getters: {
-    getCFGame(state, gameID) {
-      let cfGame = state.activeCoinflips.find((game) => game.gameID == gameID);
-      return cfGame;
-    },
     getChosenSide(state) {
       return state.chosenSide;
+    },
+    getGameTimerObjectByGameID: (state) => (gameID) => {
+      let timerIndex = state.cfGameTimers.findIndex(
+        (obj) => obj.gameID == gameID
+      );
+
+      return state.cfGameTimers[timerIndex];
+    },
+    getPlayerOneTotalValue: (state) => (gameID) => {
+      let gameIndex = state.activeCoinflips.findIndex(
+        (obj) => obj.gameID == gameID
+      );
+
+      let totalVal = 0;
+
+      state.activeCoinflips[gameIndex].playerOne.skinValues.forEach((val) => {
+        totalVal += val;
+      });
+
+      return totalVal;
+    },
+    getPlayerTwoTotalValue: (state) => (gameID) => {
+      let gameIndex = state.activeCoinflips.findIndex(
+        (obj) => obj.gameID == gameID
+      );
+
+      let totalVal = 0;
+
+      state.activeCoinflips[gameIndex].playerTwo.skinValues.forEach((val) => {
+        totalVal += val;
+      });
+
+      return totalVal;
     },
   },
   mutations: {
@@ -37,21 +66,29 @@ const coinflip = {
       state.viewMenu.chosenGame = game;
     },
     resetChosenView(state) {
-
       state.viewMenu.chosenGame = {};
     },
     changeCFGameTimers(state, cfTimers) {
-      state.cfGameTimers = cfTimers;
+      cfTimers.forEach((timerObj) => {
+        let index = state.cfGameTimers.findIndex(
+          (currentObj) => timerObj.gameID == currentObj.gameID
+        );
+
+        if (index != undefined) {
+          state.cfGameTimers[index] = timerObj;
+        }
+      });
+    },
+    addNewCoinFlip(state, newGame) {
+      state.activeCoinflips.push(newGame);
     },
     modifyCFGame(state, gameObj) {
+      const gameIndex = state.activeCoinflips.findIndex(
+        (game) => game.gameID == gameObj.gameID
+      );
 
-      const game = state.activeCoinflips.find(game => game.gameID == gameObj.gameID);
-
-      state.activeCoinflips[game] = gameObj;
-
-      console.log(state.activeCoinflips);
-
-    }
+      state.activeCoinflips[gameIndex] = gameObj;
+    },
   },
   actions: {
     getAPIActiveCoinflip({ commit }) {
@@ -77,21 +114,24 @@ const coinflip = {
     setCoinSide({ commit }, side) {
       commit("setCoinSide", side);
     },
-    toggleViewMenu({commit}) {
+    toggleViewMenu({ commit }) {
       commit("toggleViewMenu");
     },
-    setChosenView({commit}, gameID) {
+    setChosenView({ commit }, gameID) {
       commit("setChosenView", gameID);
     },
-    resetChosenView({commit}) {
+    resetChosenView({ commit }) {
       commit("resetChosenView");
     },
-    changeCFGameTimers({commit}, timers) {
-      commit("changeCFGameTimer", timers)
+    changeCFGameTimers({ commit }, timers) {
+      commit("changeCFGameTimers", timers);
     },
-    modifyCFGame({commit}, data) {
+    addNewCoinFlip({ commit }, newGame) {
+      commit("addNewCoinFlip", newGame);
+    },
+    modifyCFGame({ commit }, data) {
       commit("modifyCFGame", data);
-    }
+    },
   },
 };
 

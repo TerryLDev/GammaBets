@@ -11,13 +11,13 @@ const highStakes = {
 
       state.game.Players.forEach((player) => {
         itemTotal += player.skins.length;
-      })
+      });
 
       return itemTotal;
     },
     getHighStakesTotalPotValue(state) {
-      return (state.game.TotalPotValue).toFixed(2);
-    }
+      return state.game.TotalPotValue.toFixed(2);
+    },
   },
   mutations: {
     setHighStakesGameID(state, gameID) {

@@ -180,8 +180,7 @@ class CoinFlipHandler {
     #callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
 
         let gameObj = allCFGames.find(game => game.gameID == gameID);
-
-        gameObj.timer = parseInt(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
+        
         gameObj.playerTwo = {
             username: username,
             userSteamId: steamID,
@@ -216,7 +215,7 @@ class CoinFlipHandler {
 
         try {
 
-            this.#callNewGame(gameObject);
+            let data = await this.#callNewGame(gameObject);
 
             cfEvents.emit("newCFGame", await data);
 
