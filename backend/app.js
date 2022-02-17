@@ -20,12 +20,6 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-if (process.env.DEV_ENV == "false") {
-	app.use(express.static(__dirname + "/public/"));
-
-	app.get(/.*/, (req, res) => res.send(__dirname + "/public/index.html"))
-}
-
 // Models
 const User = require("./models/user.model");
 const TradeHistory = require("./models/tradehistory.model");
@@ -41,6 +35,8 @@ const mainRoutes = require("./routes/main");
 const jackpotRoutes = require("./routes/jackpot");
 const coinflipRoutes = require("./routes/coinflip");
 const supportRoutes = require("./routes/support");
+
+const productionRoutes = require("./routes/production");
 
 // SteamBot
 const SteamUser = require("steam-user");
@@ -238,6 +234,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/api", mainRoutes, jackpotRoutes, coinflipRoutes, supportRoutes);
+
+if (process.env.DEV_ENV == "false") {
+	app.use(express.static(__dirname + "/public/"));
+
+	app.use("/", productionRoutes);
+}
 
 app.get('/auth/steam',
   passport.authenticate('steam'),

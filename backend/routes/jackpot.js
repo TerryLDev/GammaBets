@@ -1,9 +1,6 @@
 const router = require("express").Router();
 const express = require('express');
 
-const User = require("../models/user.model");
-const app = express();
-
 const mainApp = require("../app");
 
 // When user accesses the page, send the most recent pot info (pull array of people in pot)
