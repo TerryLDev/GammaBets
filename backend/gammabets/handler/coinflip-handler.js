@@ -340,7 +340,7 @@ class CoinFlipHandler {
             }
 
             else {
-                console.log("yikes the timer brokey")
+                //console.log("yikes the timer brokey")
             }
             
         });
