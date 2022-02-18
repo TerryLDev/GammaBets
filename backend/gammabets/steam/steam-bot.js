@@ -173,26 +173,99 @@ class SteamBot {
 		console.log("Login Attempts: " + this.loginAttempts + " Bot: " + this.botID);
 
 	}
-	/*
+
 	// return the trade object
-	sendDeposit(gameMode, gameID = "", steamID, tradeURL) {
+	sendDeposit(gameMode = "", gameID = "", skins, steamID, tradeURL) {
 
 		// acceptable gameMode's = "Coinflip", "High Stakes", "Low Stakes"
 
-		accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
+		const accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
 
-		if () {
+		if (accpetedGameModes.includes(gameMode) ==  false) {
 
-		}
-
-		else {
 			console.log("gameMode entered:", gameMode)
 			console.log("Unaccepted Game Mode")
 			return false
+
 		}
 
+		const offer = this.manager.createOffer(steamID);
+
+		this.manager.getUserInventoryContents(steamID, 252490, 2, true, (err, inv) => {
+			if (err)  {
+				console.log(err);
+				return false;
+			}
+
+			else {
+				let itemNames = [];
+
+				skins.forEach(desired => {
+
+					const item = inv.find(item => item.assetid == desired);
+
+					if(item) {
+						offer.addTheirItem(item);
+						itemNames.push(item.market_hash_name)
+					}
+
+					else{
+						offer.cancel((err) => {
+							if (err) {
+								console.log(err);
+								return false
+							}
+						});
+					}
+
+				})
+
+				let token = tradeURL.split('token=')[1]
+
+				offer.setToken(token)
+
+				offer.send((err, status) => {
+					if (err) {
+						console.log(err);
+						return false
+					}
+
+					else {
+						console.log(status, offer.id);
+
+						TradeHistory.create({
+							TradeID: offer.id,
+							SteamID: steamID,
+							Items: skins,
+							ItemNames: itemNames,
+							TransactionType: 'Deposit',
+							State: TradeOfferManager.ETradeOfferState[offer.state],
+							GameMode: gameMode,
+							GameID: gameID,
+							BotID: this.botID,
+							DateCreated: Date.now()
+						})
+							.then(result => {
+								User.updateOne({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, result) => {
+									if(err) {
+										return console.log(err);
+									}
+
+									else {
+										return offer;
+									}
+								});
+							})
+							.catch(err => {
+								console.log(err);
+								return false;
+							})
+					}
+				});
+			}
+		});
+
 	}
-	*/
 
 	sendWithdraw(skins, userObject, callback) {
 

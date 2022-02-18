@@ -155,8 +155,6 @@ app.use(
 // Localhost port
 const port = process.env.PORT || 4000;
 
-/*
-
 // Intialize Bots
 // Random Login Time to avoid request Errors
 
@@ -189,8 +187,6 @@ setTimeout(() => {
 
 
 }, randomThree);
-
-*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
