@@ -252,7 +252,13 @@ app.get('/auth/steam/return',
   passport.authenticate('steam', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.redirect('http://localhost:8080/');
+	if (process.env.DEV_ENV == "false") {
+		res.redirect("/")
+	}
+
+	else {
+		res.redirect('http://localhost:8080/');
+	}
   });
 
 const server = app.listen(port, (err) => {
@@ -448,13 +454,13 @@ io.on("connection", (socket) => {
 
 			if (findBot == process.env.CF_BOT_0_SERVERID) {
 
-				cfBotZero.joiningActiveCFGame(data.steamID, data.username, data.skins, data.tradeURL, data.gameID);
+				cfBotZero.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
 
 			}
 
 			else if (findBot == process.env.CF_BOT_1_SERVERID) {
 
-				cfBotOne.joiningActiveCFGame(data.steamID, data.username, data.skins, data.tradeURL, data.gameID);
+				cfBotOne.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
 
 			}
 

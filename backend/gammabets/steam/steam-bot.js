@@ -173,6 +173,26 @@ class SteamBot {
 		console.log("Login Attempts: " + this.loginAttempts + " Bot: " + this.botID);
 
 	}
+	/*
+	// return the trade object
+	sendDeposit(gameMode, gameID = "", steamID, tradeURL) {
+
+		// acceptable gameMode's = "Coinflip", "High Stakes", "Low Stakes"
+
+		accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
+
+		if () {
+
+		}
+
+		else {
+			console.log("gameMode entered:", gameMode)
+			console.log("Unaccepted Game Mode")
+			return false
+		}
+
+	}
+	*/
 
 	sendWithdraw(skins, userObject, callback) {
 

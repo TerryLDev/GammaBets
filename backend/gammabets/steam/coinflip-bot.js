@@ -11,7 +11,7 @@ const Support = require('../../models/support.model');
 const MarketPrice = require('../../models/marketprice.model');
 const CoinFlipGame = require('../../models/coinflipgame.model');
 
-const {CoinFlipHandler, cfEvents} = require("../handler/coinflip-handler");
+const {CoinFlipHandler, allCFGames} = require("../handler/coinflip-handler");
 
 const { SteamBot } = require("./steam-bot");
 const { CoinFlipManager } = require("../manager/coinflip-manager");
@@ -96,36 +96,25 @@ class CoinFlipBot extends SteamBot{
 		}
 	}
 
-	async joiningActiveCFGame(steamID, username, skins, tradeURL, gameID) {
-
+	async joiningActiveCFGame(steamID, skins, tradeURL, gameID) {
 		try {
+			let cfGame = await this.#checkIfCFGameIsOpen(gameID, steamID);
 
-			CoinFlipGame.findOne({GameID: gameID}, (err, game) => {
-                
-				if (err) return console.log(err);
+			if (await cfGame) {
 
-				else if (game.PlayerTwoTradeState == "Active" || game.PlayerTwoTradeState == "Accepted") {
+				await this.#callJoinCFGameAndSendTrade(cfGame, steamID, skins, tradeURL);
 
-					// alert user with na error message
-					console.log('User tried to join an already active game');
+			}
 
-				}
+			else {
+				console.log("User Tried to join a cf game but there was error")
+			}
+		}
+		catch (err) {
 
-				else {
-
-					this.#callJoinCFGameAndSendTrade(game, steamID, username, skins, tradeURL);
-					
-				}
-			})
+			return console.log(err);
 
 		}
-
-		catch(err) {
-
-            console.error(err);
-
-		}
-			
 	}
 
 	// please for the love god fix this mess
@@ -151,81 +140,6 @@ class CoinFlipBot extends SteamBot{
 	////////////////////////
 
 	// Private Methods
-
-	#cfOpponentJoiningQuery(cfGameObj, tradeObj, steamID, username) {
-
-		let pOneSide = "";
-
-		if (cfGameObj.Red == cfGameObj.Players[0].userSteamId) {
-			pOneSide = "red";
-		}
-
-		else if (cfGameObj.Black == cfGameObj.Players[0].userSteamId) {
-			pOneSide = "black";
-		}
-
-		else {
-			pOneSide = "fuck me";
-			console.log("I give it");
-		}
-
-		console.log(pOneSide)
-
-		if (pOneSide == "red") {
-
-			CoinFlipGame.findOneAndUpdate(
-				{ GameID: cfGameObj.GameID },
-				{ $set:
-					{PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[tradeObj.state],
-					PlayerTwoTradeID: tradeObj.id,
-					Black: steamID,}
-				}, { new : true }, (err, doc) => {
-					if (err) return console.log(err)
-
-					else {
-
-						User.findOne({SteamID: steamID}, (err, user) => {
-
-							if (err) return console.error(err);
-							
-							else {
-								this.cfGameHandler.opponentJoiningGame(doc.GameID, user.SteamID, user.Username, TradeOfferManager.ETradeOfferState[tradeObj.state], user.ProfilePictureURL)
-							}
-
-						})
-					}
-				}
-			);
-		}
-
-		else  {
-
-			CoinFlipGame.findOneAndUpdate({ GameID: cfGameObj.GameID },
-				{ $set:
-					{PlayerTwoTradeState: TradeOfferManager.ETradeOfferState[tradeObj.state],
-					PlayerTwoTradeID: tradeObj.id,
-					Red: steamID,}
-				}, { new: true }, (err, doc) => {
-					if (err) return console.log(err)
-
-					else {
-
-						User.findOne({SteamID: steamID}, (err, user) => {
-							if (err) return console.error(err);
-							else {
-								this.cfGameHandler.opponentJoiningGame(doc.GameID, user.SteamID, user.Username, TradeOfferManager.ETradeOfferState[tradeObj.state], user.ProfilePictureURL)
-							}
-						})
-					}
-				}
-			);
-
-		}
-	}
-
-	////////////////////////
-
-	// Calls
 
 	#callNewCoinFlipTrade(steamID, skins, tradeURL, side, gameID) {
 
@@ -339,8 +253,25 @@ class CoinFlipBot extends SteamBot{
 
 	}
 
+	#checkIfCFGameIsOpen(gameID, steamID) {
+
+		let currentCFGame = allCFGames.find(cfGame => cfGame.gameID == gameID);
+
+		if (currentCFGame.playerOne.userSteamId == steamID) {
+			return false
+		}
+
+		else if (currentCFGame.secondPlayerJoining || currentCFGame.playerTwoTradeState != "none") {
+			return false
+		}
+
+		else {
+			return currentCFGame;
+		}
+	}
+
 	// fix this mess, make it async
-	#callJoinCFGameAndSendTrade(cfGame, steamID, username, skins, tradeURL) {
+	#callJoinCFGameAndSendTrade(cfGame, steamID, skins, tradeURL) {
 		
 		const offer = this.manager.createOffer(steamID);
 
@@ -390,7 +321,7 @@ class CoinFlipBot extends SteamBot{
 							TransactionType: 'Deposit',
 							State: TradeOfferManager.ETradeOfferState[offer.state],
 							GameMode: "Coin Flip",
-							GameID: cfGame.GameID,
+							GameID: cfGame.gameID,
 							DateCreated: Date.now()
 
 						})
@@ -398,7 +329,7 @@ class CoinFlipBot extends SteamBot{
 
 								try {
 
-									await this.#cfOpponentJoiningQuery(cfGame, offer, steamID, username);
+									await this.#cfOpponentJoiningLocal(cfGame, offer, steamID);
 
 								}
 
@@ -421,6 +352,17 @@ class CoinFlipBot extends SteamBot{
 				})
 			}
 		})
+	}
+
+	#cfOpponentJoiningLocal(cfGame, tradeObj, steamID) {
+		User.findOneAndUpdate({SteamID: steamID}, {$push: {Trades: tradeObj.id}}, {new: true}, (err, doc) => {
+			if (err) {
+				return console.log(err);
+			}
+			else {
+				this.cfGameHandler.opponentJoiningGame(cfGame.gameID, steamID, doc.Username, TradeOfferManager.ETradeOfferState[tradeObj.state])
+			}
+		});
 	}
 
 	#callCancelOpponentCoinFlipTradeOffer(gameID) {

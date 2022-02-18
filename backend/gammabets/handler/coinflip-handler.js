@@ -222,7 +222,7 @@ class CoinFlipHandler {
         }
 
         catch (err) {
-            console.log("An error occurred when adding a new game to the json file");
+            console.log("An error occurred when adding a new game to array");
             console.log(err);
         }
 
@@ -303,7 +303,7 @@ class CoinFlipHandler {
         }
         */
 
-        allCFGames.forEach(gameObj =>{
+        allCFGames.forEach(gameObj => {
 
             let gameTimer = cfGamesTimer.find(game => gameObj.gameID == game.gameID)
 
@@ -340,7 +340,7 @@ class CoinFlipHandler {
             }
 
             else {
-                //console.log("yikes the timer brokey")
+                // console.log("yikes the timer brokey")
             }
             
         });
