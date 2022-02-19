@@ -59,6 +59,9 @@ const cfGameHandler = new CoinFlipHandler();
 // Importing and Setting up Jackpot GameHandler
 const {HighStakesHandler, highStakesEvents} = require("./gammabets/handler/high-stakes-handler");
 
+// Importing Alert Center
+const {AlertCenter, alertEvents} = require("./gammabets/alertcenter")
+
 // ^^^^^^^^^^^^^^ //
 //// Needs Work ////
 ////////////////////
@@ -158,6 +161,8 @@ const port = process.env.PORT || 4000;
 // Intialize Bots
 // Random Login Time to avoid request Errors
 
+/*
+
 const randomOne = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomTwo = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
@@ -187,6 +192,8 @@ setTimeout(() => {
 
 
 }, randomThree);
+
+*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -281,7 +288,7 @@ io.on("connection", (socket) => {
 	socket.on("join", data => {
 
 		console.log(data);
-		const room = data.steamID
+		const room = data
 
 		if (room != "") {
 
@@ -420,7 +427,7 @@ io.on("connection", (socket) => {
 
 				}
 
-			}, 1000);
+			}, 2000);
 
 		}
 
@@ -444,30 +451,38 @@ io.on("connection", (socket) => {
 		};
 		*/
 
-		setTimeout(function() {
+		try {
 
-			let findBot = cfGameHandler.findCFBot(data.gameID);
+			setTimeout(function() {
 
-			if (findBot == process.env.CF_BOT_0_SERVERID) {
+				let findBot = cfGameHandler.findCFBot(data.gameID);
+	
+				if (findBot == process.env.CF_BOT_0_SERVERID) {
+	
+					cfBotZero.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
+	
+				}
+	
+				else if (findBot == process.env.CF_BOT_1_SERVERID) {
+	
+					cfBotOne.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
+	
+				}
+	
+				else {
+	
+					console.log(findBot);
+					console.log("Can't find Coin Flip bot");
+	
+				}
+	
+			}, 1000);
 
-				cfBotZero.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
+		}
 
-			}
+		catch(err) {
 
-			else if (findBot == process.env.CF_BOT_1_SERVERID) {
-
-				cfBotOne.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
-
-			}
-
-			else {
-
-				console.log(findBot);
-				console.log("Can't find Coin Flip bot");
-
-			}
-
-		}, 1000);
+		}
 		
 	});
 
@@ -528,18 +543,15 @@ setInterval(async function () {
 
 //////////////////////////////////////////////////////////////
 
-// sends to certain user
+// Alert Events
+// these are messages that will be sent to the user
+// trade offers, error messages, etc
 
-const sendMsg = async (steamID, msg) => {
-	io.to(steamID).emit("tradeLink", msg);
-};
+const alerts = new AlertCenter();
 
-setInterval(function () {
-	let steamID = "76561198072093858";
-	let msg = "Test was successful " + steamID;
-
-	sendMsg(steamID, msg);
-}, 5000);
+alertEvents.on("tradeLink", data => {
+	io.to(data.steamID).emit("tradeLink", data);
+});
 
 //////////////////////////////////////////////////////////////
 

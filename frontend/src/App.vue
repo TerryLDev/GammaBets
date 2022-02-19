@@ -17,6 +17,9 @@
       </div>
     </Transition>
   </div>
+  <Transition>
+    <AlertCenter />
+  </Transition>
 </template>
 
 <script>
@@ -29,8 +32,9 @@ import { computed } from "vue";
 
 //import axios from "axios";
 
-/*
+
 import {io} from "socket.io-client"
+let socket;
 const env = process.env.NODE_ENV;
 
 if (env == "development") {
@@ -41,11 +45,6 @@ else {
   socket = io(window.location.origin);
 }
 
-socket.on("test", (data) => {
-  console.log(data);
-});
-*/
-
 export default {
   setup() {
     const store = useStore();
@@ -54,7 +53,17 @@ export default {
 
     const user = computed(() => store.state.user);
 
+    console.log(user.value)
+
     const isDepositVisible = computed(() => store.state.deposit.isVisible);
+
+    socket.on("tradeLink", data => {
+      console.log(data)
+    });
+
+    socket.on("connect", () => {
+      socket.emit("join", user.value.profile.SteamID)
+    })
 
     return {
       user,

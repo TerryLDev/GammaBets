@@ -1,8 +1,0 @@
-#history {
-	width: 350px;
-	height: calc(100% - (20px + 60px + 20px + 250px + 20px));
-	float: right;
-	margin-top: 20px;
-	margin-left: 20px;
-	display: inline-block;
-}
