@@ -39,6 +39,7 @@ export default {
 
     store.dispatch("getAPIActiveCoinflip");
     store.dispatch("getAPICoinflipHistory");
+    store.dispatch("getAPICoinflipJoiningQueue");
 
     const activeGames = computed(() => store.state.coinflip.activeCoinflips);
 
@@ -50,6 +51,8 @@ export default {
       () => store.state.coinflip.viewMenu.isVisible
     );
     const chosenView = computed(() => store.state.coinflip.viewMenu.chosenGame);
+
+    ////////////////////////////////
 
     // CF Sockets
 

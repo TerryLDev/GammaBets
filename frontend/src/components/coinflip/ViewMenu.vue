@@ -45,7 +45,7 @@
         <p v-else>Winner: {{ game.winner }}</p>
       </div>
 
-      <div class="player-two-view" v-if="game.secondPlayerJoining == false">
+      <div class="player-two-view" v-if="game.playerTwoJoining == false">
         <img
           class="profile-img-view"
           :class="{
@@ -69,9 +69,7 @@
 
       <div
         class="player-two-view"
-        v-else-if="
-          game.secondPlayerJoining && game.playerTwoTradeState == 'Active'
-        "
+        v-else-if="game.playerTwoJoining && game.playerTwoJoined == false"
       >
         <img
           class="profile-img-view"
@@ -79,10 +77,10 @@
             'red-border-img-view': game.playerTwoSide == 'red',
             'black-border-img-view': game.playerTwoSide == 'black',
           }"
-          :src="game.playerTwo.userPicture"
+          :src="currentJoiningQueue.UserPic"
         />
         <div class="username-container-view">
-          <p>{{ game.playerTwo.username }}o</p>
+          <p>{{ currentJoiningQueue.Username }}o</p>
         </div>
         <div style="align-self: end" class="val-items-container-view">
           <div class="item-container-view">
@@ -127,9 +125,13 @@
           'black-skins-background-view': pOneSide == 'black',
         }"
       >
-        <div class="skin-slot-view" v-for="(skinPic, index) in game.playerOne.skinPictures" v-bind:key="skinPic">
-          <img :src="skinPic">
-          <p>${{getSkinValue(game.playerOne.skinValues[index])}}</p>
+        <div
+          class="skin-slot-view"
+          v-for="(skinPic, index) in game.playerOne.skinPictures"
+          v-bind:key="skinPic"
+        >
+          <img :src="skinPic" />
+          <p>${{ getSkinValue(game.playerOne.skinValues[index]) }}</p>
         </div>
       </div>
       <div
@@ -139,9 +141,13 @@
           'black-skins-background-view': pTwoSide == 'black',
         }"
       >
-        <div class="skin-slot-view" v-for="(skinPic, index) in game.playerTwo.skinPictures" v-bind:key="skinPic">
-          <img :src="skinPic">
-          <p>${{getSkinValue(game.playerTwo.skinValues[index])}}</p>
+        <div
+          class="skin-slot-view"
+          v-for="(skinPic, index) in game.playerTwo.skinPictures"
+          v-bind:key="skinPic"
+        >
+          <img :src="skinPic" />
+          <p>${{ getSkinValue(game.playerTwo.skinValues[index]) }}</p>
         </div>
       </div>
     </div>
@@ -183,7 +189,9 @@ export default {
     const pOneSide = computed(() => game.value.playerOneSide);
     const pTwoSide = computed(() => game.value.playerTwoSide);
 
-    console.log(game.value)
+    const currentJoiningQueue = computed(() =>
+      store.getters.getSelectedJoiningQueue(game.value.gameID)
+    );
 
     return {
       game,
@@ -193,12 +201,13 @@ export default {
       playerTwoTotalVal,
       pOneSide,
       pTwoSide,
+      currentJoiningQueue,
     };
   },
   methods: {
     getSkinValue(skinVal) {
-      return (skinVal).toFixed(2);
-    }
+      return skinVal.toFixed(2);
+    },
   },
   name: "ViewMenu",
 };
@@ -284,7 +293,7 @@ export default {
   font-size: 16px;
   line-height: 20px;
   text-align: center;
-  color: #FFFFFF;
+  color: #ffffff;
   text-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -410,7 +419,6 @@ export default {
   font-weight: 500;
   font-size: 14px;
   line-height: 17px;
-  color: #FFFFFF;
+  color: #ffffff;
 }
-
 </style>

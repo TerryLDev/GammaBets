@@ -8,6 +8,7 @@ const coinflip = {
     pastWinningSides: [],
     viewMenu: { isVisible: false, chosenGame: {} },
     cfGameTimers: [],
+    joiningQueue: [],
   },
   getters: {
     getChosenSide(state) {
@@ -46,6 +47,16 @@ const coinflip = {
 
       return totalVal;
     },
+    getSelectedJoiningQueue: (state) => (gameID) => {
+      let getQueue = state.joiningQueue.find(queue => queue.GameID == gameID);
+
+      if (getQueue) {
+        return getQueue;
+      }
+      else {
+        return false;
+      }
+    },
   },
   mutations: {
     setActiveCoinflips(state, games) {
@@ -53,6 +64,9 @@ const coinflip = {
     },
     setCoinflipHistory(state, history) {
       state.coinflipHistory = history;
+    },
+    setCoinflipJoiningQueue(state, queue) {
+      state.joiningQueue = queue;
     },
     setCoinSide(state, side) {
       state.chosenSide = side;
@@ -106,6 +120,16 @@ const coinflip = {
         .post("api/coinflip/history")
         .then((res) => {
           commit("setCoinflipHistory", res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    getAPICoinflipJoiningQueue({ commit }) {
+      axios
+        .post("api/coinflip/joining-queue")
+        .then((res) => {
+          commit("setCoinflipJoiningQueue", res.data);
         })
         .catch((err) => {
           console.log(err);

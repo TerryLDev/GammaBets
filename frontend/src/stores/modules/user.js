@@ -9,14 +9,13 @@ const user = {
     getTradeURL(state) {
       if (state.user.profile.TradeURL) {
         return state.user.profile.TradeURL;
-      }
-      else {
+      } else {
         return false;
       }
     },
     getUserAuth(state) {
       return state.auth;
-    }
+    },
   },
   mutations: {
     setUser(state, user) {

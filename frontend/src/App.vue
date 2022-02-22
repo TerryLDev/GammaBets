@@ -32,16 +32,13 @@ import { computed } from "vue";
 
 //import axios from "axios";
 
-
-import {io} from "socket.io-client"
+import { io } from "socket.io-client";
 let socket;
 const env = process.env.NODE_ENV;
 
 if (env == "development") {
   socket = io("http://localhost:4000");
-}
-
-else {
+} else {
   socket = io(window.location.origin);
 }
 
@@ -55,13 +52,13 @@ export default {
 
     const isDepositVisible = computed(() => store.state.deposit.isVisible);
 
-    socket.on("tradeLink", data => {
-      console.log(data)
+    socket.on("tradeLink", (data) => {
+      console.log(data);
     });
 
     socket.on("connect", () => {
-      socket.emit("join", user.value.profile.SteamID)
-    })
+      socket.emit("join", user.value.profile.SteamID);
+    });
 
     return {
       user,

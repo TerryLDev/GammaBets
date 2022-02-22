@@ -8,7 +8,7 @@ const app = express();
 app.set('views', '../views')
 app.set('view engine', 'html')
 
-const { CoinFlipHandler, cfEvents, allCFGames, cfHistory } = require("../gammabets/handler/coinflip-handler")
+const { CoinFlipHandler, allCFGames, cfHistory, joiningQueue } = require("../gammabets/handler/coinflip-handler")
 const cfGameHandler = new CoinFlipHandler();
 
 router.post("/coinflip/active", (req, res) => {
@@ -25,5 +25,11 @@ router.post("/coinflip/history", (req, res) => {
 
 });
 
+router.post("/coinflip/joining-queue", (req, res) => {
+	
+	console.log("grabbing current cf joining queue")
+	res.json(joiningQueue.queue);
+
+});
 
 module.exports = router;

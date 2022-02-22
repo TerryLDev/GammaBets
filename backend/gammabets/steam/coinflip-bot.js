@@ -11,7 +11,7 @@ const Support = require('../../models/support.model');
 const MarketPrice = require('../../models/marketprice.model');
 const CoinFlipGame = require('../../models/coinflipgame.model');
 
-const {CoinFlipHandler, allCFGames} = require("../handler/coinflip-handler");
+const {CoinFlipHandler, allCFGames, creatingQueue, joiningQueue} = require("../handler/coinflip-handler");
 
 const { SteamBot } = require("./steam-bot");
 const { CoinFlipManager } = require("../manager/coinflip-manager");
@@ -36,9 +36,6 @@ class CoinFlipBot extends SteamBot{
 
 		try {
 			
-			//////////////////////////////////
-			//// NEED TO BE DONE TOMORROW ////
-			//////////////////////////////////
 			this.manager.on("sentOfferChanged", (offer, oldState) => {
 
 				if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
@@ -119,11 +116,13 @@ class CoinFlipBot extends SteamBot{
 	}
 
 	// please for the love god fix this mess
-	async newCoinFlipTrade(steamID, skins, tradeURL, side, gameID) {
+	async newCoinflip(steamID, skins, tradeURL, side, gameID) {
 
 		try {
 
-			await this.#callNewCoinFlipTrade(steamID, skins, tradeURL, side, gameID);
+			await this.sendDeposit("Coinflip", gameID, skins, steamID, tradeURL, "Creating");
+
+			creatingQueue.addToQueue(gameID, steamID, side);
 
 		}
 
@@ -141,14 +140,6 @@ class CoinFlipBot extends SteamBot{
 	////////////////////////
 
 	// Private Methods
-
-	#callNewCoinFlipTrade(steamID, skins, tradeURL, side, gameID) {
-
-		this.cfGameHandler.addWaitSide(gameID, steamID, side);
-
-		this.sendDeposit("Coinflip", gameID, skins, steamID, tradeURL, "Creating");
-		
-	}
 
 	#checkIfCFGameIsOpen(gameID, steamID) {
 

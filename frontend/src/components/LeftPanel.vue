@@ -81,9 +81,7 @@ const env = process.env.NODE_ENV;
 
 if (env == "development") {
   socket = io("http://localhost:4000");
-}
-
-else {
+} else {
   socket = io(window.location.origin);
 }
 

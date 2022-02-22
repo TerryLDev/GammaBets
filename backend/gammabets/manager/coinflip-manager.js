@@ -1,6 +1,6 @@
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-const { CoinFlipHandler } = require("../handler/coinflip-handler");
+const { CoinFlipHandler, joiningQueue, creatingQueue, allCFGames } = require("../handler/coinflip-handler");
 
 const mongoose = require("mongoose");
 const TradeHistory = require('../../models/tradehistory.model');
@@ -83,11 +83,11 @@ class CoinFlipManager extends GameManager {
     #newGame(tradeDBObject, dbSkins) {
 
         // gets what side those from the trade offer
-        const wSide = this.cfGameHandler.getWaitSide(tradeDBObject.GameID, tradeDBObject.SteamID);
+        const queue = creatingQueue.getQueue(tradeDBObject.GameID, tradeDBObject.SteamID);
 
-        if (wSide) {
+        if (queue) {
 
-            User.findOneAndUpdate({SteamID: tradeDBObject.SteamID}, {$push : {GamesPlayed: wSide.GameID}}, {new: true}, (err, user) => {
+            User.findOneAndUpdate({SteamID: tradeDBObject.SteamID}, {$push : {GamesPlayed: queue.GameID}}, {new: true}, (err, user) => {
 
                 if(err) {
                     return console.error(err);
@@ -107,7 +107,7 @@ class CoinFlipManager extends GameManager {
                         Status: true
                     }
 
-                    if (wSide.Side == "red") {
+                    if (queue.Side == "red") {
                         query.Red = tradeDBObject.SteamID;
                     }
                     else {
@@ -117,7 +117,7 @@ class CoinFlipManager extends GameManager {
                     CoinFlipGame.create(query)
                     .then(doc => {
                         this.cfGameHandler.createNewGame(doc);
-                        this.cfGameHandler.removeWaitSide(doc.GameID, tradeDBObject.SteamID);
+                        creatingQueue.removeQueue(doc.GameID, tradeDBObject.SteamID);
                     })
                     .catch(err => {
                         return console.log(err);
@@ -128,7 +128,7 @@ class CoinFlipManager extends GameManager {
         }
 
         else {
-            console.log("could not find waitingSide");
+            console.log("could not find queue in creatingQueue");
             // please do something here
         }
 

@@ -7,10 +7,88 @@ const emitter = require('events').EventEmitter;
 const cfEvents = new emitter();
 
 let allCFGames = [];
+
 let cfGamesTimer = [];
+
 let cfHistory = [];
-let waitSide = [];
-let joiningQueue = [];
+
+let creatingQueue = {
+    queue: [],
+    addToQueue(gameID, steamID, side) {
+        const entry = {
+            GameID: gameID,
+            SteamID: steamID,
+            Side: side
+        }
+
+        this.queue.push(entry);
+    },
+    getQueue(gameID, steamID) {
+
+        let grabSide = this.queue.find(wSide => wSide.GameID == gameID && wSide.SteamID == steamID);
+
+        return grabSide;
+
+    },
+    removeQueue(gameID, steamID) {
+
+        let index = this.queue.findIndex(wSide => wSide.GameID == gameID && wSide.SteamID == steamID);
+        
+        this.queue.splice(index, 1);
+
+    }
+    
+};
+
+let joiningQueue = {
+    queue: [],
+    // adds player to the joining queue for a coin flip
+    addToQueue(gameID, steamID, username = "No Name Found", userPicURL) {
+        const entry = {
+            GameID: gameID,
+            SteamID: steamID,
+            Username: username,
+            UserPic: userPicURL
+        }
+        this.queue.push(entry);
+
+        cfEvents.emit("updateJoiningQueue", this.queue);
+    },
+    // checks to see if a player has already joined the queue for a game
+    checkSelectedQueue(gameID) {
+
+        const findQueue = this.queue.find(queue => gameID == queue.GameID);
+
+        if (findQueue) {
+            return false;
+        }
+
+        else {
+            return true;
+        }
+    },
+    // returns if it can find a queue
+    getSelectedQueue(gameID) {
+
+        const findQueue = this.queue.find(queue => gameID == queue.GameID);
+
+        if (findQueue) {
+            return findQueue;
+        }
+
+        else {
+            return false;
+        }
+
+    },
+    removeSelectedQueue(gameID) {
+
+        const index = this.queue.findIndex(queue => gameID == queue.GameID);
+        this.queue.splice(index, 1);
+
+        cfEvents.emit("updateJoiningQueue", this.queue);
+    }
+};
 
 class CoinFlipHandler {
 
@@ -104,6 +182,8 @@ class CoinFlipHandler {
     // needs work
     takeProfitAndWithdrawal() {
 
+
+
     }
 
     // done
@@ -151,11 +231,10 @@ class CoinFlipHandler {
             bot: gameObject.BotID,
             gameState: true,
             playerOne: gameObject.Players[0],
-            playerOneTradeState: gameObject.PlayerOneTradeState,
             playerTwo: {},
-            playerTwoTradeState: "none",
             totalValue: gameObject.TotalValue,
-            secondPlayerJoining: false,
+            playerTwoJoining: false,
+            playerTwoJoined: false,
             waitingToFlip: false,
             cancelRequest: false,
             winner: "none",
@@ -172,24 +251,20 @@ class CoinFlipHandler {
         }
 
         allCFGames.push(newEntry);
-        cfGamesTimer.push({gameID: gameObject.GameID, defaultTimer: this.defaultTimer, flippingTimer: this.countDown});
+        cfGamesTimer.push({gameID: gameObject.GameID, defaultTimer: parseFloat(this.defaultTimer), flippingTimer: parseFloat(this.countDown)});
 
         return newEntry;
 
     }
 
     // done
-    #callOpponentJoiningGame(gameID, steamID, username, tradeState, userPicURL) {
+    #callOpponentJoiningGame(gameID, steamID, username, userPicURL) {
 
         let gameObj = allCFGames.find(game => game.gameID == gameID);
         
-        gameObj.playerTwo = {
-            username: username,
-            userSteamId: steamID,
-            userPicture: userPicURL,
-        }
-        gameObj.playerTwoTradeState = tradeState
-        gameObj.secondPlayerJoining = true;
+        gameObj.playerTwoJoining = true;
+
+        joiningQueue.addToQueue(gameID, steamID, username, userPicURL);
 
         return gameObj;
 
@@ -267,36 +342,6 @@ class CoinFlipHandler {
 
     }
 
-    addWaitSide(gameID, steamID, side) {
-        const entry = {
-            GameID: gameID,
-            SteamID: steamID,
-            Side: side
-        }
-
-        waitSide.push(entry);
-        console.log(waitSide);
-    }
-    
-    getWaitSide(gameID, steamID) {
-
-        console.log(waitSide);
-        console.log(gameID, steamID);
-
-        let grabSide = waitSide.find(wSide => wSide.GameID == gameID && wSide.SteamID == steamID);
-
-        return grabSide;
-
-    }
-
-    removeWaitSide(gameID, steamID) {
-
-        let index = waitSide.findIndex(wSide => wSide.GameID == gameID && wSide.SteamID == steamID);
-        
-        waitSide.splice(index, 1);
-
-    }
-
     // needs work
     cancelOpponentTrade(gameID) {
 
@@ -322,14 +367,11 @@ class CoinFlipHandler {
             bot: gameObject.BotID,
             gameState: true,
             playerOne: gameObject.Players[0],
-            playerOneTradeState: gameObject.PlayerOneTradeState,
             playerTwo: {},
-            playerTwoTradeState: "none",
             totalValue: gameObject.TotalValue,
             secondPlayerJoining: false,
-            defaultTimer: this.defaultTimer,
+            playerTwoJoined: false,
             waitingToFlip: false,
-            flippingTimer: this.countDown,
             cancelRequest: false,
             winner: "none",
         }
@@ -339,7 +381,7 @@ class CoinFlipHandler {
 
             let gameTimer = cfGamesTimer.find(game => gameObj.gameID == game.gameID)
 
-            if(gameObj.waitingToFlip && gameObj.playerTwoTradeState == "Accepted") {
+            if(gameObj.waitingToFlip && gameObj.playerTwoJoined) {
 
                 // continue it
                 if (gameTimer.flippingTimer > 0) {
@@ -407,4 +449,4 @@ class CoinFlipHandler {
 
 }
 
-module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, cfGamesTimer, waitSide};
+module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, cfGamesTimer, creatingQueue, joiningQueue};

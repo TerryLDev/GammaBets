@@ -416,7 +416,7 @@ io.on("connection", (socket) => {
 
 		try {
 
-			console.log("New Request: New CoinFlip")
+			console.log("New Request: Coinflip")
 
 			setTimeout(function() {
 
@@ -424,7 +424,7 @@ io.on("connection", (socket) => {
 
 				if (lastUsedCFBot == cfBotZero.botID) {
 
-					cfBotOne.newCoinFlipTrade(data.steamID, data.skins, data.tradeURL, data.side, gameID);
+					cfBotOne.newCoinflip(data.steamID, data.skins, data.tradeURL, data.side, gameID);
 
 					lastUsedCFBot = cfBotOne.botID;
 
@@ -750,6 +750,6 @@ highStakesEvents.on("startHighStakesTimer", data => {
 
 });
 
-setInterval(function(){
+setTimeout(function(){
 	console.log(allCFGames)
 }, 4000)

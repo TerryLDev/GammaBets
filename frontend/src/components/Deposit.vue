@@ -56,9 +56,7 @@ const env = process.env.NODE_ENV;
 
 if (env == "development") {
   socket = io("http://localhost:4000");
-}
-
-else {
+} else {
   socket = io(window.location.origin);
 }
 
@@ -71,12 +69,11 @@ export default {
     if (isAuth.value) {
       const emitData = {
         SteamID: store.state.user.profile.SteamID,
-      }; 
+      };
       if (store.getters.canSendInventoryRequest) {
         socket.emit("getInventory", emitData);
         store.dispatch("setLastInventoryRequest");
-      }
-      else {
+      } else {
         const request = store.state.request;
         let timeLeft =
           Math.round(
@@ -118,7 +115,7 @@ export default {
       minPrice,
       maxPrice,
       isLoading,
-      isAuth
+      isAuth,
     };
   },
   name: "DepositMenu",
