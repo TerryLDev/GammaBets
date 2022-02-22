@@ -21,7 +21,7 @@ const tradeHistorySchema = Schema({
     State: String,
     GameMode: String,
     GameID: String,
-    DateCreated: Date
+    Action: String,
 },
 {timestamps: true});
 

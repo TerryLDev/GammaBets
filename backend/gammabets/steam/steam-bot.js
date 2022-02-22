@@ -7,10 +7,9 @@ require('dotenv').config(__dirname + '/.env');
 
 const User = require('../../models/user.model');
 const TradeHistory = require('../../models/tradehistory.model');
-const Support = require('../../models/support.model');
 const MarketPrice = require('../../models/marketprice.model');
-const CoinFlipGame = require('../../models/coinflipgame.model');
-const JackpotGame = require('../../models/jackpotgame.model');
+
+const {CoinFlipHandler, allCFGames} = require("../handler/coinflip-handler");
 
 class SteamBot {
 
@@ -25,6 +24,8 @@ class SteamBot {
 		this.sharedSecret = sharedSecret;
 		this.botID = botID;
 		this.skins;
+
+		this.cfGameHandler = new CoinFlipHandler();
 
 		this.client = new SteamUser();
 		this.community = new SteamCommunity();
@@ -175,13 +176,14 @@ class SteamBot {
 	}
 
 	// return the trade object
-	sendDeposit(gameMode = "", gameID = "", skins, steamID, tradeURL) {
+	sendDeposit(gameMode = "", gameID = "", skins, steamID, tradeURL, action) {
 
 		// acceptable gameMode's = "Coinflip", "High Stakes", "Low Stakes"
 
 		const accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
+		const acceptedActions = ["Joining", "Creating"]
 
-		if (accpetedGameModes.includes(gameMode) ==  false) {
+		if (accpetedGameModes.includes(gameMode) ==  false && acceptedActions.includes(action) == false) {
 
 			console.log("gameMode entered:", gameMode)
 			console.log("Unaccepted Game Mode")
@@ -192,12 +194,14 @@ class SteamBot {
 		const offer = this.manager.createOffer(steamID);
 
 		this.manager.getUserInventoryContents(steamID, 252490, 2, true, (err, inv) => {
+			
 			if (err)  {
 				console.log(err);
 				return false;
 			}
 
 			else {
+
 				let itemNames = [];
 
 				skins.forEach(desired => {
@@ -243,17 +247,19 @@ class SteamBot {
 							GameMode: gameMode,
 							GameID: gameID,
 							BotID: this.botID,
-							DateCreated: Date.now()
+							Action: action,
 						})
 							.then(result => {
-								User.updateOne({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, result) => {
+								User.findOneAndUpdate({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, user) => {
+									
 									if(err) {
 										return console.log(err);
 									}
 
-									else {
-										return offer;
+									else if (action == "Joining" && gameMode == "Coinflip"){
+										this.cfGameHandler.opponentJoiningGame(gameID, steamID, user.Username, TradeOfferManager.ETradeOfferState[offer.state], user.ProfilePictureURL);
 									}
+
 								});
 							})
 							.catch(err => {

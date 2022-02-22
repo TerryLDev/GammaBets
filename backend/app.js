@@ -161,24 +161,25 @@ const port = process.env.PORT || 4000;
 // Intialize Bots
 // Random Login Time to avoid request Errors
 
-/*
-
 const randomOne = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomTwo = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
 
+
 // JP Bot(s)
-let jpBotZero;
+// let jpBotZero;
 
 // CF Bot(s)
 let cfBotZero;
-let cfBotOne;
+// let cfBotOne;
 
+/*
 setTimeout(() => {
 
 	jpBotZero = new JackpotBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET), process.env.JP_BOT_0_IDENTITY_SECRET, process.env.JP_BOT_0_SHARED_SECRET, process.env.JP_BOT_0_SERVER_ID);
 
 }, randomOne);
+*/
 
 setTimeout(() => {
 
@@ -186,13 +187,13 @@ setTimeout(() => {
 
 }, randomTwo);
 
+/*
 setTimeout(() => {
 
 	cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVER_ID);
 
 
 }, randomThree);
-
 */
 
 // Authentcation startegy for Passport
@@ -225,8 +226,19 @@ passport.use(
 		},
 
 		function(identifier, profile, done) {
-			console.log(identifier);
-			console.log(profile);
+			User.findOneAndUpdate({SteamID: profile.id}, {
+				$set: {
+					Username: profile.displayName,
+					ProfilePictureURL: profile._json.avatarfull,
+				}
+			}, {upsert: true, new: true}, (err, doc) => {
+				if (err) {
+					console.error(err)
+				}
+				else {
+					console.log("User Logged In: " + doc.SteamID)
+				}
+			})
 			return done(null, profile);
 		}
 	)
@@ -287,7 +299,6 @@ io.on("connection", (socket) => {
 
 	socket.on("join", data => {
 
-		console.log(data);
 		const room = data
 
 		if (room != "") {
@@ -456,14 +467,16 @@ io.on("connection", (socket) => {
 			setTimeout(function() {
 
 				let findBot = cfGameHandler.findCFBot(data.gameID);
+
+				console.log(cfBotZero.botID);
 	
-				if (findBot == process.env.CF_BOT_0_SERVERID) {
+				if (findBot == cfBotZero.botID) {
 	
 					cfBotZero.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
 	
 				}
 	
-				else if (findBot == process.env.CF_BOT_1_SERVERID) {
+				else if (findBot == cfBotOne.botID) {
 	
 					cfBotOne.joiningActiveCFGame(data.steamID, data.skins, data.tradeURL, data.gameID);
 	
@@ -481,6 +494,8 @@ io.on("connection", (socket) => {
 		}
 
 		catch(err) {
+
+			return console.log(err)
 
 		}
 		
@@ -734,3 +749,7 @@ highStakesEvents.on("startHighStakesTimer", data => {
 	io.emit("startHighStakesTimer", data);
 
 });
+
+setInterval(function(){
+	console.log(allCFGames)
+}, 4000)

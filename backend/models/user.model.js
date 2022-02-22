@@ -23,7 +23,7 @@ const userSchema = new Schema({
     Profit: Number,
     BetAmount: Number,
     GamesPlayed: {
-        type: Schema.Types.Mixed
+        type: Array
     }
 }, {
     timestamps: true

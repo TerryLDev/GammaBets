@@ -82,7 +82,7 @@ const coinflip = {
     addNewCoinFlip(state, newGame) {
       state.activeCoinflips.push(newGame);
     },
-    modifyCFGame(state, gameObj) {
+    updateCFGame(state, gameObj) {
       const gameIndex = state.activeCoinflips.findIndex(
         (game) => game.gameID == gameObj.gameID
       );
@@ -129,8 +129,8 @@ const coinflip = {
     addNewCoinFlip({ commit }, newGame) {
       commit("addNewCoinFlip", newGame);
     },
-    modifyCFGame({ commit }, data) {
-      commit("modifyCFGame", data);
+    updateCFGame({ commit }, data) {
+      commit("updateCFGame", data);
     },
   },
 };

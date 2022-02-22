@@ -9,6 +9,8 @@ const cfEvents = new emitter();
 let allCFGames = [];
 let cfGamesTimer = [];
 let cfHistory = [];
+let waitSide = [];
+let joiningQueue = [];
 
 class CoinFlipHandler {
 
@@ -265,6 +267,36 @@ class CoinFlipHandler {
 
     }
 
+    addWaitSide(gameID, steamID, side) {
+        const entry = {
+            GameID: gameID,
+            SteamID: steamID,
+            Side: side
+        }
+
+        waitSide.push(entry);
+        console.log(waitSide);
+    }
+    
+    getWaitSide(gameID, steamID) {
+
+        console.log(waitSide);
+        console.log(gameID, steamID);
+
+        let grabSide = waitSide.find(wSide => wSide.GameID == gameID && wSide.SteamID == steamID);
+
+        return grabSide;
+
+    }
+
+    removeWaitSide(gameID, steamID) {
+
+        let index = waitSide.findIndex(wSide => wSide.GameID == gameID && wSide.SteamID == steamID);
+        
+        waitSide.splice(index, 1);
+
+    }
+
     // needs work
     cancelOpponentTrade(gameID) {
 
@@ -375,4 +407,4 @@ class CoinFlipHandler {
 
 }
 
-module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, cfGamesTimer};
+module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, cfGamesTimer, waitSide};

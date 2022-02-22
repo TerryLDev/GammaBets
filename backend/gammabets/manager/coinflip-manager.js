@@ -79,60 +79,58 @@ class CoinFlipManager extends GameManager {
 
     }
 
-    // async method to to wait for all details
-    #newGame(tradeDBObject, dbSkins, gameDoc) {
+    // this should create a cfGameDoc and send the game to the handler
+    #newGame(tradeDBObject, dbSkins) {
 
-        User.findOne({SteamID: tradeDBObject.SteamID}, (err, user) => {
+        // gets what side those from the trade offer
+        const wSide = this.cfGameHandler.getWaitSide(tradeDBObject.GameID, tradeDBObject.SteamID);
 
-            if(err) {
-                console.log('an error');
-                console.log(err);
-                return false;
-            }
+        if (wSide) {
 
-            else if (user == null || user == undefined) {
+            User.findOneAndUpdate({SteamID: tradeDBObject.SteamID}, {$push : {GamesPlayed: wSide.GameID}}, {new: true}, (err, user) => {
 
-                console.log('no user found');
-                return false;
+                if(err) {
+                    return console.error(err);
+                }
 
-            }
+                else {
 
-            else {
+                    let userBet = this.userBetArraySlot(tradeDBObject, dbSkins, user);
+                    const playerArray = [userBet];
 
-                let userBet = this.userBetArraySlot(tradeDBObject, dbSkins, user);
-
-                let fullBetList = [];
-                fullBetList.push(userBet);
-
-                let totalVal = 0;
-
-                userBet.skinValues.forEach(val => {
-
-                    totalVal += val;
-
-                });
-
-                CoinFlipGame.findOneAndUpdate({ GameID: gameDoc.GameID }, { $set: {
-                        Players: fullBetList,
-                        TotalValue: totalVal,
-                        PlayerOneTradeState: tradeDBObject.State
-                    }}, { new: true }, (err, cf) => {
-
-                        if (err) return console.error(err);
-
-                        else {
-
-                            console.log("New Coin Flip game was created: " + cf.GameID);
-
-                            this.cfGameHandler.createNewGame(cf);
-
-                        }
+                    let query = {
+                        GameID: tradeDBObject.GameID,
+                        Players: playerArray,
+                        PlayerOneTradeState: tradeDBObject.State,
+                        PlayerOneTradeID: tradeDBObject.TradeID,
+                        BotID: tradeDBObject.BotID,
+                        Status: true
                     }
-                );
 
-            }
+                    if (wSide.Side == "red") {
+                        query.Red = tradeDBObject.SteamID;
+                    }
+                    else {
+                        query.Black = tradeDBObject.SteamID;
+                    }
 
-        });
+                    CoinFlipGame.create(query)
+                    .then(doc => {
+                        this.cfGameHandler.createNewGame(doc);
+                        this.cfGameHandler.removeWaitSide(doc.GameID, tradeDBObject.SteamID);
+                    })
+                    .catch(err => {
+                        return console.log(err);
+                    });
+                }
+            });
+
+        }
+
+        else {
+            console.log("could not find waitingSide");
+            // please do something here
+        }
 
     }
     
@@ -175,44 +173,15 @@ class CoinFlipManager extends GameManager {
 
             }
 
-            else if (tradeDoc.TransactionType == "Deposit") {
-
-                CoinFlipGame.findOne({GameID: tradeDoc.GameID}, (err, gameDoc) => {
-
-                    if (err) {
-
-                        console.log("An Error Occurred when looking up Coin Flip DB game");
-                        return console.log(err);
-
-                    }
-
-                    else if (gameDoc.Status == true) {
-
-                        // check if it's an active game
-                        if (gameDoc.PlayerTwoTradeState == "Active" && gameDoc.PlayerTwoTradeID == offerID) {
-
-                            // oof
-                            this.#joiningGame(tradeDoc, tradeOfferObject, dbSkins, gameDoc);
-
-                        }
-
-                        else if (gameDoc.PlayerTwoTradeState == "Accepted" && gameDoc.PlayerTwoTradeID == offerID) {
-
-                            // Error
-
-                        }
-
-                        else {
-
-                            // Someone is create a new game
-                            this.#newGame(tradeDoc, dbSkins, gameDoc);
-
-                        }
-
-                    }
-
-                });
-
+            else if (tradeDoc.TransactionType == "Deposit") {      
+                
+                // check if they are joining a game
+                if (tradeDoc.Action == "Creating") {
+                    this.#newGame(tradeDoc, dbSkins);
+                }
+                else if (tradeDoc.Action == "Joining") {
+                    this.#joiningGame()
+                }
             }
 
             else if (tradeDoc.TransactionType == "Withdraw") {

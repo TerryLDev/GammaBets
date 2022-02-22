@@ -53,8 +53,6 @@ export default {
 
     const user = computed(() => store.state.user);
 
-    console.log(user.value)
-
     const isDepositVisible = computed(() => store.state.deposit.isVisible);
 
     socket.on("tradeLink", data => {
