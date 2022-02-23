@@ -22,7 +22,6 @@ const coinFlipGameSchema = Schema({
         required: true
     },
     Status: Boolean,
-    DateCreated: Date
 }, {
     timestamps: true
 });

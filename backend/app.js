@@ -167,19 +167,17 @@ const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
 
 
 // JP Bot(s)
-// let jpBotZero;
+let jpBotZero;
 
 // CF Bot(s)
 let cfBotZero;
-// let cfBotOne;
+let cfBotOne;
 
-/*
 setTimeout(() => {
 
 	jpBotZero = new JackpotBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET), process.env.JP_BOT_0_IDENTITY_SECRET, process.env.JP_BOT_0_SHARED_SECRET, process.env.JP_BOT_0_SERVER_ID);
 
 }, randomOne);
-*/
 
 setTimeout(() => {
 
@@ -187,14 +185,12 @@ setTimeout(() => {
 
 }, randomTwo);
 
-/*
 setTimeout(() => {
 
 	cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVER_ID);
 
 
 }, randomThree);
-*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -573,13 +569,10 @@ alertEvents.on("tradeLink", data => {
 // Coin flip events
 
 // Coin Flip Timer
-setInterval(function () {
 
-	cfGameHandler.timer();
+cfGameHandler.timer();
 
-}, 1000);
-
-// done
+// done - might be pretty hard on the server, but we'll see
 cfEvents.on("cfTimer", (data) => {
 	// returns the list of games timers
 
@@ -587,29 +580,29 @@ cfEvents.on("cfTimer", (data) => {
 
 });
 
+cfEvents.on("updateJoiningQueue", data => {
+	io.emit("updateJoiningQueue", data);
+});
+
 // done
 cfEvents.on("newCFGame", (data) => {
-	// returns the modified game obj
+	// returns the game object
 
 	io.emit("newCFGame", data);
 	
 });
 
 cfEvents.on("secondPlayerAccepctedTrade", data => {
-	io.emit("secondPlayerAccepctedCFTrade", data);
-})
-
-cfEvents.on("secondPlayerJoiningCFGame", data => {
-	io.emit("secondPlayerJoiningCFGame", data);
-})
-
-// need more work
-cfEvents.on("secondPlayerDeclinedTrade", (data) => {
-
-	// 
-
+	io.emit("secondPlayerAccepctedTrade", data);
 });
 
+cfEvents.on("secondPlayerJoiningGame", data => {
+	io.emit("secondPlayerJoiningGame", data);
+});
+
+cfEvents.on("secondPlayerCancelTrade", data => {
+	io.emit("secondPlayerCancelTrade", data);
+});
 
 // need more work
 ///////////////////////
@@ -627,7 +620,7 @@ cfEvents.on("cancelCFGame", async (data) => {
 
 		console.log(await cfBot);
 
-		if (await cfBot == process.env.CF_BOT_1_SERVERID) {
+		if (await cfBot == cfBotOne.botID) {
 
 			cfBotOne.cancelOpponentCoinFlipTradeOffer(data.GameID);
 
@@ -638,12 +631,6 @@ cfEvents.on("cancelCFGame", async (data) => {
 			cfBotZero.cancelOpponentCoinFlipTradeOffer(data.GameID);
 
 		}
-
-		// handler updates json file and returns the {gameobject} from the json file
-		const update = await cfGameHandler.cancelOpponentTrade(data.GameID);
-
-		// socket pushes update to front end
-		io.emit("cancelCFGame", await update);
 	}
 	
 	catch (err) {

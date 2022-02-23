@@ -1,15 +1,7 @@
 const router = require("express").Router();
 const express = require('express');
-const nunjucks = require("nunjucks");
 
-const User = require("../models/user.model");
-const app = express();
-
-app.set('views', '../views')
-app.set('view engine', 'html')
-
-const { CoinFlipHandler, allCFGames, cfHistory, joiningQueue } = require("../gammabets/handler/coinflip-handler")
-const cfGameHandler = new CoinFlipHandler();
+const { allCFGames, cfHistory, joiningQueue } = require("../gammabets/handler/coinflip-handler")
 
 router.post("/coinflip/active", (req, res) => {
 

@@ -14,10 +14,8 @@ class GameManager {
 
     }
 
-    userBetArraySlot(tradeDBObject, dbSkins, user) {
+    userBetArraySlot(tradeDBObject, dbSkins, userDB) {
 
-        let username = user.Username;
-        let userPic = user.ProfilePictureURL;
         let skinVals = [];
         let skinPics = [];
 
@@ -36,9 +34,9 @@ class GameManager {
         });
 
         let userBet = {
-            username: username,
+            username: userDB.Username,
             userSteamId: tradeDBObject["SteamID"],
-            userPicture: userPic,
+            userPicture: userDB.ProfilePictureURL,
             skins: tradeDBObject.ItemNames,
             skinValues: skinVals,
             skinIDs: tradeDBObject.Items,
@@ -49,23 +47,17 @@ class GameManager {
 
     }
 
-    userTotalValue(skinVals) {
+    getCFGameTotal(playerOneVals, playerTwoVals) {
+        let total = 0;
+
+        playerOneVals.forEach(val => {
+            total += val
+        });
+        playerTwoVals.forEach(val => {
+            total += val
+        });
         
-        if (skinVals.length >= 1) {
-            let total = 0;
-
-            skinVals.forEach(val => {
-
-                total+=val;
-
-            });
-
-            return total;
-        }
-
-        else {
-            return total;
-        }
+        return total;
     }
 
 }

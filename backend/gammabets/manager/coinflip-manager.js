@@ -8,6 +8,7 @@ const CoinFlipGame = require('../../models/coinflipgame.model');
 const User = require('../../models/user.model');
 
 const { GameManager } = require('./game-manager');
+const { SteamID } = require('steam-tradeoffer-manager');
 
 class CoinFlipManager extends GameManager {
 
@@ -19,63 +20,63 @@ class CoinFlipManager extends GameManager {
     }
 
     // Second Opponent accepted their trade and is joining the active coin flip
-    #joiningGame(tradeDBObject, offerObject, dbSkins, gameDoc) {
+    #joiningGame(tradeDBObject, skins, gameID) {
 
-        // needs more work
-        User.findOne({SteamID: tradeDBObject.SteamID}, (err, user) => {
+        const currentQueue = joiningQueue.getSelectedQueue(gameID);
+        const currentGame = allCFGames.find(game => game.gameID == gameID);
 
-            if (err) {
+        if (currentQueue.SteamID == tradeDBObject.SteamID) {
+            // this is good
 
-                console.log('an error');
-                console.log(err);
-                return false;
+            User.findOneAndUpdate({SteamID: tradeDBObject.SteamID}, {$push: {GamesPlayed: gameID}}, (err, user) => {
+                if (err) {
+                    return console.error(err);
+                }
+                
+                else if (user == undefined || user == null) {
+                    return console.log("User doesn't exist in the DB");
+                }
 
-            }
+                else {
 
-            else if (user == null || user == undefined) {
+                    let userBet = this.userBetArraySlot(tradeDBObject, skins, user);
 
-                console.log('no user found');
-                return false;
+                    const cfTotal = this.getCFGameTotal(currentGame.playerOne.skinValues, userBet.skinValues);
 
-            }
-
-            else {
-
-                let userBet = this.userBetArraySlot(tradeDBObject, dbSkins, user);
-
-                let totalVal = gameDoc.TotalValue;
-
-                userBet.skinValues.forEach(val => {
-
-                    totalVal += val;
-
-                });
-
-                console.log(userBet);
-                console.log(TradeOfferManager.ETradeOfferState[offerObject.state]);
-                console.log(totalVal);
-
-                CoinFlipGame.findOneAndUpdate({ GameID: gameDoc.GameID }, { $push: { Players: userBet }, $set: {
-                    TotalValue: totalVal,
-                    PlayerOneTradeState: TradeOfferManager.ETradeOfferState[offerObject.state]
-                }}, { new: true }, (err, cf) => {
-
-                    if (err) return console.error(err);
-
-                    else {
-
-                        console.log(cf);
-
-                        console.log("Player Joined a Coin Flip: " + cf.GameID);
-
-                        this.cfGameHandler.opponentAcceptedTrade(cf);
-
+                    let query = {
+                        $push : {
+                            Players: userBet
+                        },
+                        $set : {
+                            PlayerTwoTradeState: tradeDBObject.State,
+                            PlayerTwoTradeID: tradeDBObject.TradeID,
+                            TotalValue: cfTotal,
+                        }
                     }
-                });
 
-            }
+                    if (currentGame.playerTwoSide == "red") {
+                        query.$set.Red = tradeDBObject.SteamID;
+                    }
+                    else {
+                        query.$set.Black = tradeDBObject.SteamID;
+                    }
 
-        });
+                    CoinFlipGame.findOneAndUpdate({GameID: gameID}, query, {new: true}, (err, cfGame) => {
+                        if (err) return console.error(err);
+
+                        else {
+                            this.cfGameHandler.opponentAcceptedTrade(cfGame);
+                        }
+                    });
+
+                }
+            });
+        }
+
+        else {
+            return console.log("This user is not apart of the current joining queue");
+            // send offer back to them and display an error or something
+        }
 
     }
 
@@ -180,7 +181,7 @@ class CoinFlipManager extends GameManager {
                     this.#newGame(tradeDoc, dbSkins);
                 }
                 else if (tradeDoc.Action == "Joining") {
-                    this.#joiningGame()
+                    this.#joiningGame(tradeDoc, dbSkins, tradeDoc.GameID)
                 }
             }
 

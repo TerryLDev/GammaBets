@@ -96,11 +96,21 @@ class CoinFlipBot extends SteamBot{
 	async joiningActiveCFGame(steamID, skins, tradeURL, gameID) {
 		try {
 
-			let cfGame = await this.#checkIfCFGameIsOpen(gameID, steamID);
+			let cfGame = await this.#checkCFGame(gameID, steamID);
 
 			if (await cfGame) {
 
 				await this.sendDeposit("Coinflip", await cfGame.gameID, skins, steamID, tradeURL, "Joining");
+
+				User.findOne({SteamID: steamID}, (err, user) => {
+					if (err) return console.error(err);
+					else if (user == undefined || user == null) {
+						return console.log("User doesn't exsist in DB");
+					}
+					else {
+						this.cfGameHandler.opponentJoiningGame(gameID, steamID, user.Username, user.ProfilePictureURL);
+					}
+				});
 
 			}
 
@@ -141,24 +151,25 @@ class CoinFlipBot extends SteamBot{
 
 	// Private Methods
 
-	#checkIfCFGameIsOpen(gameID, steamID) {
+	#checkCFGame(gameID, steamID) {
 
-		let currentCFGame = allCFGames.find(cfGame => cfGame.gameID == gameID);
-		/*
-		if (currentCFGame.playerOne.userSteamId == steamID) {
-			console.log("User is trying to join their own game");
-			return false
-		}
+		let checkQueue = joiningQueue.checkSelectedQueue(gameID);
+		
+		if (checkQueue) {
+			let currentCFGame = allCFGames.find(game => game.gameID == gameID);
 
-		else if (currentCFGame.secondPlayerJoining || currentCFGame.playerTwoTradeState != "none") {
-			return false
+			if (currentCFGame.playerOne.userSteamId == steamID) {
+				console.log("User tried to join his own coinflip");
+				return false;
+			}
+			else {
+				return currentCFGame;
+			}
 		}
 
 		else {
-			return currentCFGame;
+			return false;
 		}
-		*/
-		return currentCFGame;
 	}
 
 	#callCancelOpponentCoinFlipTradeOffer(gameID) {
@@ -180,9 +191,9 @@ class CoinFlipBot extends SteamBot{
 							if (err) return console.error(err);
 
 							else {
-								CoinFlipGame.updateOne({"GameID": gameID}, {$set: {PlayerTwoTradeState: undefined, PlayerTwoTradeID: undefined}}, { runValidators: true })
 
-								TradeHistory.updateOne({"TradeID": offer.id}, {$set: {State: TradeOfferManager.ETradeOfferState[offer.state]}})
+								TradeHistory.updateOne({"TradeID": offer.id}, {$set: {State: TradeOfferManager.ETradeOfferState[offer.state]}});
+
 							}
 						})
 					}
