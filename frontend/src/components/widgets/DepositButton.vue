@@ -4,8 +4,15 @@
 
 <script>
 import { io } from "socket.io-client";
+let socket;
 
-const socket = io("http://localhost:4000");
+const env = process.env.NODE_ENV;
+
+if (env == "development") {
+  socket = io("http://localhost:4000");
+} else {
+  socket = io(window.location.origin);
+}
 
 export default {
   methods: {
