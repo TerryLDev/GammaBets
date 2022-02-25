@@ -428,7 +428,7 @@ io.on("connection", (socket) => {
 
 				else {
 
-					cfBotZero.newCoinFlipTrade(data.steamID, data.skins, data.tradeURL, data.side, gameID);
+					cfBotZero.newCoinflip(data.steamID, data.skins, data.tradeURL, data.side, gameID);
 
 					lastUsedCFBot = cfBotZero.botID;
 
@@ -558,19 +558,22 @@ setInterval(async function () {
 // these are messages that will be sent to the user
 // trade offers, error messages, etc
 
+/*
 const alerts = new AlertCenter();
 
 alertEvents.on("tradeLink", data => {
 	io.to(data.steamID).emit("tradeLink", data);
 });
+*/
 
 //////////////////////////////////////////////////////////////
 
 // Coin flip events
 
 // Coin Flip Timer
-
-cfGameHandler.timer();
+setInterval(function() {
+	cfGameHandler.timer();
+}, 1000);
 
 // done - might be pretty hard on the server, but we'll see
 cfEvents.on("cfTimer", (data) => {
@@ -676,11 +679,6 @@ cfEvents.on("decideWinner", async (data) => {
 
 });
 
-// need more work
-cfEvents.on("removeCFGame", (data) => {
-
-});
-
 //////////////////////////////////////////////////////////////
 
 // High Stakes Events and Variables
@@ -736,7 +734,3 @@ highStakesEvents.on("startHighStakesTimer", data => {
 	io.emit("startHighStakesTimer", data);
 
 });
-
-setTimeout(function(){
-	console.log(allCFGames)
-}, 4000)

@@ -56,10 +56,6 @@ export default {
       console.log(data);
     });
 
-    socket.on("connect", () => {
-      socket.emit("join", user.value.profile.SteamID);
-    });
-
     return {
       user,
       isDepositVisible,

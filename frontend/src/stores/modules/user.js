@@ -1,4 +1,13 @@
 import axios from "axios";
+import { io } from "socket.io-client";
+let socket;
+const env = process.env.NODE_ENV;
+
+if (env == "development") {
+  socket = io("http://localhost:4000");
+} else {
+  socket = io(window.location.origin);
+}
 
 const user = {
   state: {
@@ -16,6 +25,9 @@ const user = {
     getUserAuth(state) {
       return state.auth;
     },
+    getIfDataReceived(state) {
+      return state.dataReceived;
+    }
   },
   mutations: {
     setUser(state, user) {
@@ -23,6 +35,10 @@ const user = {
     },
     setUserAuth(state, auth) {
       state.auth = auth;
+
+      if (auth) {
+        socket.emit("join", state.profile.SteamID);
+      }
     },
   },
   actions: {

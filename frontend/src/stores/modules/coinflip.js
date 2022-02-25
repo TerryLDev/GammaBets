@@ -103,8 +103,12 @@ const coinflip = {
 
       state.activeCoinflips[gameIndex] = gameObj;
     },
+    updateJoiningQueue(state, queues) {
+      state.joiningQueue = queues;
+    },
   },
   actions: {
+    // API grabs
     getAPIActiveCoinflip({ commit }) {
       axios
         .post("api/coinflip/active")
@@ -135,6 +139,7 @@ const coinflip = {
           console.log(err);
         });
     },
+    // view menu
     setCoinSide({ commit }, side) {
       commit("setCoinSide", side);
     },
@@ -155,6 +160,9 @@ const coinflip = {
     },
     updateCFGame({ commit }, data) {
       commit("updateCFGame", data);
+    },
+    updateJoiningQueue({commit}, queues) {
+      commit("updateJoiningQueue", queues);
     },
   },
 };

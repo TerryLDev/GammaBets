@@ -30,7 +30,7 @@
     </div>
 
     <div class="listing-buttons-div">
-      <button
+      <button v-if="game.playerOne.userSteamId != userSteamID"
         class="listing-button"
         :class="buttonClass(game.playerOneSide)"
         @click="openDepositMenu"
@@ -56,6 +56,11 @@ export default {
       depositType: "Coinflip",
       showDepositMenuVisible: false,
     };
+  },
+  computed: {
+    userSteamID() {
+      return this.$store.state.user.profile.SteamID;
+    }
   },
   methods: {
     playerOneSide(game) {

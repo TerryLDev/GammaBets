@@ -31,15 +31,15 @@
         />
         <img v-else alt="should show winner animation" />
         <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
-        <p v-if="game.secondPlayerJoining == false">Waiting for Player...</p>
+        <p v-if="game.playerTwoJoining == false">Waiting for Player...</p>
         <p
           v-else-if="
-            game.secondPlayerJoining && game.playerTwoTradeState == 'Active'
+            game.playerTwoJoining && game.playerTwoJoined == false
           "
         >
           Time Left: {{ timerObj.defaultTimer }}s
         </p>
-        <p v-else-if="game.waitingToFlip">
+        <p v-else-if="game.waitingToFlip && game.playerTwoJoined">
           Flipping in: {{ timerObj.flippingTimer }}s
         </p>
         <p v-else>Winner: {{ game.winner }}</p>

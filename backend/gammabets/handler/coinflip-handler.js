@@ -385,7 +385,7 @@ class CoinFlipHandler {
             }
 
             else {
-                // console.log("yikes the timer brokey")
+                // console.log("yikes the timer brokey");
             }
             
         });
@@ -397,17 +397,23 @@ class CoinFlipHandler {
     // needs work
     async timer() {
 
-        setInterval(function() {
+        try {
+            
+            await this.#updateTimer();
 
-            this.#updateTimer();
-
-            if (cfGamesTimer.length > 0) {
+            if (await cfGamesTimer.length > 0) {
 
                 cfEvents.emit("cfTimer", cfGamesTimer);
 
             }
 
-        }, 1000);
+        }
+
+        catch (err) {
+
+            return console.log(err);
+
+        }
 
     };
 

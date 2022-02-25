@@ -73,7 +73,8 @@ export default {
       if (store.getters.canSendInventoryRequest) {
         socket.emit("getInventory", emitData);
         store.dispatch("setLastInventoryRequest");
-      } else {
+      }
+      else {
         const request = store.state.request;
         let timeLeft =
           Math.round(

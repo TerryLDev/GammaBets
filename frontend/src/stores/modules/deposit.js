@@ -49,10 +49,10 @@ const deposit = {
       state.selectedPrice = 0;
     },
     setSelectedGameID(state, gameID) {
-      state.selectedGameID = gameID;
+      state.gameID = gameID;
     },
     resetSelectedGameID(state) {
-      state.selectedGameID = "";
+      state.gameID = "";
     },
     setDepositType(state, game) {
       state.depositType = game;

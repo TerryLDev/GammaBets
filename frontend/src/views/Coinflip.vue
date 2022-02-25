@@ -61,15 +61,19 @@ export default {
     });
 
     socket.on("secondPlayerAccepctedTrade", (data) => {
-      store.dispatch("modifyCFGame", data);
+      store.dispatch("updateCFGame", data);
+    });
+
+    socket.on("secondPlayerJoiningGame", (data) => {
+      store.dispatch("updateCFGame", data);
     });
 
     socket.on("newCFGame", (data) => {
       store.dispatch("addNewCoinFlip", data);
     });
 
-    socket.on("secondPlayerAccepctedTrade", (data) => {
-      store.dispatch("modifyCFGame", data);
+    socket.on("updateJoiningQueue", (data) => {
+      store.dispatch("updateJoiningQueue", data);
     });
 
     ////////////////////////////////

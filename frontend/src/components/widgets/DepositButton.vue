@@ -11,7 +11,6 @@ export default {
   methods: {
     sendDeposit() {
       const depositState = this.$store.state.deposit;
-      console.log(depositState);
 
       const choseSkins = depositState.selectedSkins.length > 0;
 
@@ -19,8 +18,8 @@ export default {
       if (depositState.depositType == "Coinflip" && choseSkins) {
         // creating a game
         if (
-          depositState.selectedGameID == undefined ||
-          depositState.selectedGameID == ""
+          depositState.gameID == undefined ||
+          depositState.gameID == ""
         ) {
           const data = {
             steamID: this.$store.state.user.profile.SteamID,
@@ -28,8 +27,6 @@ export default {
             tradeURL: this.$store.state.user.profile.TradeURL,
             side: this.$store.state.coinflip.chosenSide,
           };
-
-          console.log(data);
 
           socket.emit("createNewCoinFlipGame", data);
         }
@@ -41,10 +38,8 @@ export default {
             skins: depositState.selectedSkins,
             tradeURL: this.$store.state.user.profile.TradeURL,
             side: this.$store.state.coinflip.chosenSide,
-            gameID: depositState.selectedGameID,
+            gameID: depositState.gameID,
           };
-
-          console.log(data);
 
           socket.emit("joinActiveCoinFlipGame", data);
         }
