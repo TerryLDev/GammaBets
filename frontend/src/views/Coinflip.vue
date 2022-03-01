@@ -5,7 +5,7 @@
   <GameHistory :historyTitle="historyTitle" />
   <Transition>
     <div id="popup-background-layer" v-if="showViewMenu" @click="closeViewMenu">
-      <ViewMenu />
+      <ViewMenu :game="chosenViewGame" :timerObj="chosenViewTimer"/>
     </div>
   </Transition>
 </template>
@@ -50,7 +50,12 @@ export default {
     const showViewMenu = computed(
       () => store.state.coinflip.viewMenu.isVisible
     );
-    const chosenView = computed(() => store.state.coinflip.viewMenu.chosenGame);
+
+    const chosenViewGame = computed(() => store.state.coinflip.viewMenu.chosenGame);
+
+    const chosenViewTimer = computed(() =>
+      store.getters.getGameTimerObjectByGameID(chosenViewGame.value.gameID)
+    );
 
     ////////////////////////////////
 
@@ -82,7 +87,8 @@ export default {
       activeGames,
       coinflipHistory,
       showViewMenu,
-      chosenView,
+      chosenViewGame,
+      chosenViewTimer,
     };
   },
   data() {

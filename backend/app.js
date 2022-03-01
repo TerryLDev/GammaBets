@@ -165,7 +165,6 @@ const randomOne = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomTwo = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
 
-
 // JP Bot(s)
 let jpBotZero;
 
@@ -247,6 +246,9 @@ app.use(passport.session());
 app.use("/api", mainRoutes, jackpotRoutes, coinflipRoutes, supportRoutes);
 
 if (process.env.DEV_ENV == "false") {
+	app.set('views', __dirname + "/public/");
+	app.set('view engine', 'html');
+
 	app.use(express.static(__dirname + "/public/"));
 
 	app.use("/", productionRoutes);
@@ -578,32 +580,35 @@ setInterval(function() {
 // done - might be pretty hard on the server, but we'll see
 cfEvents.on("cfTimer", (data) => {
 	// returns the list of games timers
-
 	io.emit("cfTimer", data);
 
 });
 
 cfEvents.on("updateJoiningQueue", data => {
+	console.log(data);
 	io.emit("updateJoiningQueue", data);
 });
 
 // done
 cfEvents.on("newCFGame", (data) => {
 	// returns the game object
-
+	console.log(data);
 	io.emit("newCFGame", data);
 	
 });
 
 cfEvents.on("secondPlayerAccepctedTrade", data => {
+	console.log(data);
 	io.emit("secondPlayerAccepctedTrade", data);
 });
 
 cfEvents.on("secondPlayerJoiningGame", data => {
+	console.log(data);
 	io.emit("secondPlayerJoiningGame", data);
 });
 
 cfEvents.on("secondPlayerCancelTrade", data => {
+	console.log(data);
 	io.emit("secondPlayerCancelTrade", data);
 });
 

@@ -37,6 +37,13 @@
       >
         Join
       </button>
+      <button v-else-if="game.playerTwoJoining"
+        class="listing-button"
+        :class="buttonClass(game.playerOneSide)"
+        @click="openDepositMenu"
+      >
+        Join
+      </button>
       <button
         class="listing-button"
         :class="buttonClass(game.playerOneSide)"

@@ -27,22 +27,11 @@
         <img
           class="coin-img-view"
           v-if="game.winner == 'none'"
-          v-bind:src="defaultCoin"
+          v-bind:src="defaultCoin(game )"
         />
         <img v-else alt="should show winner animation" />
         <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
-        <p v-if="game.playerTwoJoining == false">Waiting for Player...</p>
-        <p
-          v-else-if="
-            game.playerTwoJoining && game.playerTwoJoined == false
-          "
-        >
-          Time Left: {{ timerObj.defaultTimer }}s
-        </p>
-        <p v-else-if="game.waitingToFlip && game.playerTwoJoined">
-          Flipping in: {{ timerObj.flippingTimer }}s
-        </p>
-        <p v-else>Winner: {{ game.winner }}</p>
+        <p>{{timerText}}</p>
       </div>
 
       <div class="player-two-view" v-if="game.playerTwoJoining == false">
@@ -121,8 +110,8 @@
       <div
         class="player-skins-view"
         :class="{
-          'red-skins-background-view': pOneSide == 'red',
-          'black-skins-background-view': pOneSide == 'black',
+          'red-skins-background-view': game.playerOneSide == 'red',
+          'black-skins-background-view': game.playerOneSide == 'black',
         }"
       >
         <div
@@ -137,8 +126,8 @@
       <div
         class="player-skins-view"
         :class="{
-          'red-skins-background-view': pTwoSide == 'red',
-          'black-skins-background-view': pTwoSide == 'black',
+          'red-skins-background-view': game.playerTwoSide == 'red',
+          'black-skins-background-view': game.playerTwoSide == 'black',
         }"
       >
         <div
@@ -155,58 +144,51 @@
 </template>
 
 <script>
-import { useStore } from "vuex";
-import { computed } from "vue";
-
 export default {
-  setup() {
-    const store = useStore();
-
-    const game = computed(() => store.state.coinflip.viewMenu.chosenGame);
-
-    const timerObj = computed(() =>
-      store.getters.getGameTimerObjectByGameID(game.value.gameID)
-    );
-
-    const defaultCoin = computed(() => {
-      const black = require("@/assets/blackchip.png");
-      const red = require("@/assets/RedChip.png");
-
-      if (game.value.playerOneSide == "red") {
-        return red;
-      } else {
-        return black;
-      }
-    });
-
-    const playerOneTotalVal = computed(() =>
-      store.getters.getPlayerOneTotalValue(game.value.gameID).toFixed(2)
-    );
-    const playerTwoTotalVal = computed(() =>
-      store.getters.getPlayerTwoTotalValue(game.value.gameID).toFixed(2)
-    );
-
-    const pOneSide = computed(() => game.value.playerOneSide);
-    const pTwoSide = computed(() => game.value.playerTwoSide);
-
-    const currentJoiningQueue = computed(() =>
-      store.getters.getSelectedJoiningQueue(game.value.gameID)
-    );
-
-    return {
-      game,
-      timerObj,
-      defaultCoin,
-      playerOneTotalVal,
-      playerTwoTotalVal,
-      pOneSide,
-      pTwoSide,
-      currentJoiningQueue,
-    };
+  props: {
+    game: {},
+    timerObj: {},
   },
   methods: {
     getSkinValue(skinVal) {
       return skinVal.toFixed(2);
+    },
+    defaultCoin(side) {
+      const black = require("@/assets/blackchip.png");
+      const red = require("@/assets/RedChip.png");
+
+      if (side == "red") {
+        return red;
+      } else {
+        return black;
+      }
+    },
+    playerOneTotalVal() {
+      this.$store.getters.getPlayerOneTotalValue(this.game.gameID).toFixed(2);
+    },
+    playerTwoTotalVal() {
+      this.$store.getters.getPlayerTwoTotalValue(this.game.gameID).toFixed(2);
+    },
+  },
+  computed: {
+    timerText() {
+      if (this.game.playerTwoJoining == false) {
+        return "Waiting for Player...";
+      }
+
+      else if (this.game.playerTwoJoining && this.game.playerTwoJoined == false) {
+        return "Time Left: " + this.timerObj.defaultTimer + "s";
+      }
+
+      else if (this.game.waitingToFlip && this.game.playerTwoJoined) {
+        return "Flipping in: " + this.timerObj.flippingTimer + "s"
+      }
+      else {
+        return "Winner: " + this.game.winner;
+      }
+    },
+    currentJoiningQueue() {
+      return this.$store.getters.getSelectedJoiningQueue(this.game.gameID)
     },
   },
   name: "ViewMenu",
