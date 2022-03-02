@@ -53,7 +53,7 @@ const selectWinner = require("./gammabets/jackpotwinner");
 const { updateSkinPrices } = require("./gammabets/updateskinvalues");
 
 // Importing and Setting up CoinFlip GameHandler
-const { CoinFlipHandler, cfEvents, allCFGames, cfHistory } = require("./gammabets/handler/coinflip-handler");
+const { CoinFlipHandler, cfEvents, allCFGames, cfHistory, joiningQueue } = require("./gammabets/handler/coinflip-handler");
 const cfGameHandler = new CoinFlipHandler();
 
 // Importing and Setting up Jackpot GameHandler
@@ -569,6 +569,17 @@ alertEvents.on("tradeLink", data => {
 */
 
 //////////////////////////////////////////////////////////////
+
+setTimeout(function() {
+	allCFGames[4].playerTwoJoining = true;
+	let data = allCFGames[4]
+	io.emit("secondPlayerJoiningGame", data);
+
+	joiningQueue.addToQueue(allCFGames[4].gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")
+
+	console.log("sent")
+	
+}, 10000)
 
 // Coin flip events
 

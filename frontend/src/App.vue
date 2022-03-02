@@ -28,7 +28,7 @@ import LeftPanel from "./components/LeftPanel.vue";
 import DepositMenu from "./components/Deposit.vue";
 
 import { useStore } from "vuex";
-import { computed } from "vue";
+import { computed, onBeforeMount } from "vue";
 
 //import axios from "axios";
 
@@ -46,7 +46,9 @@ export default {
   setup() {
     const store = useStore();
 
-    store.dispatch("getAPIUser");
+    onBeforeMount(() => {
+      store.dispatch("getAPIUser");
+    });
 
     const user = computed(() => store.state.user);
 

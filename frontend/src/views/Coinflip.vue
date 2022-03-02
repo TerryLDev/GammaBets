@@ -5,13 +5,13 @@
   <GameHistory :historyTitle="historyTitle" />
   <Transition>
     <div id="popup-background-layer" v-if="showViewMenu" @click="closeViewMenu">
-      <ViewMenu :game="chosenViewGame" :timerObj="chosenViewTimer"/>
+      <ViewMenu v-for="game in gameObj" v-bind:key="game" :game="gameObj[0]" :timerObj="timerObj"/>
     </div>
   </Transition>
 </template>
 
 <script>
-import { computed } from "@vue/runtime-core";
+import { computed, onBeforeMount } from "@vue/runtime-core";
 import { useStore } from "vuex";
 
 import CoinFlipChoice from "../components/coinflip/CoinFlipChoice.vue";
@@ -37,9 +37,25 @@ export default {
   setup() {
     const store = useStore();
 
-    store.dispatch("getAPIActiveCoinflip");
-    store.dispatch("getAPICoinflipHistory");
-    store.dispatch("getAPICoinflipJoiningQueue");
+    onBeforeMount(() => {
+      store.dispatch("getAPIActiveCoinflip");
+      store.dispatch("getAPICoinflipHistory");
+      store.dispatch("getAPICoinflipJoiningQueue");
+    })
+
+    function closeViewMenu(event) {
+      if (event.path[0] == document.getElementById("popup-background-layer")) {
+        store.dispatch("toggleViewMenu");
+        store.dispatch("resetChosenView");
+      }
+    }
+
+    let gameObj = computed(() => {
+      return [store.state.coinflip.viewMenu.chosenGame];
+    });
+    let timerObj = computed(() => {
+      return store.getters.getGameTimerObjectByGameID(store.state.coinflip.viewMenu.chosenGame.gameID);
+    });
 
     const activeGames = computed(() => store.state.coinflip.activeCoinflips);
 
@@ -49,12 +65,6 @@ export default {
 
     const showViewMenu = computed(
       () => store.state.coinflip.viewMenu.isVisible
-    );
-
-    const chosenViewGame = computed(() => store.state.coinflip.viewMenu.chosenGame);
-
-    const chosenViewTimer = computed(() =>
-      store.getters.getGameTimerObjectByGameID(chosenViewGame.value.gameID)
     );
 
     ////////////////////////////////
@@ -71,6 +81,7 @@ export default {
 
     socket.on("secondPlayerJoiningGame", (data) => {
       store.dispatch("updateCFGame", data);
+      console.log()
     });
 
     socket.on("newCFGame", (data) => {
@@ -87,22 +98,15 @@ export default {
       activeGames,
       coinflipHistory,
       showViewMenu,
-      chosenViewGame,
-      chosenViewTimer,
+      gameObj,
+      timerObj,
+      closeViewMenu
     };
   },
   data() {
     return {
       historyTitle: "CoinFlip",
     };
-  },
-  methods: {
-    closeViewMenu(event) {
-      if (event.path[0] == document.getElementById("popup-background-layer")) {
-        this.$store.dispatch("toggleViewMenu");
-        this.$store.dispatch("resetChosenView");
-      }
-    },
   },
   name: "Coinflip",
   components: {

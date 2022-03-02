@@ -27,7 +27,7 @@
         <img
           class="coin-img-view"
           v-if="game.winner == 'none'"
-          v-bind:src="defaultCoin(game )"
+          v-bind:src="defaultCoin(game)"
         />
         <img v-else alt="should show winner animation" />
         <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
@@ -69,7 +69,7 @@
           :src="currentJoiningQueue.UserPic"
         />
         <div class="username-container-view">
-          <p>{{ currentJoiningQueue.Username }}o</p>
+          <p>{{ currentJoiningQueue.Username }}</p>
         </div>
         <div style="align-self: end" class="val-items-container-view">
           <div class="item-container-view">
@@ -146,8 +146,8 @@
 <script>
 export default {
   props: {
-    game: {},
-    timerObj: {},
+    game: null,
+    timerObj: null,
   },
   methods: {
     getSkinValue(skinVal) {
@@ -162,12 +162,6 @@ export default {
       } else {
         return black;
       }
-    },
-    playerOneTotalVal() {
-      this.$store.getters.getPlayerOneTotalValue(this.game.gameID).toFixed(2);
-    },
-    playerTwoTotalVal() {
-      this.$store.getters.getPlayerTwoTotalValue(this.game.gameID).toFixed(2);
     },
   },
   computed: {
@@ -189,6 +183,12 @@ export default {
     },
     currentJoiningQueue() {
       return this.$store.getters.getSelectedJoiningQueue(this.game.gameID)
+    },
+    playerOneTotalVal() {
+      return this.$store.getters.getPlayerOneTotalValue(this.game.gameID).toFixed(2);
+    },
+    playerTwoTotalVal() {
+      return this.$store.getters.getPlayerTwoTotalValue(this.game.gameID).toFixed(2);
     },
   },
   name: "ViewMenu",
