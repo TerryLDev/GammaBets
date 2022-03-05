@@ -9,17 +9,25 @@ const coinflip = {
     viewMenu: { isVisible: false, chosenGame: {} },
     cfGameTimers: [],
     joiningQueue: [],
+    chosenQueue: {},
   },
   getters: {
     getChosenSide(state) {
       return state.chosenSide;
     },
-    getGameTimerObjectByGameID: (state) => (gameID) => {
+    getGameDefaultTimer: (state) => (gameID) => {
       let timerIndex = state.cfGameTimers.findIndex(
         (obj) => obj.gameID == gameID
       );
 
-      return state.cfGameTimers[timerIndex];
+      return state.cfGameTimers[timerIndex].defaultTimer;
+    },
+    getGameFlippingTimer: (state) => (gameID) => {
+      let timerIndex = state.cfGameTimers.findIndex(
+        (obj) => obj.gameID == gameID
+      );
+
+      return state.cfGameTimers[timerIndex].flippingTimer;
     },
     getPlayerOneTotalValue: (state) => (gameID) => {
       let gameIndex = state.activeCoinflips.findIndex(
@@ -47,15 +55,11 @@ const coinflip = {
 
       return totalVal;
     },
-    getSelectedJoiningQueue: (state) => (gameID) => {
-      let getQueue = state.joiningQueue.find(queue => queue.GameID == gameID);
-
-      if (getQueue) {
-        return getQueue;
-      }
-      else {
-        return false;
-      }
+    getChosenGame(state) {
+      return state.viewMenu.chosenGame;
+    },
+    getChosenQueue(state){
+      return state.chosenQueue || false;
     },
   },
   mutations: {
@@ -106,6 +110,13 @@ const coinflip = {
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
     },
+    setChosenQueue(state, gameID) {
+      let getQueue = state.joiningQueue.find(queue => queue.GameID == gameID);
+      
+      if (getQueue) {
+        state.chosenQueue = getQueue;
+      }
+    }
   },
   actions: {
     // API grabs
@@ -164,6 +175,9 @@ const coinflip = {
     updateJoiningQueue({commit}, queues) {
       commit("updateJoiningQueue", queues);
     },
+    setChosenQueue({commit}, gameID) {
+      commit("setChosenQueue", gameID)
+    }
   },
 };
 

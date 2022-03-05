@@ -104,6 +104,7 @@ export default {
     openViewMenu() {
       this.$store.dispatch("toggleViewMenu");
       this.$store.dispatch("setChosenView", this.game.gameID);
+      this.$store.dispatch("setChosenQueue", this.game.gameID);
     },
   },
   name: "UserCFListing",

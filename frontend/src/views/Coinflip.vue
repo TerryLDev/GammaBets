@@ -5,12 +5,20 @@
   <GameHistory :historyTitle="historyTitle" />
   <Transition>
     <div id="popup-background-layer" v-if="showViewMenu" @click="closeViewMenu">
-      <ViewMenu v-for="game in gameObj" v-bind:key="game" :game="gameObj[0]" :timerObj="timerObj"/>
+      <ViewMenu :key="viewMenu" :viewMenu="viewMenu"/>
     </div>
   </Transition>
 </template>
 
 <script>
+/*
+I FINALLY GOT IT
+
+DO NOT UPDATE THE QUEUE AND GAME FROM STATE. UPDATE THE DATA LOCALLY!
+
+GET THE TIMER OBJ IN VIEWMENU COMPONENT
+
+*/
 import { computed, onBeforeMount } from "@vue/runtime-core";
 import { useStore } from "vuex";
 
@@ -50,21 +58,10 @@ export default {
       }
     }
 
-    let gameObj = computed(() => {
-      return [store.state.coinflip.viewMenu.chosenGame];
-    });
-    let timerObj = computed(() => {
-      return store.getters.getGameTimerObjectByGameID(store.state.coinflip.viewMenu.chosenGame.gameID);
-    });
-
     const activeGames = computed(() => store.state.coinflip.activeCoinflips);
 
     const coinflipHistory = computed(
       () => store.state.coinflip.coinflipHistory
-    );
-
-    const showViewMenu = computed(
-      () => store.state.coinflip.viewMenu.isVisible
     );
 
     ////////////////////////////////
@@ -75,21 +72,8 @@ export default {
       store.dispatch("changeCFGameTimers", data);
     });
 
-    socket.on("secondPlayerAccepctedTrade", (data) => {
-      store.dispatch("updateCFGame", data);
-    });
-
-    socket.on("secondPlayerJoiningGame", (data) => {
-      store.dispatch("updateCFGame", data);
-      console.log()
-    });
-
     socket.on("newCFGame", (data) => {
       store.dispatch("addNewCoinFlip", data);
-    });
-
-    socket.on("updateJoiningQueue", (data) => {
-      store.dispatch("updateJoiningQueue", data);
     });
 
     ////////////////////////////////
@@ -97,18 +81,61 @@ export default {
     return {
       activeGames,
       coinflipHistory,
-      showViewMenu,
-      gameObj,
-      timerObj,
       closeViewMenu
     };
   },
   data() {
     return {
       historyTitle: "CoinFlip",
+      viewMenu: {game: {}, queue: {}, keyState: 0},
     };
   },
+  methods: {
+    setDefaultValues() {
+      this.viewMenu.game = this.$store.getters.getChosenGame;
+      this.viewMenu.queue = this.$store.getters.getChosenQueue;
+    },
+    updateQueue(data) {
+      let q = data.find(queue => queue.GameID == this.viewMenu.game.gameID)
+      this.viewMenu.queue = q
+    },
+    updateGame(data) {
+      if (data.GameID == this.viewMenu.game.gameID) {
+        this.viewMenu.game = data;
+      }
+    }
+  },
+  mounted() {
+    socket.on("secondPlayerAccepctedTrade", (data) => {
+      this.$store.dispatch("updateCFGame", data);
+      this.updateGame(data);
+      this.viewMenu.keyState = 3;
+    });
+
+    socket.on("secondPlayerJoiningGame", (data) => {
+      this.$store.dispatch("updateCFGame", data);
+      this.updateGame(data);
+      this.viewMenu.keyState = 2;
+    });
+
+    socket.on("updateJoiningQueue", (data) => {
+      this.$store.dispatch("updateJoiningQueue", data);
+      this.updateQueue(data);
+      this.viewMenu.keyState = 1;
+    });
+  },
+  computed: {
+    showViewMenu() { return this.$store.state.coinflip.viewMenu.isVisible
+    },
+  },
   name: "Coinflip",
+  watch: { 
+    showViewMenu(val) {
+      if(val) {
+        this.setDefaultValues();
+      }
+    }
+  },
   components: {
     GameHistory,
     QuickPlay,

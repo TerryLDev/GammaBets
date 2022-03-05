@@ -1,155 +1,20 @@
 <template>
-  <div class="view-menu primary-color-popup popup-cell">
-    <div class="top-view">
-      <div class="player-one-view">
-        <img
-          class="profile-img-view"
-          :class="{
-            'red-border-img-view': game.playerOneSide == 'red',
-            'black-border-img-view': game.playerOneSide == 'black',
-          }"
-          :src="game.playerOne.userPicture"
-        />
-        <div class="username-container-view">
-          <p>{{ game.playerOne.username }}</p>
-        </div>
-        <div class="val-items-container-view">
-          <div class="val-container-view">
-            <p>${{ playerOneTotalVal }}</p>
-          </div>
-          <div class="item-container-view">
-            <p>{{ game.playerOne.skins.length }}/20</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="coin-section-view">
-        <img
-          class="coin-img-view"
-          v-if="game.winner == 'none'"
-          v-bind:src="defaultCoin(game)"
-        />
-        <img v-else alt="should show winner animation" />
-        <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
-        <p>{{timerText}}</p>
-      </div>
-
-      <div class="player-two-view" v-if="game.playerTwoJoining == false">
-        <img
-          class="profile-img-view"
-          :class="{
-            'red-border-img-view': game.playerTwoSide == 'red',
-            'black-border-img-view': game.playerTwoSide == 'black',
-          }"
-          src="@/assets/user/defaultProfile.png"
-        />
-        <div class="username-container-view">
-          <p>Player Two</p>
-        </div>
-        <div style="align-self: end" class="val-items-container-view">
-          <div class="item-container-view">
-            <p>0/20</p>
-          </div>
-          <div class="val-container-view">
-            <p>$0.00</p>
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="player-two-view"
-        v-else-if="game.playerTwoJoining && game.playerTwoJoined == false"
-      >
-        <img
-          class="profile-img-view"
-          :class="{
-            'red-border-img-view': game.playerTwoSide == 'red',
-            'black-border-img-view': game.playerTwoSide == 'black',
-          }"
-          :src="currentJoiningQueue.UserPic"
-        />
-        <div class="username-container-view">
-          <p>{{ currentJoiningQueue.Username }}</p>
-        </div>
-        <div style="align-self: end" class="val-items-container-view">
-          <div class="item-container-view">
-            <p>0/20</p>
-          </div>
-          <div class="val-container-view">
-            <p>$0.00</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="player-two-view" v-else>
-        <img
-          class="profile-img-view"
-          :class="{
-            'red-border-img-view': game.playerTwoSide == 'red',
-            'black-border-img-view': game.playerTwoSide == 'black',
-          }"
-          :src="game.playerTwo.userPicture"
-        />
-        <div class="username-container-view">
-          <p>{{ game.playerTwo.username }}o</p>
-        </div>
-        <div style="align-self: end" class="val-items-container-view">
-          <div class="item-container-view">
-            <p>{{ game.playerTwo.skins.length }}/20</p>
-          </div>
-          <div class="val-container-view">
-            <p>{{ playerTwoTotalVal }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="line-view"></div>
-
-    <div class="bottom-view">
-      <div
-        class="player-skins-view"
-        :class="{
-          'red-skins-background-view': game.playerOneSide == 'red',
-          'black-skins-background-view': game.playerOneSide == 'black',
-        }"
-      >
-        <div
-          class="skin-slot-view"
-          v-for="(skinPic, index) in game.playerOne.skinPictures"
-          v-bind:key="skinPic"
-        >
-          <img :src="skinPic" />
-          <p>${{ getSkinValue(game.playerOne.skinValues[index]) }}</p>
-        </div>
-      </div>
-      <div
-        class="player-skins-view"
-        :class="{
-          'red-skins-background-view': game.playerTwoSide == 'red',
-          'black-skins-background-view': game.playerTwoSide == 'black',
-        }"
-      >
-        <div
-          class="skin-slot-view"
-          v-for="(skinPic, index) in game.playerTwo.skinPictures"
-          v-bind:key="skinPic"
-        >
-          <img :src="skinPic" />
-          <p>${{ getSkinValue(game.playerTwo.skinValues[index]) }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
+//import {mapGetters, mapState} from "vuex";
+import ViewMenuStart from "./ViewStates/ViewMenuStart.vue";
+
 export default {
-  props: {
-    game: null,
-    timerObj: null,
+  props: { 
+    viewMenu: {type: Object},
   },
   methods: {
+    playerOneTotalVal(game){
+      let total = 0;
+      game.playerOne.skinValues.forEach(val => total += val);
+      return total.toFixed(2);
+    },
     getSkinValue(skinVal) {
       return skinVal.toFixed(2);
     },
@@ -165,33 +30,11 @@ export default {
     },
   },
   computed: {
-    timerText() {
-      if (this.game.playerTwoJoining == false) {
-        return "Waiting for Player...";
-      }
-
-      else if (this.game.playerTwoJoining && this.game.playerTwoJoined == false) {
-        return "Time Left: " + this.timerObj.defaultTimer + "s";
-      }
-
-      else if (this.game.waitingToFlip && this.game.playerTwoJoined) {
-        return "Flipping in: " + this.timerObj.flippingTimer + "s"
-      }
-      else {
-        return "Winner: " + this.game.winner;
-      }
-    },
-    currentJoiningQueue() {
-      return this.$store.getters.getSelectedJoiningQueue(this.game.gameID)
-    },
-    playerOneTotalVal() {
-      return this.$store.getters.getPlayerOneTotalValue(this.game.gameID).toFixed(2);
-    },
-    playerTwoTotalVal() {
-      return this.$store.getters.getPlayerTwoTotalValue(this.game.gameID).toFixed(2);
-    },
   },
   name: "ViewMenu",
+  components: {
+    ViewMenuStart,
+  }
 };
 </script>
 
