@@ -4,8 +4,8 @@
     <div id="cf-listings">
       <UserCFListing
         v-for="game in activeGames"
-        v-bind:key="game"
-        :game="game"
+        v-bind:key="game.game"
+        :game="game.game"
       />
     </div>
   </div>

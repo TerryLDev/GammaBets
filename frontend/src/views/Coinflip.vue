@@ -5,7 +5,7 @@
   <GameHistory :historyTitle="historyTitle" />
   <Transition>
     <div id="popup-background-layer" v-if="showViewMenu" @click="closeViewMenu">
-      <ViewMenu :key="viewMenu" :viewMenu="viewMenu"/>
+      <ViewMenu/>
     </div>
   </Transition>
 </template>
@@ -69,7 +69,7 @@ export default {
     // CF Sockets
 
     socket.on("cfTimer", (data) => {
-      store.dispatch("changeCFGameTimers", data);
+      store.dispatch("changeCFGameTimer", data);
     });
 
     socket.on("newCFGame", (data) => {
@@ -87,7 +87,7 @@ export default {
   data() {
     return {
       historyTitle: "CoinFlip",
-      viewMenu: {game: {}, queue: {}, keyState: 0},
+      viewMenu: {game: {}, queue: {}},
     };
   },
   methods: {
@@ -95,33 +95,18 @@ export default {
       this.viewMenu.game = this.$store.getters.getChosenGame;
       this.viewMenu.queue = this.$store.getters.getChosenQueue;
     },
-    updateQueue(data) {
-      let q = data.find(queue => queue.GameID == this.viewMenu.game.gameID)
-      this.viewMenu.queue = q
-    },
-    updateGame(data) {
-      if (data.GameID == this.viewMenu.game.gameID) {
-        this.viewMenu.game = data;
-      }
-    }
   },
   mounted() {
     socket.on("secondPlayerAccepctedTrade", (data) => {
       this.$store.dispatch("updateCFGame", data);
-      this.updateGame(data);
-      this.viewMenu.keyState = 3;
     });
 
     socket.on("secondPlayerJoiningGame", (data) => {
       this.$store.dispatch("updateCFGame", data);
-      this.updateGame(data);
-      this.viewMenu.keyState = 2;
     });
 
     socket.on("updateJoiningQueue", (data) => {
       this.$store.dispatch("updateJoiningQueue", data);
-      this.updateQueue(data);
-      this.viewMenu.keyState = 1;
     });
   },
   computed: {

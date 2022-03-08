@@ -7,7 +7,6 @@ const coinflip = {
     chosenSide: "",
     pastWinningSides: [],
     viewMenu: { isVisible: false, chosenGame: {} },
-    cfGameTimers: [],
     joiningQueue: [],
     chosenQueue: {},
   },
@@ -16,18 +15,18 @@ const coinflip = {
       return state.chosenSide;
     },
     getGameDefaultTimer: (state) => (gameID) => {
-      let timerIndex = state.cfGameTimers.findIndex(
-        (obj) => obj.gameID == gameID
+      let timerIndex = state.activeCoinflips.findIndex(
+        (obj) => obj.game.gameID == gameID
       );
 
-      return state.cfGameTimers[timerIndex].defaultTimer;
+      return state.activeCoinflips[timerIndex].timer.defaultTimer;
     },
     getGameFlippingTimer: (state) => (gameID) => {
-      let timerIndex = state.cfGameTimers.findIndex(
-        (obj) => obj.gameID == gameID
+      let timerIndex = state.activeCoinflips.findIndex(
+        (obj) => obj.game.gameID == gameID
       );
 
-      return state.cfGameTimers[timerIndex].flippingTimer;
+      return state.activeCoinflips[timerIndex].timer.flippingTimer;
     },
     getPlayerOneTotalValue: (state) => (gameID) => {
       let gameIndex = state.activeCoinflips.findIndex(
@@ -79,23 +78,21 @@ const coinflip = {
       state.viewMenu.isVisible = !state.viewMenu.isVisible;
     },
     setChosenView(state, gameID) {
-      const game = state.activeCoinflips.find((game) => game.gameID == gameID);
+      const game = state.activeCoinflips.find((game) => game.game.gameID == gameID);
 
       state.viewMenu.chosenGame = game;
     },
     resetChosenView(state) {
       state.viewMenu.chosenGame = {};
     },
-    changeCFGameTimers(state, cfTimers) {
-      cfTimers.forEach((timerObj) => {
-        let index = state.cfGameTimers.findIndex(
-          (currentObj) => timerObj.gameID == currentObj.gameID
-        );
+    changeCFGameTimer(state, cfTimer) {
 
-        if (index != undefined) {
-          state.cfGameTimers[index] = timerObj;
-        }
-      });
+      let gameIndex = state.activeCoinflips.findIndex((game) => game.game.gameID == cfTimer.GameID);
+
+      if(gameIndex >= 0) {
+        state.activeCoinflips[gameIndex].timer = cfTimer.timer;
+      }
+      
     },
     addNewCoinFlip(state, newGame) {
       state.activeCoinflips.push(newGame);
@@ -163,8 +160,9 @@ const coinflip = {
     resetChosenView({ commit }) {
       commit("resetChosenView");
     },
-    changeCFGameTimers({ commit }, timers) {
-      commit("changeCFGameTimers", timers);
+    changeCFGameTimer({ commit }, timer) {
+      // update the timer that is appart of the game's obj
+      commit("changeCFGameTimer", timer);
     },
     addNewCoinFlip({ commit }, newGame) {
       commit("addNewCoinFlip", newGame);

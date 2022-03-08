@@ -133,7 +133,7 @@ class CoinFlipHandler {
 
     // Winner methods
 
-    // needs work
+    // needs work - A lot of work
     decideWinner(gameID) {
 
         CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
@@ -190,7 +190,9 @@ class CoinFlipHandler {
     // done
     #callNewGame(gameObject) {
 
-        let newEntry = {
+        let newEntry = {};
+
+        newEntry.game = {
             gameID: gameObject.GameID,
             bot: gameObject.BotID,
             gameState: true,
@@ -204,17 +206,72 @@ class CoinFlipHandler {
         }
 
         if (gameObject.Red == gameObject.Players[0].userSteamId) {
-            newEntry.playerOneSide = "red";
-            newEntry.playerTwoSide = "black";
+            newEntry.game.playerOneSide = "red";
+            newEntry.game.playerTwoSide = "black";
         }
         
         else {
-            newEntry.playerOneSide = "black";
-            newEntry.playerTwoSide = "red";
+            newEntry.game.playerOneSide = "black";
+            newEntry.game.playerTwoSide = "red";
         }
 
+        newEntry.timer = {defaultTimer: this.defaultTimer, flippingTimer: this.countDown};
+
+        newEntry.clock = null;
+
+        newEntry.startClock = function() {
+
+            this.clock = setInterval(() => {
+
+                if (this.game.waitingToFlip && this.game.playerTwoJoined) {
+
+                    if (this.timer.flippingTimer > 0) {
+                        this.timer.flippingTimer -= 1
+                    }
+
+                    else {
+                        console.log("choose winner", this.gameID);
+                        // emit a winner
+                    }
+                }
+
+                else if(this.game.playerTwoJoining) {
+
+                    // continue it
+                    if (this.timer.defaultTimer > 0) {
+
+                        this.timer.defaultTimer -= 1;
+
+                    }
+
+                    // cancel trade if it hits 0
+                    else {
+                        /*
+                        cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
+                        this.cancelOpponentTrade(gameObj.gameID);
+                        */
+                        console.log("cancel Trade for " + this.gameID);
+
+                    }
+
+                }
+
+                const data = {
+                    timer: this.timer,
+                    GameID: this.game.gameID,
+                };
+
+                cfEvents.emit("cfTimer", data)
+            }, 1000)
+        }
+
+        newEntry.stopClock = () => {
+            clearInterval(this.clock);
+            this.timer.defaultTimer = this.defaultTimer;
+            this.timer.flippingTimer = this.countDown;
+        };
+
         allCFGames.push(newEntry);
-        cfGamesTimer.push({gameID: gameObject.GameID, defaultTimer: this.defaultTimer, flippingTimer: this.countDown});
 
         return newEntry;
 
@@ -223,9 +280,11 @@ class CoinFlipHandler {
     // done
     #callOpponentJoiningGame(gameID, steamID, username, userPicURL) {
 
-        let gameObj = allCFGames.find(game => game.gameID == gameID);
+        let gameObj = allCFGames.find(obj => obj.game.gameID == gameID);
         
-        gameObj.playerTwoJoining = true;
+        gameObj.game.playerTwoJoining = true;
+
+        gameObj.startClock();
 
         joiningQueue.addToQueue(gameID, steamID, username, userPicURL);
 
@@ -238,11 +297,11 @@ class CoinFlipHandler {
 
         // if this fails, you might need to change this to findIndex
 
-        let gameObj = allCFGames.find(game => game.gameID == gameObject.GameID);
+        let gameObj = allCFGames.find(obj => obj.game.gameID == gameObject.GameID);
 
-        gameObj.playerTwo = gameObject.Players[1];
-        gameObj.playerTwoJoined = true;
-        gameObj.waitingToFlip = true;
+        gameObj.game.playerTwo = gameObject.Players[1];
+        gameObj.game.playerTwoJoined = true;
+        gameObj.game.waitingToFlip = true;
 
         joiningQueue.removeSelectedQueue(gameObject.GameID);
 
@@ -326,97 +385,6 @@ class CoinFlipHandler {
     // Timer Methods
 
     // needs work - help
-    #updateTimer() {
-
-        /*
-        let newEntry = {
-            gameID: gameObject.GameID,
-            bot: gameObject.BotID,
-            gameState: true,
-            playerOne: gameObject.Players[0],
-            playerTwo: {},
-            totalValue: gameObject.TotalValue,
-            secondPlayerJoining: false,
-            playerTwoJoined: false,
-            waitingToFlip: false,
-            cancelRequest: false,
-            winner: "none",
-        }
-        */
-
-        allCFGames.forEach(gameObj => {
-
-            let gameTimer = cfGamesTimer.find(game => gameObj.gameID == game.gameID)
-
-            if(gameObj.waitingToFlip && gameObj.playerTwoJoined) {
-
-                // continue it
-                if (gameTimer.flippingTimer > 0) {
-
-                    gameTimer.flippingTimer -= 1
-
-                }
-
-                // stop timer and choose a winner -- needs to run winner selection
-                else {
-                    console.log("choose winner", gameObj.gameID);
-                    // emit a winner
-                }
-
-            }
-
-            else if(gameObj.playerTwoJoining) {
-
-                // continue it
-                if (gameTimer.defaultTimer > 0) {
-
-                    gameTimer.defaultTimer -= 1;
-
-                }
-
-                // cancel trade if it hits 0
-                else {
-                    cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
-                    this.cancelOpponentTrade(gameObj.gameID);
-                    console.log("cancel Trade for " + gameObj.gameID);
-
-                }
-
-            }
-
-            else {
-                // console.log("yikes the timer brokey");
-            }
-            
-        });
-
-
-
-    }
-
-    // needs work
-    async timer() {
-
-        try {
-            
-            await this.#updateTimer();
-
-            if (await cfGamesTimer.length > 0) {
-
-                cfEvents.emit("cfTimer", cfGamesTimer);
-
-            }
-
-        }
-
-        catch (err) {
-
-            return console.log(err);
-
-        }
-
-    };
-
 }
 
 module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, cfGamesTimer, creatingQueue, joiningQueue};

@@ -102,6 +102,7 @@ export default {
       store.dispatch("setDepositType", "Coinflip");
     },
     openViewMenu() {
+      console.log(this.game);
       this.$store.dispatch("toggleViewMenu");
       this.$store.dispatch("setChosenView", this.game.gameID);
       this.$store.dispatch("setChosenQueue", this.game.gameID);

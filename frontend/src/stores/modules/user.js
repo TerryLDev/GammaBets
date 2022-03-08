@@ -36,9 +36,10 @@ const user = {
     setUserAuth(state, auth) {
       state.auth = auth;
 
-      if (auth) {
+      if (state.auth) {
         socket.emit("join", state.profile.SteamID);
       }
+
     },
   },
   actions: {

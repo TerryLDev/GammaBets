@@ -5,8 +5,18 @@ const { allCFGames, cfHistory, joiningQueue } = require("../gammabets/handler/co
 
 router.post("/coinflip/active", (req, res) => {
 
-	console.log("grabbing current games")
-	res.json(allCFGames);
+	const sender = [];
+
+	allCFGames.forEach(obj => {
+		const entry = {
+			game: obj.game,
+			timer: obj.game
+		}
+
+		sender.push(entry);
+	});
+
+	res.json(sender);
 
 });
 

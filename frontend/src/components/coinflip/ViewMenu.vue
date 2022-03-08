@@ -1,13 +1,35 @@
 <template>
+  <div class="view-menu primary-color-popup popup-cell">
+    <ViewMenuStart />
+  </div>
 </template>
 
 <script>
 //import {mapGetters, mapState} from "vuex";
 import ViewMenuStart from "./ViewStates/ViewMenuStart.vue";
+//import { io } from "socket.io-client";
 
 export default {
-  props: { 
-    viewMenu: {type: Object},
+  setup() {
+    let socket;
+    const env = process.env.NODE_ENV;
+
+    if (env == "development") {
+      socket = io("http://localhost:4000");
+    } else {
+      socket = io(window.location.origin);
+    }
+
+    socket.on("secondPlayerAccepctedTrade", (data) => {
+      
+    });
+
+    socket.on("secondPlayerJoiningGame", (data) => {
+    });
+
+    socket.on("updateJoiningQueue", (data) => {
+    });
+
   },
   methods: {
     playerOneTotalVal(game){
@@ -30,6 +52,9 @@ export default {
     },
   },
   computed: {
+    timer() {
+      return this.$store.state.coinflip.activeCoinflips[4].timer;
+    }
   },
   name: "ViewMenu",
   components: {

@@ -160,7 +160,7 @@ const port = process.env.PORT || 4000;
 
 // Intialize Bots
 // Random Login Time to avoid request Errors
-
+/*
 const randomOne = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomTwo = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
@@ -190,6 +190,7 @@ setTimeout(() => {
 
 
 }, randomThree);
+*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -571,22 +572,14 @@ alertEvents.on("tradeLink", data => {
 //////////////////////////////////////////////////////////////
 
 setTimeout(function() {
-	allCFGames[4].playerTwoJoining = true;
-	let data = allCFGames[4]
-	io.emit("secondPlayerJoiningGame", data);
 
-	joiningQueue.addToQueue(allCFGames[4].gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")
+	cfGameHandler.opponentJoiningGame(allCFGames[4].game.gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")
 
 	console.log("sent")
 	
 }, 10000)
 
 // Coin flip events
-
-// Coin Flip Timer
-setInterval(function() {
-	cfGameHandler.timer();
-}, 1000);
 
 // done - might be pretty hard on the server, but we'll see
 cfEvents.on("cfTimer", (data) => {
