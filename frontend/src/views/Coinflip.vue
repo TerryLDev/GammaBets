@@ -5,7 +5,7 @@
   <GameHistory :historyTitle="historyTitle" />
   <Transition>
     <div id="popup-background-layer" v-if="showViewMenu" @click="closeViewMenu">
-      <ViewMenu/>
+      <ViewMenu />
     </div>
   </Transition>
 </template>

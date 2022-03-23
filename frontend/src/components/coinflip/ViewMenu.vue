@@ -5,31 +5,66 @@
 </template>
 
 <script>
-//import {mapGetters, mapState} from "vuex";
+import { computed, onBeforeMount } from "vue";
+import { useStore } from "vuex";
+import { io } from "socket.io-client";
+
 import ViewMenuStart from "./ViewStates/ViewMenuStart.vue";
-//import { io } from "socket.io-client";
 
 export default {
   setup() {
+
     let socket;
     const env = process.env.NODE_ENV;
 
     if (env == "development") {
       socket = io("http://localhost:4000");
-    } else {
+    }
+    else {
       socket = io(window.location.origin);
     }
 
+    const store = useStore();
+
+    const game = computed(() => store.getters.getChosenGame);
+    const queue =  computed(() => store.getters.getChosenQueue);
+
+    let state = 0;
+
+    onBeforeMount(() => {
+      let cfGame = game.value.game;
+      if (cfGame) {
+        
+      }
+    });
+
+    const gameRoom = game.value.game.gameID;
+    socket.emit("gameRoom", {gameRoom: gameRoom});
+
     socket.on("secondPlayerAccepctedTrade", (data) => {
+      console.log(data)
       
     });
 
     socket.on("secondPlayerJoiningGame", (data) => {
+      console.log(data)
+
     });
 
     socket.on("updateJoiningQueue", (data) => {
+      console.log(data)
+
     });
 
+    socket.on("cfWinner", (data) => {
+      console.log(data)
+
+    })
+
+    return {
+      game,
+      queue
+    }
   },
   methods: {
     playerOneTotalVal(game){

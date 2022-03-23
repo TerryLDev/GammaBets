@@ -309,6 +309,11 @@ io.on("connection", (socket) => {
 
 	});
 
+	socket.on("gameRoom", data => {
+		socket.join(data.gameRoom);
+		console.log(data);
+	});
+
 	socket.on("message", async (data) => {
 
 		/*
