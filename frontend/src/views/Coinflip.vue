@@ -35,9 +35,7 @@ const env = process.env.NODE_ENV;
 
 if (env == "development") {
   socket = io("http://localhost:4000");
-}
-
-else {
+} else {
   socket = io(window.location.origin);
 }
 
@@ -49,7 +47,7 @@ export default {
       store.dispatch("getAPIActiveCoinflip");
       store.dispatch("getAPICoinflipHistory");
       store.dispatch("getAPICoinflipJoiningQueue");
-    })
+    });
 
     function closeViewMenu(event) {
       if (event.path[0] == document.getElementById("popup-background-layer")) {
@@ -76,18 +74,33 @@ export default {
       store.dispatch("addNewCoinFlip", data);
     });
 
+    socket.on("secondPlayerAccepctedTrade", (data) => {
+      store.dispatch("updateCFGame", data);
+    });
+
+    socket.on("secondPlayerJoiningGame", (data) => {
+      console.log(data);
+      store.dispatch("updateCFGame", data);
+    });
+
+    socket.on("updateJoiningQueue", (data) => {
+      console.log(data);
+
+      store.dispatch("updateJoiningQueue", data);
+    });
+
     ////////////////////////////////
 
     return {
       activeGames,
       coinflipHistory,
-      closeViewMenu
+      closeViewMenu,
     };
   },
   data() {
     return {
       historyTitle: "CoinFlip",
-      viewMenu: {game: {}, queue: {}},
+      viewMenu: { game: {}, queue: {} },
     };
   },
   methods: {
@@ -96,30 +109,18 @@ export default {
       this.viewMenu.queue = this.$store.getters.getChosenQueue;
     },
   },
-  mounted() {
-    socket.on("secondPlayerAccepctedTrade", (data) => {
-      this.$store.dispatch("updateCFGame", data);
-    });
-
-    socket.on("secondPlayerJoiningGame", (data) => {
-      this.$store.dispatch("updateCFGame", data);
-    });
-
-    socket.on("updateJoiningQueue", (data) => {
-      this.$store.dispatch("updateJoiningQueue", data);
-    });
-  },
   computed: {
-    showViewMenu() { return this.$store.state.coinflip.viewMenu.isVisible
+    showViewMenu() {
+      return this.$store.state.coinflip.viewMenu.isVisible;
     },
   },
   name: "Coinflip",
-  watch: { 
+  watch: {
     showViewMenu(val) {
-      if(val) {
+      if (val) {
         this.setDefaultValues();
       }
-    }
+    },
   },
   components: {
     GameHistory,

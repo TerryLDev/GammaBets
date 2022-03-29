@@ -24,12 +24,9 @@
       </div>
 
       <div class="coin-section-view">
-        <img
-          class="coin-img-view"
-          v-bind:src="defaultCoin(game)"
-        />
+        <img class="coin-img-view" v-bind:src="defaultCoin(game)" />
         <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
-        <p>{{timerText}}</p>
+        <p>{{ timerText }}</p>
       </div>
 
       <div class="player-two-view">
@@ -120,40 +117,59 @@
       </div>
 
       <div class="coin-section-view">
-        <img
-          class="coin-img-view"
-          v-bind:src="defaultCoin(game)"
-        />
+        <img class="coin-img-view" v-bind:src="defaultCoin(game)" />
         <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
         <Transition :key="viewMenu.game">
-          <div v-if="viewMenu.game.playerTwoJoining && viewMenu.game.playerTwoJoined && viewMenu.game.winner == 'none'">
+          <div
+            v-if="
+              viewMenu.game.playerTwoJoining &&
+              viewMenu.game.playerTwoJoined &&
+              viewMenu.game.winner == 'none'
+            "
+          >
             <p>
-              {{"Flipping In:" + this.$store.getters.getGameFlippingTimer(viewMenu.game.gameID)}}
+              {{
+                "Flipping In:" +
+                this.$store.getters.getGameFlippingTimer(viewMenu.game.gameID)
+              }}
             </p>
           </div>
         </Transition>
 
         <Transition :key="viewMenu.game">
-          <div v-if="viewMenu.game.playerTwoJoining && viewMenu.game.playerTwoJoined == false">
+          <div
+            v-if="
+              viewMenu.game.playerTwoJoining &&
+              viewMenu.game.playerTwoJoined == false
+            "
+          >
             <p>
-              {{"Waiting: " + this.$store.getters.getGameDefaultTimer(viewMenu.game.gameID)}}
+              {{
+                "Waiting: " +
+                this.$store.getters.getGameDefaultTimer(viewMenu.game.gameID)
+              }}
             </p>
           </div>
         </Transition>
 
         <Transition :key="viewMenu.game">
-          <p v-if="viewMenu.game.winner != 'none'">{{"Winner: " + viewMenu.game.winner}}</p>
+          <p v-if="viewMenu.game.winner != 'none'">
+            {{ "Winner: " + viewMenu.game.winner }}
+          </p>
         </Transition>
 
         <Transition :key="viewMenu.game">
-          <div v-if="viewMenu.game.winner == 'none' && viewMenu.game.playerTwoJoining == false && viewMenu.game.playerTwoJoined == false">
-            <p>
-              Waiting for Player...
-            </p>
+          <div
+            v-if="
+              viewMenu.game.winner == 'none' &&
+              viewMenu.game.playerTwoJoining == false &&
+              viewMenu.game.playerTwoJoined == false
+            "
+          >
+            <p>Waiting for Player...</p>
           </div>
         </Transition>
       </div>
-      
     </div>
   </div>
 </template>

@@ -24,10 +24,7 @@ export default {
       // check deposit type
       if (depositState.depositType == "Coinflip" && choseSkins) {
         // creating a game
-        if (
-          depositState.gameID == undefined ||
-          depositState.gameID == ""
-        ) {
+        if (depositState.gameID == undefined || depositState.gameID == "") {
           const data = {
             steamID: this.$store.state.user.profile.SteamID,
             skins: depositState.selectedSkins,

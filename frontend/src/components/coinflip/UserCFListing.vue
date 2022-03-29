@@ -30,14 +30,16 @@
     </div>
 
     <div class="listing-buttons-div">
-      <button v-if="game.playerOne.userSteamId != userSteamID"
+      <button
+        v-if="game.playerOne.userSteamId != userSteamID"
         class="listing-button"
         :class="buttonClass(game.playerOneSide)"
         @click="openDepositMenu"
       >
         Join
       </button>
-      <button v-else-if="game.playerTwoJoining != true"
+      <button
+        v-else-if="game.playerTwoJoining != true"
         class="listing-button"
         :class="buttonClass(game.playerOneSide)"
         @click="openDepositMenu"
@@ -67,7 +69,7 @@ export default {
   computed: {
     userSteamID() {
       return this.$store.state.user.profile.SteamID;
-    }
+    },
   },
   methods: {
     playerOneSide(game) {

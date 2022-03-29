@@ -30,7 +30,7 @@
           v-bind:src="defaultCoin(game)"
         />
         <img v-else alt="should show winner animation" />
-         <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
+        <!-- /\ COIN IMAGE /\ | \/ TIMER/COUNT DOWN \/ -->
         <p>{{ timerText }}</p>
       </div>
 

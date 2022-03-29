@@ -6,7 +6,7 @@ const coinflip = {
     coinflipHistory: [],
     chosenSide: "",
     pastWinningSides: [],
-    viewMenu: { isVisible: false, chosenGame: {} },
+    viewMenu: { isVisible: false, chosenGame: {}, state: 0 },
     joiningQueue: [],
     chosenQueue: {},
   },
@@ -57,8 +57,11 @@ const coinflip = {
     getChosenGame(state) {
       return state.viewMenu.chosenGame;
     },
-    getChosenQueue(state){
+    getChosenQueue(state) {
       return state.chosenQueue || false;
+    },
+    getViewMenuState(state) {
+      return state.viewMenu.state;
     },
   },
   mutations: {
@@ -78,7 +81,9 @@ const coinflip = {
       state.viewMenu.isVisible = !state.viewMenu.isVisible;
     },
     setChosenView(state, gameID) {
-      const game = state.activeCoinflips.find((game) => game.game.gameID == gameID);
+      const game = state.activeCoinflips.find(
+        (game) => game.game.gameID == gameID
+      );
 
       state.viewMenu.chosenGame = game;
     },
@@ -86,13 +91,13 @@ const coinflip = {
       state.viewMenu.chosenGame = {};
     },
     changeCFGameTimer(state, cfTimer) {
+      let gameIndex = state.activeCoinflips.findIndex(
+        (game) => game.game.gameID == cfTimer.GameID
+      );
 
-      let gameIndex = state.activeCoinflips.findIndex((game) => game.game.gameID == cfTimer.GameID);
-
-      if(gameIndex >= 0) {
+      if (gameIndex >= 0) {
         state.activeCoinflips[gameIndex].timer = cfTimer.timer;
       }
-      
     },
     addNewCoinFlip(state, newGame) {
       state.activeCoinflips.push(newGame);
@@ -103,17 +108,22 @@ const coinflip = {
       );
 
       state.activeCoinflips[gameIndex] = gameObj;
+
+      console.log(gameObj)
     },
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
     },
     setChosenQueue(state, gameID) {
-      let getQueue = state.joiningQueue.find(queue => queue.GameID == gameID);
-      
+      let getQueue = state.joiningQueue.find((queue) => queue.GameID == gameID);
+
       if (getQueue) {
         state.chosenQueue = getQueue;
       }
-    }
+    },
+    setViewState(state, value) {
+      state.viewMenu.state = value;
+    },
   },
   actions: {
     // API grabs
@@ -169,13 +179,17 @@ const coinflip = {
     },
     updateCFGame({ commit }, data) {
       commit("updateCFGame", data);
+      console.log(data);
     },
-    updateJoiningQueue({commit}, queues) {
+    updateJoiningQueue({ commit }, queues) {
       commit("updateJoiningQueue", queues);
     },
-    setChosenQueue({commit}, gameID) {
-      commit("setChosenQueue", gameID)
-    }
+    setChosenQueue({ commit }, gameID) {
+      commit("setChosenQueue", gameID);
+    },
+    setViewState({ commit }, value) {
+      commit("setViewState", value);
+    },
   },
 };
 

@@ -27,7 +27,7 @@ const user = {
     },
     getIfDataReceived(state) {
       return state.dataReceived;
-    }
+    },
   },
   mutations: {
     setUser(state, user) {
@@ -39,7 +39,6 @@ const user = {
       if (state.auth) {
         socket.emit("join", state.profile.SteamID);
       }
-
     },
   },
   actions: {

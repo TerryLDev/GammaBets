@@ -576,6 +576,7 @@ alertEvents.on("tradeLink", data => {
 
 //////////////////////////////////////////////////////////////
 
+
 setTimeout(function() {
 
 	cfGameHandler.opponentJoiningGame(allCFGames[4].game.gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")

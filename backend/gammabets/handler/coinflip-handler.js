@@ -338,7 +338,7 @@ class CoinFlipHandler {
 
             let data = await this.#callOpponentJoiningGame(gameID, steamID, username, userPicURL);
 
-            cfEvents.emit("secondPlayerJoiningCFGame", await data);
+            cfEvents.emit("secondPlayerJoiningGame", await data);
 
         }
 

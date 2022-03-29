@@ -28,7 +28,7 @@
         v-bind:src="defaultCoin(game.game.playerOneSide)"
       />
       <div :key="game.timer">
-        <p>{{game.timer}}</p>
+        <p>Waiting for Player...</p>
       </div>
     </div>
 
@@ -95,8 +95,7 @@
 
 <script>
 export default {
-  props: {
-  },
+  props: {},
   computed: {
     game() {
       return this.$store.getters.getChosenGame;
@@ -116,16 +115,14 @@ export default {
         return black;
       }
     },
-    playerOneTotalVal(game){
+    playerOneTotalVal(game) {
       let total = 0;
-      game.playerOne.skinValues.forEach(val => total += val);
+      game.playerOne.skinValues.forEach((val) => (total += val));
       return total.toFixed(2);
-    }
+    },
   },
-  name: "ViewMenuStart"
-}
+  name: "ViewMenuStart",
+};
 </script>
 
-<style>
-
-</style>
+<style></style>

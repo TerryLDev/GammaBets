@@ -1,75 +1,105 @@
 <template>
   <div class="view-menu primary-color-popup popup-cell">
-    <ViewMenuStart />
+    <Transition>
+      <div v-if="state == 0">
+        <ViewMenuStart />
+      </div>
+
+      <div v-else-if="state == 1">
+        <ViewMenuJoining />
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script>
-import { computed, onBeforeMount } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 import { useStore } from "vuex";
 import { io } from "socket.io-client";
 
 import ViewMenuStart from "./ViewStates/ViewMenuStart.vue";
+import ViewMenuJoining from "./ViewStates/ViewMenuJoining.vue";
 
 export default {
   setup() {
+    /*
+    state meanings
+    0 = Start view menu the default config
+    1 = player two is joining and the "default" timer is couting down
+    2 = player two joined and the "flipping" timer is counting down
+    3 = The coinflip is now in the animation phase with the coinflipping, after the animation it shows the winner
+    */
 
     let socket;
     const env = process.env.NODE_ENV;
 
     if (env == "development") {
       socket = io("http://localhost:4000");
-    }
-    else {
+    } else {
       socket = io(window.location.origin);
     }
 
     const store = useStore();
-
     const game = computed(() => store.getters.getChosenGame);
-    const queue =  computed(() => store.getters.getChosenQueue);
+    const queue = computed(() => store.getters.getChosenQueue);
+    const gameRoom = game.value.game.gameID;
 
-    let state = 0;
+    socket.emit("gameRoom", { gameRoom: gameRoom });
 
-    onBeforeMount(() => {
-      let cfGame = game.value.game;
-      if (cfGame) {
-        
+    const state = computed(() => store.getters.getViewMenuState);
+
+    onMounted(() => {
+      if (game.value.game.playerTwoJoining == false) {
+        store.dispatch("setViewState", 0);
       }
+      else if (
+        game.value.game.playerTwoJoining == true &&
+        game.value.game.playerTwoJoined == false
+      ) {
+        store.dispatch("setViewState", 1);
+      }
+      console.log(game.value)
     });
 
-    const gameRoom = game.value.game.gameID;
-    socket.emit("gameRoom", {gameRoom: gameRoom});
+    onBeforeUnmount(() => {
+      store.dispatch("setViewState", 0);
+    });
 
     socket.on("secondPlayerAccepctedTrade", (data) => {
-      console.log(data)
-      
+      console.log(data);
+
+      store.dispatch("setViewState", 2);
     });
 
     socket.on("secondPlayerJoiningGame", (data) => {
-      console.log(data)
+      console.log(data);
 
+      store.dispatch("setViewState", 1);
     });
 
     socket.on("updateJoiningQueue", (data) => {
-      console.log(data)
+      console.log(data);
 
+      store.dispatch("setViewState", 1);
     });
 
     socket.on("cfWinner", (data) => {
-      console.log(data)
 
-    })
+      console.log(data);
+
+      store.dispatch("setViewState", 3);
+    });
 
     return {
       game,
-      queue
-    }
+      queue,
+      state,
+    };
   },
   methods: {
-    playerOneTotalVal(game){
+    playerOneTotalVal(game) {
       let total = 0;
-      game.playerOne.skinValues.forEach(val => total += val);
+      game.playerOne.skinValues.forEach((val) => (total += val));
       return total.toFixed(2);
     },
     getSkinValue(skinVal) {
@@ -89,12 +119,13 @@ export default {
   computed: {
     timer() {
       return this.$store.state.coinflip.activeCoinflips[4].timer;
-    }
+    },
   },
   name: "ViewMenu",
   components: {
     ViewMenuStart,
-  }
+    ViewMenuJoining
+  },
 };
 </script>
 
