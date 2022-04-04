@@ -109,7 +109,7 @@ const coinflip = {
 
       state.activeCoinflips[gameIndex] = gameObj;
 
-      console.log(gameObj)
+      console.log(gameObj);
     },
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;

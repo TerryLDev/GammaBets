@@ -614,7 +614,11 @@ cfEvents.on("secondPlayerAccepctedTrade", data => {
 
 cfEvents.on("secondPlayerJoiningGame", data => {
 	console.log(data);
-	io.emit("secondPlayerJoiningGame", data);
+	const newData = {
+		game: data.game,
+		timer: data.timer
+	}
+	io.emit("secondPlayerJoiningGame", newData);
 });
 
 cfEvents.on("secondPlayerCancelTrade", data => {
