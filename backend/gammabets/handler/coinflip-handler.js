@@ -136,51 +136,134 @@ class CoinFlipHandler {
     // needs work - A lot of work
     decideWinner(gameID) {
 
-        CoinFlipGame.findOne({GameID: gameID}, (err, cf) => {
+        const finalGameIndex = allCFGames.findIndex(game => game.game.gameID == gameID);
 
-            if (err) return err;
+        if(finalGameIndex == undefined) {
+            console.log("Tried to decide a winner for coinflip, but could not find the game's index");
+            return false
+        }
 
-            else {
+        let finalGame = allCFGames[finalGameIndex];
 
-                let listOfPlayers = [];
+        if (finalGame.game.playerTwo.skins.length > 0 && finalGame.game.playerOne.skins.length > 0) {
+            
+            let listOfPlayers = [];
 
-                cf.Players.forEach((player) => {
+            let playerOneTotal = 0;
+            let playerTwoTotal = 0;
 
-                    let playerTotalVal = 0;
+            finalGame.game.playerOne.skinValues.forEach(val => playerOneTotal+= val);
 
-                    player["skinValues"].forEach((val) => {
+            finalGame.game.playerTwo.skinValues.forEach(val => playerTwoTotal+= val);
 
-                        playerTotalVal += val;
+            const playerOneEntries = playerTwoTotal * 100;
+            const playerTwoEntries = playerOneTotal * 100;
 
-                    });
-
-                    for (let i = 0; i < playerTotalVal; i++) {
-
-                        listOfPlayers.push(player.userSteamId);
-                    }
-
-                });
-
-                let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
-
-                let randomWinner = Math.floor(Math.random() * shuffled.length);
-
-                let winner = shuffled[randomWinner]
-
-                const data = {
-                    GameID: gameID,
-                    SteamID: winner
-                }
-
-                return data;
+            for (let i = 0; i < playerOneEntries; i++) {
+                listOfPlayers.push(finalGame.game.playerOne.username);
             }
 
-        });
+            for (let i = 0; i < playerTwoEntries; i++) {
+                listOfPlayers.push(finalGame.game.playerTwo.username);
+            }
+
+            let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
+
+            let randomWinner = Math.floor(Math.random() * shuffled.length);
+
+            let winner = shuffled[randomWinner]
+
+            const data = {
+                GameID: gameID,
+                SteamID: winner
+            }
+
+            return data;
+        }
+
+        else {
+            return false;
+        }
     
     }
 
-    // needs work
-    takeProfitAndWithdrawal() {
+    // needs work i think
+    takeProfitAndWithdrawal(gameID) {
+
+        const index = allCFGames.findIndex(game => game.game.gameID == gameID);
+
+        if (index == undefined) {
+            return false;
+        }
+
+        const chosenGame = allCFGames[index];
+
+        let allSkins = []
+
+        for(let i = 0; i < chosenGame.game.playerOne.skins.length; i++) {
+            let entry = {
+                name: chosenGame.game.playerOne.skins[i],
+                value: chosenGame.game.playerOne.skinsValues[i]
+            };
+
+            allSkins.push(entry);
+        }
+
+        for(let i = 0; i < chosenGame.game.playerTwo.skins.length; i++) {
+            let entry = {
+                name: chosenGame.game.playerTwo.skins[i],
+                value: chosenGame.game.playerTwo.skinsValues[i]
+            };
+
+            allSkins.push(entry);
+        }
+
+        let maxValue = 0;
+            
+        allSkins.forEach(skin => {
+            maxValue += skin.value;
+        });
+
+        const winnerName = chosenGame.game.playerOne.username == chosenGame.game.winner ? chosenGame.game.playerOne.username : chosenGame.game.playerTwo.username
+
+        if (winnerName.toLowerCase().includes("gammabets")) {
+            maxValue *= .05
+        }
+
+        else {
+            maxValue *= .10
+        }
+
+        let highestAttempt = {skins: [], totalVal: 0};
+
+        for(let x = 0; x < 10; x++) {
+
+            let attempt = {
+                skins: [],
+                totalVal: 0
+            };
+
+            let shuffleSkins = allSkins.sort(() => Math.random() - 0.5);
+
+            for (let s = 0; s < shuffleSkins.length; s++) {
+
+                const choice =  shuffleSkins[Math.floor(Math.random() * shuffled.length)];
+
+                if (choice <= maxValue) {
+                    attempt.skins.push(choice.name);
+                    attempt.totalVal += choice.value;
+                }
+
+            }
+
+            if (highestAttempt.totalVal < attempt.totalVal) {
+                highestAttempt = attempt;
+            }
+
+        }
+
+        return highestAttempt.skins;
+
     }
 
     ////////////////

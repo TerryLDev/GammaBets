@@ -4,7 +4,11 @@
 			<ViewMenuStart :active="state == 0" />
 		</div>
 		<div v-else-if="state == 1">
-			<ViewMenuJoining :gameID="game.game.gameID" :active="state == 1" />
+			<ViewMenuJoining
+				:queue="queue"
+				:gameID="game.game.gameID"
+				:active="state == 1"
+			/>
 		</div>
 	</Transition>
 </template>
@@ -17,6 +21,15 @@ import { io } from "socket.io-client";
 import ViewMenuStart from "./ViewStates/ViewMenuStart.vue";
 import ViewMenuJoining from "./ViewStates/ViewMenuJoining.vue";
 
+let socket;
+const env = process.env.NODE_ENV;
+
+if (env == "development") {
+	socket = io("http://localhost:4000");
+} else {
+	socket = io(window.location.origin);
+}
+
 export default {
 	setup() {
 		/*
@@ -27,20 +40,12 @@ export default {
     3 = The coinflip is now in the animation phase with the coinflipping, after the animation it shows the winner
     */
 
-		let socket;
-		const env = process.env.NODE_ENV;
-
-		if (env == "development") {
-			socket = io("http://localhost:4000");
-		} else {
-			socket = io(window.location.origin);
-		}
-
 		const store = useStore();
 		const game = computed(() => store.getters.getChosenGame);
-		const queue = computed(() => store.getters.getChosenQueue);
-
 		const state = computed(() => store.getters.getViewMenuState);
+		const queue = computed(() =>
+			store.getters.getChosenQueue(game.value.game.gameID)
+		);
 
 		onMounted(() => {
 			if (game.value.game.playerTwoJoining == false) {
@@ -50,6 +55,18 @@ export default {
 				game.value.game.playerTwoJoined == false
 			) {
 				store.dispatch("setViewState", 1);
+			} else if (
+				game.value.game.playerTwoJoining == true &&
+				game.value.game.playerTwoJoined == true &&
+				game.value.game.winner == "none"
+			) {
+				store.dispatch("setViewState", 2);
+			} else if (
+				game.value.game.playerTwoJoining == true &&
+				game.value.game.playerTwoJoined == true &&
+				game.value.game.winner != "none"
+			) {
+				store.dispatch("setViewState", 3);
 			}
 		});
 
@@ -57,28 +74,22 @@ export default {
 			store.dispatch("setViewState", 0);
 		});
 
-		socket.on("secondPlayerAccepctedTrade", (data) => {
-			console.log(data);
-
-			store.dispatch("setViewState", 2);
-		});
-
 		socket.on("secondPlayerJoiningGame", (data) => {
-			console.log(data);
-
-			store.dispatch("setViewState", 1);
+			if (data.game.gameID == game.value.game.gameID) {
+				store.dispatch("setViewState", 1);
+			}
 		});
 
-		socket.on("updateJoiningQueue", (data) => {
-			console.log(data);
-
-			store.dispatch("setViewState", 1);
+		socket.on("secondPlayerAccepctedTrade", (data) => {
+			if (data.game.gameID == game.value.game.gameID) {
+				store.dispatch("setViewState", 2);
+			}
 		});
 
 		socket.on("cfWinner", (data) => {
-			console.log(data);
-
-			store.dispatch("setViewState", 3);
+			if (data.game.gameID == game.value.game.gameID) {
+				store.dispatch("setViewState", 3);
+			}
 		});
 
 		return {
@@ -105,11 +116,6 @@ export default {
 			} else {
 				return black;
 			}
-		},
-	},
-	computed: {
-		timer() {
-			return this.$store.state.coinflip.activeCoinflips[4].timer;
 		},
 	},
 	name: "ViewMenu",

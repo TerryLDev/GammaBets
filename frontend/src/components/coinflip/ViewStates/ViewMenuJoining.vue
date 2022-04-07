@@ -32,7 +32,7 @@
 					class="coin-img-view"
 					v-bind:src="defaultCoin(game.game.playerOneSide)"
 				/>
-				<p>{{ defaultTimer }}</p>
+				<p>Waiting for Player: {{ defaultTimer }}s</p>
 			</div>
 
 			<div class="player-two-view">
@@ -43,10 +43,10 @@
 						'black-border-img-view':
 							game.game.playerTwoSide == 'black',
 					}"
-					src="@/assets/user/defaultProfile.png"
+					:src="queue.UserPic"
 				/>
 				<div class="username-container-view">
-					<p>Player Two</p>
+					<p>{{ queue.Username }}</p>
 				</div>
 				<div style="align-self: end" class="val-items-container-view">
 					<div class="item-container-view">
@@ -112,7 +112,7 @@
 
 <script>
 export default {
-	props: { active: Boolean, gameID: String },
+	props: { active: Boolean, gameID: String, queue: Object },
 	data() {
 		return {
 			render: false,
@@ -121,9 +121,6 @@ export default {
 	computed: {
 		game() {
 			return this.$store.getters.getChosenGame;
-		},
-		queue() {
-			return this.$store.getters.getChosenQueue;
 		},
 		showDisplay() {
 			if (this.active) {

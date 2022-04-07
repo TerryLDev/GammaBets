@@ -57,8 +57,10 @@ const coinflip = {
     getChosenGame(state) {
       return state.viewMenu.chosenGame;
     },
-    getChosenQueue(state) {
-      return state.chosenQueue || false;
+    getChosenQueue: (state) => (gameID) => {
+      const index = state.joiningQueue.findIndex(queue => queue.GameID == gameID)
+      
+      return state.joiningQueue[index];
     },
     getViewMenuState(state) {
       return state.viewMenu.state;
@@ -104,7 +106,7 @@ const coinflip = {
     },
     updateCFGame(state, gameObj) {
       const gameIndex = state.activeCoinflips.findIndex(
-        (game) => game.gameID == gameObj.gameID
+        (game) => game.game.gameID == gameObj.game.gameID
       );
 
       state.activeCoinflips[gameIndex] = gameObj;
@@ -113,13 +115,6 @@ const coinflip = {
     },
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
-    },
-    setChosenQueue(state, gameID) {
-      let getQueue = state.joiningQueue.find((queue) => queue.GameID == gameID);
-
-      if (getQueue) {
-        state.chosenQueue = getQueue;
-      }
     },
     setViewState(state, value) {
       state.viewMenu.state = value;
@@ -183,9 +178,6 @@ const coinflip = {
     },
     updateJoiningQueue({ commit }, queues) {
       commit("updateJoiningQueue", queues);
-    },
-    setChosenQueue({ commit }, gameID) {
-      commit("setChosenQueue", gameID);
     },
     setViewState({ commit }, value) {
       commit("setViewState", value);
