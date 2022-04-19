@@ -36,7 +36,7 @@ let creatingQueue = {
         
         this.queue.splice(index, 1);
 
-    }
+    },
     
 };
 
@@ -87,6 +87,22 @@ let joiningQueue = {
         this.queue.splice(index, 1);
 
         cfEvents.emit("updateJoiningQueue", this.queue);
+    },
+    updateTradeID(tradeID, gameID) {
+        const gameIndex = this.queue.findIndex(q => q.GameID == gameID);
+
+        this.queue[gameIndex].TradeID = tradeID;
+    },
+    findTradeID(gameID) {
+        const gameIndex = this.queue.findIndex(q => q.GameID == gameID);
+
+        if (gameIndex != undefined) {
+            return this.queue[gameIndex].TradeID;
+        }
+
+        else {
+            return false;
+        }
     }
 };
 
@@ -117,9 +133,9 @@ class CoinFlipHandler {
 
         allCFGames.forEach(obj => {
 
-            if (obj.gameID == gameID) {
+            if (obj.game.gameID == gameID) {
 
-                bot = obj.bot;
+                bot = obj.game.bot;
 
             }
 
@@ -288,6 +304,8 @@ class CoinFlipHandler {
             winner: "none",
         }
 
+        newEntry.cancelPlayerTwoTrade = false;
+
         if (gameObject.Red == gameObject.Players[0].userSteamId) {
             newEntry.game.playerOneSide = "red";
             newEntry.game.playerTwoSide = "black";
@@ -329,11 +347,29 @@ class CoinFlipHandler {
 
                     // cancel trade if it hits 0
                     else {
-                        /*
-                        cfEvents.emit("cancelCFGame", {GameID: gameObj.gameID});
-                        this.cancelOpponentTrade(gameObj.gameID);
-                        */
-                        console.log("cancel Trade for " + this.gameID);
+
+                        this.cancelPlayerTwoTrade = true;
+
+                        const tradeID = joiningQueue.findTradeID(this.game.gameID);
+
+                        if(tradeID != false) {
+
+                            cfEvents.emit("cancelCFGame", {GameID: this.game.gameID, TradeID: tradeID});
+                        
+                            console.log("Player Two did not accept trade in time, cancel trade for:" + this.game.gameID);
+
+                            this.game.playerTwoJoining = false;
+                            joiningQueue.removeSelectedQueue(this.game.gameID);
+
+                            this.stopClock();
+                            this.cancelPlayerTwoTrade = false;
+                        }
+
+                        else {
+                            console.log("Player Two did not accept trade in time, BUT COULD NOT CANCEL TRADE:" + this.game.gameID);
+
+                            this.stopClock();
+                        }
 
                     }
 
@@ -363,16 +399,29 @@ class CoinFlipHandler {
     // done
     #callOpponentJoiningGame(gameID, steamID, username, userPicURL) {
 
-        let gameObj = allCFGames.find(obj => obj.game.gameID == gameID);
-        
-        gameObj.game.playerTwoJoining = true;
+        const gameObjIndex = allCFGames.findIndex(obj => {
 
-        gameObj.startClock();
+            if(obj.game.gameID == gameID) {
+                return obj;
+            }
 
-        joiningQueue.addToQueue(gameID, steamID, username, userPicURL);
+        });
 
-        return gameObj;
+        if (gameObjIndex != undefined) {
 
+            allCFGames[gameObjIndex].game.playerTwoJoining = true;
+
+            allCFGames[gameObjIndex].startClock();
+
+            joiningQueue.addToQueue(gameID, steamID, username, userPicURL);
+
+            return allCFGames[gameObjIndex];
+
+        }
+
+        else  {
+            return console.error("Could not find game in CF Game Handler");
+        }
     }
 
     // needs work
@@ -448,18 +497,6 @@ class CoinFlipHandler {
         catch (err) {
 
         }
-
-    }
-
-    // needs work - maybe
-    cancelOpponentTrade(gameID) {
-
-        let currentGame = allCFGames.find(game => game.gameID == gameID);
-
-        currentGame.playerTwoJoining = false;
-        joiningQueue.removeSelectedQueue(gameID);
-
-        cfEvents.emit("secondPlayerCancelTrade", currentGame);
 
     }
 

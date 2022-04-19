@@ -160,7 +160,7 @@ const port = process.env.PORT || 4000;
 
 // Intialize Bots
 // Random Login Time to avoid request Errors
-/*
+
 const randomOne = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomTwo = (Math.floor(Math.random() * 10) + 1) * 1000;
 const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
@@ -190,7 +190,6 @@ setTimeout(() => {
 
 
 }, randomThree);
-*/
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -468,11 +467,9 @@ io.on("connection", (socket) => {
 
 		try {
 
-			setTimeout(function() {
+			setTimeout(() => {
 
 				let findBot = cfGameHandler.findCFBot(data.gameID);
-
-				console.log(cfBotZero.botID);
 	
 				if (findBot == cfBotZero.botID) {
 	
@@ -575,7 +572,7 @@ alertEvents.on("tradeLink", data => {
 */
 
 //////////////////////////////////////////////////////////////
-
+/* FOR TESTING ONLY
 setTimeout(function() {
 
 	cfGameHandler.opponentJoiningGame(allCFGames[4].game.gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")
@@ -583,6 +580,7 @@ setTimeout(function() {
 	console.log("sent")
 	
 }, 10000)
+*/
 
 // Coin flip events
 
@@ -594,7 +592,6 @@ cfEvents.on("cfTimer", (data) => {
 });
 
 cfEvents.on("updateJoiningQueue", data => {
-	console.log(data);
 	io.emit("updateJoiningQueue", data);
 });
 
@@ -612,7 +609,6 @@ cfEvents.on("secondPlayerAccepctedTrade", data => {
 });
 
 cfEvents.on("secondPlayerJoiningGame", data => {
-	console.log(data);
 	const newData = {
 		game: data.game,
 		timer: data.timer
@@ -632,7 +628,7 @@ cfEvents.on("secondPlayerCancelTrade", data => {
 cfEvents.on("cancelCFGame", async (data) => {
 
 	// data format
-	// data = {GameID: **};
+	// data = {GameID: **, TradeID: **};
 
 	try {
 
@@ -643,15 +639,16 @@ cfEvents.on("cancelCFGame", async (data) => {
 
 		if (await cfBot == cfBotOne.botID) {
 
-			cfBotOne.cancelOpponentCoinFlipTradeOffer(data.GameID);
+			cfBotOne.cancelOpponentCoinFlipTradeOffer(data.TradeID);
 
 		}
 
 		else {
 
-			cfBotZero.cancelOpponentCoinFlipTradeOffer(data.GameID);
+			cfBotZero.cancelOpponentCoinFlipTradeOffer(data.TradeID);
 
 		}
+
 	}
 	
 	catch (err) {

@@ -9,7 +9,7 @@ const User = require('../../models/user.model');
 const TradeHistory = require('../../models/tradehistory.model');
 const MarketPrice = require('../../models/marketprice.model');
 
-const {CoinFlipHandler, allCFGames} = require("../handler/coinflip-handler");
+const {CoinFlipHandler, allCFGames, joiningQueue} = require("../handler/coinflip-handler");
 
 class SteamBot {
 
@@ -249,17 +249,20 @@ class SteamBot {
 							BotID: this.botID,
 							Action: action,
 						})
-							.then(result => {
-								User.findOneAndUpdate({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, user) => {
+							.then((result) => {
+								
+								if(gameMode == "Coinflip") {
+									joiningQueue.updateTradeID(offer.id, gameID);
+								}
+
+								User.updateOne({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, res) => {
 									
 									if(err) {
 										return console.log(err);
 									}
-
-									else if (action == "Joining" && gameMode == "Coinflip"){
-										this.cfGameHandler.opponentJoiningGame(gameID, steamID, user.Username, TradeOfferManager.ETradeOfferState[offer.state], user.ProfilePictureURL);
+									else {
+										console.log(res);
 									}
-
 								});
 							})
 							.catch(err => {

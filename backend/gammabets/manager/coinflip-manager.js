@@ -19,11 +19,11 @@ class CoinFlipManager extends GameManager {
         
     }
 
-    // Second Opponent accepted their trade and is joining the active coin flip
+    // Second Opponent ACCEPTED their trade and is joining the active coin flip
     #joiningGame(tradeDBObject, skins, gameID) {
 
         const currentQueue = joiningQueue.getSelectedQueue(gameID);
-        const currentGame = allCFGames.find(game => game.gameID == gameID);
+        const currentGame = allCFGames.find(game => game.game.gameID == gameID);
 
         if (currentQueue.SteamID == tradeDBObject.SteamID) {
             // this is good
@@ -41,7 +41,7 @@ class CoinFlipManager extends GameManager {
 
                     let userBet = this.userBetArraySlot(tradeDBObject, skins, user);
 
-                    const cfTotal = this.getCFGameTotal(currentGame.playerOne.skinValues, userBet.skinValues);
+                    const cfTotal = this.getCFGameTotal(currentGame.game.playerOne.skinValues, userBet.skinValues);
 
                     let query = {
                         $push : {
@@ -54,7 +54,7 @@ class CoinFlipManager extends GameManager {
                         }
                     }
 
-                    if (currentGame.playerTwoSide == "red") {
+                    if (currentGame.game.playerTwoSide == "red") {
                         query.$set.Red = tradeDBObject.SteamID;
                     }
                     else {
