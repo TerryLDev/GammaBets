@@ -3,6 +3,7 @@
 		:style="{ display: showDisplay }"
 		class="view-menu primary-color-popup popup-cell"
 	>
+		<h1>FLIPPING</h1>
 		<div class="top-view">
 			<div class="player-one-view">
 				<img
@@ -123,7 +124,7 @@
 
 <script>
 export default {
-	props: { active: Boolean, gameID: String, queue: Object },
+	props: { active: Boolean, gameID: String },
 	data() {
 		return {
 			render: false,

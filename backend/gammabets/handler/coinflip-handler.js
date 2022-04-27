@@ -429,15 +429,15 @@ class CoinFlipHandler {
 
         // if this fails, you might need to change this to findIndex
 
-        let gameObj = allCFGames.find(obj => obj.game.gameID == gameObject.GameID);
+        let gameIndex = allCFGames.findIndex(obj => obj.game.gameID == gameObject.GameID);
 
-        gameObj.game.playerTwo = gameObject.Players[1];
-        gameObj.game.playerTwoJoined = true;
-        gameObj.game.waitingToFlip = true;
+        allCFGames[gameIndex].game.playerTwo = gameObject.Players[1];
+        allCFGames[gameIndex].game.playerTwoJoined = true;
+        allCFGames[gameIndex].game.waitingToFlip = true;
 
         joiningQueue.removeSelectedQueue(gameObject.GameID);
 
-        return gameObj;
+        return allCFGames[gameIndex];
 
     }
 
@@ -484,19 +484,11 @@ class CoinFlipHandler {
     }
 
     // needs work - maybe
-    async opponentAcceptedTrade(gameObject) {
+    opponentAcceptedTrade(gameObject) {
 
-        // oof
-        try {
+        let data = this.#callOpponentAcceptedTrade(gameObject);
 
-            let data = await this.#callOpponentAcceptedTrade(gameObject);
-
-            cfEvents.emit("secondPlayerAccepctedTrade", await data);
-
-        }
-        catch (err) {
-
-        }
+        cfEvents.emit("secondPlayerAccepctedTrade", data);
 
     }
 
