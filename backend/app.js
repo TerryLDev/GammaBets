@@ -584,7 +584,7 @@ setTimeout(function() {
 	
 }, 10000)
 
-
+/*
 setTimeout(function() {
 	const fakeGameObj = {
 		GameID: allCFGames[4].game.gameID,
@@ -599,6 +599,7 @@ setTimeout(function() {
 
 	console.log("sent new")
 }, 15000)
+*/
 
 // Coin flip events
 
@@ -634,16 +635,7 @@ cfEvents.on("secondPlayerJoiningGame", data => {
 	io.emit("secondPlayerJoiningGame", newData);
 });
 
-cfEvents.on("secondPlayerCancelTrade", data => {
-	console.log(data);
-	io.emit("secondPlayerCancelTrade", data);
-});
-
-// need more work
-///////////////////////
-//// It might work ////
-///////////////////////
-cfEvents.on("cancelCFGame", async (data) => {
+cfEvents.on("callCancelCFTrade", async (data) => {
 
 	// data format
 	// data = {GameID: **, TradeID: **};
@@ -675,42 +667,38 @@ cfEvents.on("cancelCFGame", async (data) => {
 
 });
 
-// need more work
-cfEvents.on("decideWinner", async (data) => {
-	// given data format
-	// data = {GameID: **, GameState: ** (just false)}
+// this is kinda janky tbh
+// This is called after the trade hass been cancels, cf game object has been updated, and its ready to push an update to the frontend
+cfEvents.on("secondPlayerTradeCanceled", (data) => {
 
-	// returned winnerObj format
-	// winnerObj = {GameID: gameID, SteamID: winner}
+	// data = {GameID: **}
 
-	try {
+	const cfIndex = allCFGames.findIndex(game => game.game.gameID == data.GameID);
+	gameObject = allCFGames[cfIndex];
 
-		// updates the json file to change gameState to false
-		cfGameHandler.updateJsonGameState(data.GameState);
+	io.emit("secondPlayerTradeCanceled", gameObject);
 
-		// gets the winner
-		const winnerObj = await cfGameHandler.decideWinner(data.GameID);
-
-		// pushes winner to frontend
-		io.emit("cfWinner", await winnerObj);
-
-		// updates the winner in json file
-		cfGameHandler.updateJsonWinner(await winnerObj);
-
-		// push game state update
-		let dataGS = {GameState: data.GameState};
-
-		io.emit("updateGameState", dataGS);
-
-	}
-
-	catch (err) {
-
-		return console.log(err);
-
-	}
+	joiningQueue.removeSelectedQueue(data.GameID);
 
 });
+
+cfEvents.on("cfWinner", (data) => {
+
+	/*
+	const data = {
+		GameID: gameID,
+		SteamID: winner
+	}
+	*/
+
+	io.emit("cfWinner", data)
+});
+
+cfEvents.on("chooseCFWinner", (innerGameObj) => {
+	cfGameHandler.chooseWinner(innerGameObj);
+})
+
+// update cf history here
 
 //////////////////////////////////////////////////////////////
 

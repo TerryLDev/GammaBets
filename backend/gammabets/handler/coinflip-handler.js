@@ -150,44 +150,39 @@ class CoinFlipHandler {
     // Winner methods
 
     // needs work - A lot of work
-    decideWinner(gameID) {
+    #decideWinner(cfInnerGameObject) {
 
-        const finalGameIndex = allCFGames.findIndex(game => game.game.gameID == gameID);
+        joiningQueue.removeSelectedQueue(cfInnerGameObject.gameID)
 
-        if(finalGameIndex == undefined) {
-            console.log("Tried to decide a winner for coinflip, but could not find the game's index");
-            return false
-        }
+        const gameID = cfInnerGameObject.gameID;
 
-        let finalGame = allCFGames[finalGameIndex];
-
-        if (finalGame.game.playerTwo.skins.length > 0 && finalGame.game.playerOne.skins.length > 0) {
+        if (cfInnerGameObject.playerTwo.skins.length > 0 && cfInnerGameObject.playerOne.skins.length > 0) {
             
             let listOfPlayers = [];
 
             let playerOneTotal = 0;
             let playerTwoTotal = 0;
 
-            finalGame.game.playerOne.skinValues.forEach(val => playerOneTotal+= val);
+            cfInnerGameObject.playerOne.skinValues.forEach(val => playerOneTotal+= val);
 
-            finalGame.game.playerTwo.skinValues.forEach(val => playerTwoTotal+= val);
+            cfInnerGameObject.playerTwo.skinValues.forEach(val => playerTwoTotal+= val);
 
             const playerOneEntries = playerTwoTotal * 100;
             const playerTwoEntries = playerOneTotal * 100;
 
             for (let i = 0; i < playerOneEntries; i++) {
-                listOfPlayers.push(finalGame.game.playerOne.username);
+                listOfPlayers.push(cfInnerGameObject.playerOne.username);
             }
 
             for (let i = 0; i < playerTwoEntries; i++) {
-                listOfPlayers.push(finalGame.game.playerTwo.username);
+                listOfPlayers.push(cfInnerGameObject.playerTwo.username);
             }
 
             let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
 
             let randomWinner = Math.floor(Math.random() * shuffled.length);
 
-            let winner = shuffled[randomWinner]
+            let winner = shuffled[randomWinner];
 
             const data = {
                 GameID: gameID,
@@ -331,8 +326,11 @@ class CoinFlipHandler {
                     }
 
                     else {
-                        console.log("choose winner", this.gameID);
+                        console.log("choose winner", this.game.gameID);
                         // emit a winner
+                        const data = this.game;
+                        cfEvents.emit("chooseCFWinner", data);
+                        this.stopClock();
                     }
                 }
 
@@ -347,6 +345,8 @@ class CoinFlipHandler {
 
                     // cancel trade if it hits 0
                     else {
+                        
+                        this.stopClock();
 
                         this.cancelPlayerTwoTrade = true;
 
@@ -354,21 +354,20 @@ class CoinFlipHandler {
 
                         if(tradeID != false) {
 
-                            cfEvents.emit("cancelCFGame", {GameID: this.game.gameID, TradeID: tradeID});
+                            const data = {GameID: this.game.gameID, TradeID: tradeID}
+
+                            cfEvents.emit("callCancelCFTrade", data);
                         
                             console.log("Player Two did not accept trade in time, cancel trade for:" + this.game.gameID);
 
                             this.game.playerTwoJoining = false;
-                            joiningQueue.removeSelectedQueue(this.game.gameID);
 
-                            this.stopClock();
                             this.cancelPlayerTwoTrade = false;
+
                         }
 
                         else {
-                            console.log("Player Two did not accept trade in time, BUT COULD NOT CANCEL TRADE:" + this.game.gameID);
-
-                            this.stopClock();
+                            console.log("Player Two did not accept trade in time, AND COULD NOT CANCEL TRADE:" + this.game.gameID);
                         }
 
                     }
@@ -384,6 +383,7 @@ class CoinFlipHandler {
             }, 1000)
         }
 
+        // basically resets the clock
         newEntry.stopClock = () => {
             clearInterval(this.clock);
             this.timer.defaultTimer = this.defaultTimer;
@@ -435,9 +435,30 @@ class CoinFlipHandler {
         allCFGames[gameIndex].game.playerTwoJoined = true;
         allCFGames[gameIndex].game.waitingToFlip = true;
 
-        joiningQueue.removeSelectedQueue(gameObject.GameID);
-
         return allCFGames[gameIndex];
+
+    }
+
+    #callMoveGameToHistory(gameObject) {
+
+        cfHistory.push(gameObject);
+
+        function shiftHistory() {
+
+            cfHistory.shift();
+
+            if (cfHistory.length > 5) {
+
+                shiftHistory();
+            }
+
+        }
+
+        if (cfHistory.length > 5) {
+
+            shiftHistory();
+
+        }
 
     }
 
@@ -490,6 +511,41 @@ class CoinFlipHandler {
 
         cfEvents.emit("secondPlayerAccepctedTrade", data);
 
+    }
+
+    async chooseWinner(innerGameObject) {
+
+        try {
+
+            const winnerData = await this.#decideWinner(innerGameObject);
+
+            if (winnerData) {
+                cfEvents.emit("cfWinner", winnerData);
+            }
+
+            setTimeout(async () => {
+
+                // Move game Object into game history
+                try {
+
+                    await this.#callMoveGameToHistory(innerGameObject);
+
+                }
+
+                catch(err) {
+
+                    console.error(err);
+
+                }
+
+
+            }, 5000);
+
+        }
+
+        catch(err) {
+
+        }
     }
 
     ////////////////

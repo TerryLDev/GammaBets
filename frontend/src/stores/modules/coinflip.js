@@ -6,9 +6,10 @@ const coinflip = {
     coinflipHistory: [],
     chosenSide: "",
     pastWinningSides: [],
-    viewMenu: { isVisible: false, chosenGame: {}, state: 0 },
+    viewMenu: { isVisible: false, chosenGame: {} },
     joiningQueue: [],
     chosenQueue: {},
+    gamePhases: [],
   },
   getters: {
     getChosenSide(state) {
@@ -58,12 +59,20 @@ const coinflip = {
       return state.viewMenu.chosenGame;
     },
     getChosenQueue: (state) => (gameID) => {
-      const index = state.joiningQueue.findIndex(queue => queue.GameID == gameID)
-      
+      const index = state.joiningQueue.findIndex(
+        (queue) => queue.GameID == gameID
+      );
+
       return state.joiningQueue[index];
     },
-    getViewMenuState(state) {
-      return state.viewMenu.state;
+    getGamePhase: (state) => (gameID) => {
+      // gamePhaseObj = {gameID: **, value: **}
+
+      const gameIndex = state.gamePhases.findIndex(
+        (game) => game.gameID == gameID
+      );
+
+      return state.gamePhases[gameIndex].phase;
     },
   },
   mutations: {
@@ -116,17 +125,74 @@ const coinflip = {
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
     },
-    setViewState(state, value) {
-      state.viewMenu.state = value;
+    setGamePhase(state, gamePhaseObj) {
+
+      // gamePhaseObj = {gameID: **, value: **}
+
+      const index = state.gamePhases.forEach(gPhase => gPhase.gameID == gamePhaseObj.gameID);
+
+      if(index == undefined) {
+        const newPhase = {gameID: gamePhaseObj.gameID, phase: gamePhaseObj.value}
+
+        state.gamePhases.push(newPhase);
+      }
+
+      else {
+        state.gamePhases[index].phase = gamePhaseObj.value;
+      }
+
+    },
+    updateWinner(state, gameID, steamID) {
+
+      const gameIndex = state.activeCoinflips.findIndex(
+        (game) => game.game.gameID == gameID
+      );
+
+      state.activeCoinflips[gameIndex].game.winner = steamID;
     },
   },
   actions: {
+    setGamePhase({ commit }, gamePhaseObj) {
+      // gamePhaseObj = {gameID: **, value: **}
+      commit("setGamePhase", gamePhaseObj);
+    },
+
     // API grabs
     getAPIActiveCoinflip({ commit }) {
       axios
         .post("api/coinflip/active")
         .then((res) => {
           commit("setActiveCoinflips", res.data);
+
+          res.data.forEach(gameObj => {
+
+            const innerGame = gameObj.game;
+            let phase = 0;
+            
+            if(innerGame.playerTwoJoining == false && innerGame.playerTwoJoined == false) {
+              phase = 0;
+            }
+
+            else if(innerGame.playerTwoJoining && innerGame.playerTwoJoined == false) {
+              phase = 1;
+            }
+
+            else if(innerGame.playerTwoJoining && innerGame.playerTwoJoined) {
+              phase = 2;
+            }
+
+            else if(innerGame.winner != "none") {
+              phase = 3;
+            }
+
+            else {
+              phase = 0;
+            }
+
+            const data = {gameID: innerGame.gameID, value: phase};
+
+            commit("setGamePhase", data);
+          })
         })
         .catch((err) => {
           console.log(err);
@@ -152,35 +218,45 @@ const coinflip = {
           console.log(err);
         });
     },
-    // view menu
+
     setCoinSide({ commit }, side) {
       commit("setCoinSide", side);
     },
+
     toggleViewMenu({ commit }) {
       commit("toggleViewMenu");
     },
+
     setChosenView({ commit }, gameID) {
       commit("setChosenView", gameID);
     },
+
     resetChosenView({ commit }) {
       commit("resetChosenView");
     },
+
     changeCFGameTimer({ commit }, timer) {
       // update the timer that is appart of the game's obj
       commit("changeCFGameTimer", timer);
     },
+
     addNewCoinFlip({ commit }, newGame) {
       commit("addNewCoinFlip", newGame);
+      commit("setGamePhase", {gameID: newGame.game.gameID, value: 0});
     },
+
     updateCFGame({ commit }, data) {
       commit("updateCFGame", data);
       console.log(data);
     },
+
     updateJoiningQueue({ commit }, queues) {
       commit("updateJoiningQueue", queues);
     },
-    setViewState({ commit }, value) {
-      commit("setViewState", value);
+
+    // fix this
+    updateWinner({ commit }, gameID, steamID) {
+      commit("updateWinner", gameID, steamID);
     },
   },
 };
