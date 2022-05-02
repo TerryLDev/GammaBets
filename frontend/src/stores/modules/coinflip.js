@@ -72,7 +72,14 @@ const coinflip = {
         (game) => game.gameID == gameID
       );
 
-      return state.gamePhases[gameIndex].phase;
+      if (gameIndex != undefined) {
+        return state.gamePhases[gameIndex].phase;
+      }
+
+      else {
+        return 0;
+      }
+
     },
   },
   mutations: {
@@ -119,8 +126,6 @@ const coinflip = {
       );
 
       state.activeCoinflips[gameIndex] = gameObj;
-
-      console.log(gameObj);
     },
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
@@ -129,16 +134,19 @@ const coinflip = {
 
       // gamePhaseObj = {gameID: **, value: **}
 
-      const index = state.gamePhases.forEach(gPhase => gPhase.gameID == gamePhaseObj.gameID);
+      const index = state.gamePhases.findIndex((gPhase) => gPhase.gameID == gamePhaseObj.gameID);
 
-      if(index == undefined) {
-        const newPhase = {gameID: gamePhaseObj.gameID, phase: gamePhaseObj.value}
-
-        state.gamePhases.push(newPhase);
+      if(index >= 0) {
+        state.gamePhases[index].phase = gamePhaseObj.value;
       }
 
       else {
-        state.gamePhases[index].phase = gamePhaseObj.value;
+        const newPhase = {
+          gameID: gamePhaseObj.gameID,
+          phase: gamePhaseObj.value,
+        };
+
+        state.gamePhases.push(newPhase);
       }
 
     },
@@ -247,7 +255,6 @@ const coinflip = {
 
     updateCFGame({ commit }, data) {
       commit("updateCFGame", data);
-      console.log(data);
     },
 
     updateJoiningQueue({ commit }, queues) {

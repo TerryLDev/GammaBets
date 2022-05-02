@@ -8,6 +8,7 @@ router.post("/coinflip/active", (req, res) => {
 	const sender = [];
 
 	allCFGames.forEach(obj => {
+		
 		const entry = {
 			game: obj.game,
 			timer: obj.timer

@@ -691,7 +691,8 @@ cfEvents.on("cfWinner", (data) => {
 	}
 	*/
 
-	io.emit("cfWinner", data)
+	io.emit("cfWinner", data);
+	
 });
 
 cfEvents.on("chooseCFWinner", (innerGameObj) => {

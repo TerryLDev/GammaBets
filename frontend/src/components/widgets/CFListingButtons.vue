@@ -1,7 +1,7 @@
 <template>
-  <div class="listing-buttons-div">
+  <Transition>
+    <div class="listing-buttons-div" v-if="game.playerOne.userSteamId != userSteamID && phase == 0">
       <button
-        v-if="game.playerOne.userSteamId != userSteamID && phase == 0"
         class="listing-button"
         :class="buttonClass(game.playerOneSide)"
         @click="openDepositMenu"
@@ -16,12 +16,32 @@
         View
       </button>
     </div>
+    <div class="listing-buttons-div" v-else>
+      <button
+        class="listing-button"
+        :class="buttonClass(game.playerOneSide)"
+        @click="openViewMenu"
+      >
+        View
+      </button>
+    </div>
+  </Transition>
 </template>
 
 <script>
 export default {
-  props: {game: Object, phase: Number},
+  props: { game: Object, phase: Number },
+  computed: {
+    userSteamID() {
+      return this.$store.state.user.profile.SteamID;
+    },
+  },
   methods: {
+    playerValue(playerSkinVals) {
+      let totalVal = 0;
+      playerSkinVals.forEach((val) => (totalVal += val));
+      return totalVal.toFixed(2);
+    },
     buttonClass(playerSide) {
       if (playerSide == "red") {
         return "red-listing-button";
@@ -42,11 +62,16 @@ export default {
       store.dispatch("setDepositType", "Coinflip");
     },
     openViewMenu() {
-      console.log(this.game);
       this.$store.dispatch("toggleViewMenu");
       this.$store.dispatch("setChosenView", this.game.gameID);
     },
   },
+  watch: {
+    phase(oldVal, newVal) {
+      console.log(oldVal, newVal);
+    }
+  },
+  name: "CFListingButtons",
 }
 </script>
 

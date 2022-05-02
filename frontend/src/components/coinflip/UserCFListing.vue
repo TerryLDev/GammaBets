@@ -28,41 +28,23 @@
         :src="skinPic"
       />
     </div>
-
-    <div class="listing-buttons-div">
-      <button
-        v-if="game.playerOne.userSteamId != userSteamID && phase == 0"
-        class="listing-button"
-        :class="buttonClass(game.playerOneSide)"
-        @click="openDepositMenu"
-      >
-        Join
-      </button>
-      <button
-        class="listing-button"
-        :class="buttonClass(game.playerOneSide)"
-        @click="openViewMenu"
-      >
-        View
-      </button>
-    </div>
+    <CFListingButtons :phase="phase(game.gameID)" :game="game" />
   </div>
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+import CFListingButtons from "../widgets/CFListingButtons.vue";
+
 export default {
-  props: { game: Object, phase: Number },
+  props: { game: Object },
   data() {
     return {
       depositType: "Coinflip",
       showDepositMenuVisible: false,
     };
   },
-  computed: {
-    userSteamID() {
-      return this.$store.state.user.profile.SteamID;
-    },
-  },
+  computed: mapGetters({ phase: "getGamePhase" }),
   methods: {
     playerOneSide(game) {
       if (game.playerOneSide == "red") {
@@ -101,6 +83,7 @@ export default {
       this.$store.dispatch("setChosenView", this.game.gameID);
     },
   },
+  components: { CFListingButtons },
   name: "UserCFListing",
 };
 </script>

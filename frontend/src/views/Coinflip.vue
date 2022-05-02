@@ -11,14 +11,6 @@
 </template>
 
 <script>
-/*
-I FINALLY GOT IT
-
-DO NOT UPDATE THE QUEUE AND GAME FROM STATE. UPDATE THE DATA LOCALLY!
-
-GET THE TIMER OBJ IN VIEWMENU COMPONENT
-
-*/
 import { computed, onBeforeMount } from "@vue/runtime-core";
 import { useStore } from "vuex";
 
@@ -30,12 +22,12 @@ import ViewMenu from "../components/coinflip/ViewMenu.vue";
 
 import { io } from "socket.io-client";
 
-let socket;
 const env = process.env.NODE_ENV;
-
+let socket;
 if (env == "development") {
   socket = io("http://localhost:4000");
-} else {
+}
+else {
   socket = io(window.location.origin);
 }
 

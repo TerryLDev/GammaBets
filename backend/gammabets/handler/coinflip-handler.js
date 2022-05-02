@@ -108,7 +108,7 @@ let joiningQueue = {
 
 class CoinFlipHandler {
 
-    defaultTimer = parseFloat(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
+    mainTimer = parseFloat(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
     countDown = parseFloat(process.env.COIN_FLIP_COUNTDOWN_TIME);
 
     createGameID() {
@@ -311,7 +311,7 @@ class CoinFlipHandler {
             newEntry.game.playerTwoSide = "red";
         }
 
-        newEntry.timer = {defaultTimer: this.defaultTimer, flippingTimer: this.countDown};
+        newEntry.timer = {defaultTimer: this.mainTimer, flippingTimer: this.countDown};
 
         newEntry.clock = null;
 
@@ -364,6 +364,8 @@ class CoinFlipHandler {
 
                             this.cancelPlayerTwoTrade = false;
 
+                            cfEvents.emit("secondPlayerTradeCanceled", {GameID: this.game.gameID})
+
                         }
 
                         else {
@@ -384,9 +386,10 @@ class CoinFlipHandler {
         }
 
         // basically resets the clock
-        newEntry.stopClock = () => {
+        newEntry.stopClock = function() {
             clearInterval(this.clock);
-            this.timer.defaultTimer = this.defaultTimer;
+            console.log(this.timer.defaultTimer);
+            this.timer.defaultTimer = this.mainTimer;
             this.timer.flippingTimer = this.countDown;
         };
 

@@ -25,9 +25,6 @@ const user = {
     getUserAuth(state) {
       return state.auth;
     },
-    getIfDataReceived(state) {
-      return state.dataReceived;
-    },
   },
   mutations: {
     setUser(state, user) {

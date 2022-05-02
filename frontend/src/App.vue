@@ -17,9 +17,6 @@
       </div>
     </Transition>
   </div>
-  <Transition>
-    <AlertCenter />
-  </Transition>
 </template>
 
 <script>

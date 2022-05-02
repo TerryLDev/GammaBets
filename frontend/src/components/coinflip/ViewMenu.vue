@@ -38,7 +38,7 @@ export default {
     const store = useStore();
 
     const game = computed(() => store.getters.getChosenGame);
-    const phase = computed(() =>
+    let phase = computed(() =>
       store.getters.getGamePhase(game.value.game.gameID)
     );
     const queue = computed(() =>
