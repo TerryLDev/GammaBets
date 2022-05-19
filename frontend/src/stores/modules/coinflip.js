@@ -3,15 +3,17 @@ import axios from "axios";
 const coinflip = {
   state: {
     activeCoinflips: [],
-    coinflipHistory: [],
+    coinflipHistory: {},
     chosenSide: "",
     pastWinningSides: [],
     viewMenu: { isVisible: false, chosenGame: {} },
     joiningQueue: [],
     chosenQueue: {},
-    gamePhases: [],
   },
   getters: {
+    getCFHistory(state) {
+      return state.coinflipHistory;
+    },
     getChosenSide(state) {
       return state.chosenSide;
     },
@@ -66,20 +68,14 @@ const coinflip = {
       return state.joiningQueue[index];
     },
     getGamePhase: (state) => (gameID) => {
-      // gamePhaseObj = {gameID: **, value: **}
 
-      const gameIndex = state.gamePhases.findIndex(
-        (game) => game.gameID == gameID
+      const gameIndex = state.activeCoinflips.findIndex(
+        (game) => game.game.gameID == gameID
       );
 
-      if (gameIndex != undefined) {
-        return state.gamePhases[gameIndex].phase;
+      if (gameIndex >= 0) {
+        return state.activeCoinflips[gameIndex].game.phase;
       }
-
-      else {
-        return 0;
-      }
-
     },
   },
   mutations: {
@@ -99,11 +95,11 @@ const coinflip = {
       state.viewMenu.isVisible = !state.viewMenu.isVisible;
     },
     setChosenView(state, gameID) {
-      const game = state.activeCoinflips.find(
+      const gameIndex = state.activeCoinflips.findIndex(
         (game) => game.game.gameID == gameID
       );
 
-      state.viewMenu.chosenGame = game;
+      state.viewMenu.chosenGame = state.activeCoinflips[gameIndex];
     },
     resetChosenView(state) {
       state.viewMenu.chosenGame = {};
@@ -121,104 +117,46 @@ const coinflip = {
       state.activeCoinflips.push(newGame);
     },
     updateCFGame(state, gameObj) {
+      // Update gameObj
       const gameIndex = state.activeCoinflips.findIndex(
         (game) => game.game.gameID == gameObj.game.gameID
       );
 
       state.activeCoinflips[gameIndex] = gameObj;
+      
+      ///////////////////////////////////////
+      // Update chosen View Menu, if they are looking at it
+      if (
+        state.viewMenu.chosenGame.game.gameID ==
+        state.activeCoinflips[gameIndex].game.gameID
+      ) {
+        state.viewMenu.chosenGame = state.activeCoinflips[gameIndex];
+      }
     },
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
     },
-    setGamePhase(state, gamePhaseObj) {
-
-      // gamePhaseObj = {gameID: **, value: **}
-
-      const index = state.gamePhases.findIndex((gPhase) => gPhase.gameID == gamePhaseObj.gameID);
-
-      if(index >= 0) {
-        state.gamePhases[index].phase = gamePhaseObj.value;
-      }
-
-      else {
-        const newPhase = {
-          gameID: gamePhaseObj.gameID,
-          phase: gamePhaseObj.value,
-        };
-
-        state.gamePhases.push(newPhase);
-      }
-
-    },
-    updateWinner(state, gameID, steamID) {
-
-      const gameIndex = state.activeCoinflips.findIndex(
-        (game) => game.game.gameID == gameID
-      );
-
-      state.activeCoinflips[gameIndex].game.winner = steamID;
+    updateHistory(state, historyArray) {
+      state.coinflipHistory = historyArray;
     },
   },
   actions: {
-    setGamePhase({ commit }, gamePhaseObj) {
-      // gamePhaseObj = {gameID: **, value: **}
-      commit("setGamePhase", gamePhaseObj);
-    },
 
     // API grabs
     getAPIActiveCoinflip({ commit }) {
-      axios
-        .post("api/coinflip/active")
+      axios.post("api/coinflip/active")
         .then((res) => {
           commit("setActiveCoinflips", res.data);
-
-          res.data.forEach(gameObj => {
-
-            const innerGame = gameObj.game;
-            let phase = 0;
-            
-            if(innerGame.playerTwoJoining == false && innerGame.playerTwoJoined == false) {
-              phase = 0;
-            }
-
-            else if(innerGame.playerTwoJoining && innerGame.playerTwoJoined == false) {
-              phase = 1;
-            }
-
-            else if(innerGame.playerTwoJoining && innerGame.playerTwoJoined) {
-              phase = 2;
-            }
-
-            else if(innerGame.winner != "none") {
-              phase = 3;
-            }
-
-            else {
-              phase = 0;
-            }
-
-            const data = {gameID: innerGame.gameID, value: phase};
-
-            commit("setGamePhase", data);
-          })
         })
         .catch((err) => {
           console.log(err);
         });
     },
-    getAPICoinflipHistory({ commit }) {
-      axios
-        .post("api/coinflip/history")
-        .then((res) => {
-          commit("setCoinflipHistory", res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    setCoinflipHistory({ commit }, cfHistory) {
+      commit("setCoinflipHistory", cfHistory);
     },
     getAPICoinflipJoiningQueue({ commit }) {
-      axios
-        .post("api/coinflip/joining-queue")
+      axios.post("api/coinflip/joining-queue")
         .then((res) => {
           commit("setCoinflipJoiningQueue", res.data);
         })
@@ -250,7 +188,7 @@ const coinflip = {
 
     addNewCoinFlip({ commit }, newGame) {
       commit("addNewCoinFlip", newGame);
-      commit("setGamePhase", {gameID: newGame.game.gameID, value: 0});
+      commit("setGamePhase", { gameID: newGame.game.gameID, value: 0 });
     },
 
     updateCFGame({ commit }, data) {
@@ -262,8 +200,11 @@ const coinflip = {
     },
 
     // fix this
-    updateWinner({ commit }, gameID, steamID) {
-      commit("updateWinner", gameID, steamID);
+    updateWinner({ commit }, data) {
+      commit("updateWinner", data);
+    },
+    updateCFHistory({ commit }, histAry) {
+      commit("updateHistory", histAry);
     },
   },
 };

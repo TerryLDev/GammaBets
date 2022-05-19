@@ -3,7 +3,6 @@
     :style="{ display: showDisplay }"
     class="view-menu primary-color-popup popup-cell"
   >
-    <h1>FLIPPING</h1>
     <div class="top-view">
       <div class="player-one-view">
         <img
@@ -19,7 +18,7 @@
         </div>
         <div class="val-items-container-view">
           <div class="val-container-view">
-            <p>${{ playerTotalVal(game.game.playerOne.skins.skinValues) }}</p>
+            <p>${{ playerTotalVal(game.game.playerOne.skinValues) }}</p>
           </div>
           <div class="item-container-view">
             <p>{{ game.game.playerOne.skins.length }}/20</p>
@@ -51,7 +50,7 @@
             <p>{{ game.game.playerTwo.skins.length }}/20</p>
           </div>
           <div class="val-container-view">
-            <p>${{ playerTotalVal(game.game.playerTwo.skins.skinValues) }}</p>
+            <p>${{ playerTotalVal(game.game.playerTwo.skinValues) }}</p>
           </div>
         </div>
       </div>
@@ -117,7 +116,7 @@ export default {
       }
     },
     defaultTimer() {
-      return this.$store.getters.getGameDefaultTimer(this.gameID) || 0;
+      return this.$store.getters.getGameFlippingTimer(this.gameID) || 0;
     },
   },
   methods: {
@@ -140,7 +139,7 @@ export default {
       return total.toFixed(2);
     },
   },
-  name: "ViewMenuStart",
+  name: "ViewMenuFlipping",
 };
 </script>
 

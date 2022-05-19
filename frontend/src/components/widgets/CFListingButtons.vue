@@ -66,11 +66,6 @@ export default {
       this.$store.dispatch("setChosenView", this.game.gameID);
     },
   },
-  watch: {
-    phase(oldVal, newVal) {
-      console.log(oldVal, newVal);
-    }
-  },
   name: "CFListingButtons",
 }
 </script>

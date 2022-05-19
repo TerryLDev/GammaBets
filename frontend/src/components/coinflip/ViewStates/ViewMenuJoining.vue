@@ -140,7 +140,7 @@ export default {
       return total.toFixed(2);
     },
   },
-  name: "ViewMenuStart",
+  name: "ViewMenuJoining",
 };
 </script>
 

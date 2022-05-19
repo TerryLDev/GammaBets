@@ -180,9 +180,11 @@ class CoinFlipManager extends GameManager {
                 if (tradeDoc.Action == "Creating") {
                     this.#newGame(tradeDoc, dbSkins);
                 }
+
                 else if (tradeDoc.Action == "Joining") {
                     this.#joiningGame(tradeDoc, dbSkins, tradeDoc.GameID)
                 }
+                
             }
 
             else if (tradeDoc.TransactionType == "Withdraw") {

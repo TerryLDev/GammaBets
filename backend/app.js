@@ -10,7 +10,6 @@ const cors = require("cors");
 const socket = require("socket.io");
 const async = require("async");
 const helmet = require("helmet");
-const fs = require("fs");
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -49,6 +48,7 @@ const manager = new TradeOfferManager();
 const client = new SteamUser();
 
 const selectWinner = require("./gammabets/jackpotwinner");
+const serverProfitUtils = require("./gammabets/server-profit");
 
 const { updateSkinPrices } = require("./gammabets/updateskinvalues");
 
@@ -119,11 +119,12 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
 
 		*/
 		
-		CoinFlipGame.find({}, (err, cfs) => {
+		CoinFlipGame.find({Status: true}, (err, cfs) => {
 
 			if(err) console.log(err);
 
 			else {
+
 				cfs.forEach(cf => {
 
 					cfGameHandler.createNewGame(cf);
@@ -187,7 +188,6 @@ setTimeout(() => {
 setTimeout(() => {
 
 	cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVER_ID);
-
 
 }, randomThree);
 
@@ -536,24 +536,10 @@ io.on("connection", (socket) => {
 
 setInterval(async function () {
 
-	updateSkinPrices()
-	.then(result => {
-
-		MarketPrice.find({}, (err, skinsList) => {
-			if (err) throw err;
-			skins = skinsList;
-		});
-	
-		jpBotZero.getSkins();
-		cfBotZero.getSkins();
-		cfBotOne.getSkins();
-
-	})
-	.catch(error => {
-
-		return console.error(error);
-		
-	});
+	updateSkinPrices();
+	jpBotZero.getSkins();
+	cfBotZero.getSkins();
+	cfBotOne.getSkins();
 	
 }, 1000 * 60 * 60 * 6);
 
@@ -572,8 +558,8 @@ alertEvents.on("tradeLink", data => {
 */
 
 //////////////////////////////////////////////////////////////
-
 /*
+
 setTimeout(function() {
 
 	cfGameHandler.opponentJoiningGame(allCFGames[4].game.gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")
@@ -581,9 +567,10 @@ setTimeout(function() {
 	console.log("sent")
 	
 }, 10000)
-*/
-/*
+
+
 setTimeout(function() {
+
 	const fakeGameObj = {
 		GameID: allCFGames[4].game.gameID,
 		Players: [{}]
@@ -596,6 +583,7 @@ setTimeout(function() {
 	cfGameHandler.opponentAcceptedTrade(fakeGameObj);
 
 	console.log("sent new")
+
 }, 15000)
 */
 
@@ -621,8 +609,12 @@ cfEvents.on("newCFGame", (data) => {
 });
 
 cfEvents.on("secondPlayerAccepctedTrade", data => {
-	console.log(data);
-	io.emit("secondPlayerAccepctedTrade", data);
+	const newData = {
+		game: data.game,
+		timer: data.timer
+	}
+	console.log(newData);
+	io.emit("secondPlayerAccepctedTrade", newData);
 });
 
 cfEvents.on("secondPlayerJoiningGame", data => {
@@ -672,7 +664,12 @@ cfEvents.on("secondPlayerTradeCanceled", (data) => {
 	// data = {GameID: **}
 
 	const cfIndex = allCFGames.findIndex(game => game.game.gameID == data.GameID);
-	gameObject = allCFGames[cfIndex];
+	gameObject = {
+
+		game: allCFGames[cfIndex].game,
+		timer: allCFGames[cfIndex].timer
+
+	};
 
 	io.emit("secondPlayerTradeCanceled", gameObject);
 
@@ -681,13 +678,13 @@ cfEvents.on("secondPlayerTradeCanceled", (data) => {
 });
 
 cfEvents.on("cfWinner", (data) => {
-
 	/*
 	const data = {
-		GameID: gameID,
-		SteamID: winner
+		game: allCFGames[gameIndex].game,
+		timer: allCFGames[gameIndex].timer
 	}
 	*/
+	console.log(data);
 
 	io.emit("cfWinner", data);
 	
@@ -695,9 +692,76 @@ cfEvents.on("cfWinner", (data) => {
 
 cfEvents.on("chooseCFWinner", (innerGameObj) => {
 	cfGameHandler.chooseWinner(innerGameObj);
-})
+});
+
+cfEvents.on("withdrawWinnings", (data) => {
+
+	/*
+	const data = {
+		botID: chosenGame.game.bot,
+		gameID: gameID,
+		serverProfit: highestAttempt.skins,
+		playerWinnings: pWinnings,
+		winnerSteamID: chosenGame.game.winner,
+	};
+	*/
+
+	// Find the bot for this game and send winnings
+	// Also find user db object
+	// Log the server profit
+
+	User.findOne({SteamID: data.winnerSteamID}, (err, user) => {
+
+		if (err) {
+			return console.error(err);
+		}
+
+		else if (user == null || user == undefined) {
+			return console.log("User doesn't exist");
+		}
+
+		else {
+
+			if (data.botID == cfBotZero.botID) {
+
+				cfBotZero.sendWithdraw(data.playerWinnings, "Coinflip", data.gameID, user);
+
+			}
+
+			else if (data.botID == cfBotOne.botID) {
+
+				cfBotZero.sendWithdraw(data.playerWinnings, "Coinflip", data.gameID, user);
+
+			}
+
+			else {
+				return console.log("steam bot does not exist or was not entered correctly");
+			}
+
+		}
+
+	})
+
+	if (data.serverProfit.length > 0) {
+
+		serverProfitUtils.logProfit(data.serverProfit);
+
+	}
+
+});
 
 // update cf history here
+cfEvents.on("cfHistory", data => {
+
+	// data is the whole cfHistory object
+	const socketData = {
+		topGame: data.topGame,
+		history: data.history,
+	}
+
+	io.emit("cfHistoryUpdate", socketData);
+
+})
 
 //////////////////////////////////////////////////////////////
 
@@ -707,7 +771,8 @@ cfEvents.on("chooseCFWinner", (innerGameObj) => {
 
 const hsHandler = new HighStakesHandler();
 
-exports.highStakesActiveGame = {GameID: "", Players: [{username:"Daddy Disappointment",userSteamId:"76561198072093858",userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg",skins:["Black Hoodie"],skinValues:[0.5],skinIDs:["3509994123859633414"],skinPictures:["https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ja5WXMfCk4nReh8DEiv5daPqk5q7IxRv2_CuOfQ1k/"]},{username:"Daddy Disappointment",userSteamId:"76561198072093858",userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg",skins:["Epidemic Roadsign Vest"],skinValues:[0.82],"skinIDs":["3509994123859633419"],skinPictures:["https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc7GLCfCk4nReh8DEiv5dYO6k6pLU-Q_28hhmLJOc/"]}], TotalPotValue: 1.30, Time: parseFloat(process.env.JACKPOT_TIMER)};
+exports.highStakesActiveGame = {};
+
 /* ^ Format ^
 {
     GameID: **

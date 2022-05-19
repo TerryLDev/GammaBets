@@ -4,6 +4,7 @@ const highStakes = {
   state: {
     active: false,
     game: { GameID: "", Players: [], TotalPotValue: 0 },
+    history: [],
   },
   getters: {
     getHighStakesTotalItems(state) {

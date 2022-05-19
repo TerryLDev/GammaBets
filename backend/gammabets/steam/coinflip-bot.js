@@ -38,6 +38,7 @@ class CoinFlipBot extends SteamBot{
 			
 			this.manager.on("sentOfferChanged", (offer, oldState) => {
 
+				// Trade sent was canceled
 				if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
 
 					console.log("Steam User: " + offer.partner + "\nCanceled Trade: " + offer.id);
@@ -46,6 +47,7 @@ class CoinFlipBot extends SteamBot{
 
 				}
 
+				// Trade sent was declined
 				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Declined") {
 
 					console.log("Steam User: " + offer.partner + "\nDeclined Trade: " + offer.id);
@@ -54,6 +56,7 @@ class CoinFlipBot extends SteamBot{
 
 				}
 
+				// Trade sent was accepted
 				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Accepted") {
 
 					console.log("Steam User: " + offer.partner + "\nAccepted Trade: " + offer.id);

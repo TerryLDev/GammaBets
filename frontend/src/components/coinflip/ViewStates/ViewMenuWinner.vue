@@ -18,19 +18,23 @@
         </div>
         <div class="val-items-container-view">
           <div class="val-container-view">
-            <p>${{ playerTotalVal(game.game.playerOne.skins.skinValues) }}</p>
+            <p>${{ playerTotalVal(game.game.playerOne.skinValues) }}</p>
           </div>
           <div class="item-container-view">
             <p>{{ game.game.playerOne.skins.length }}/20</p>
           </div>
         </div>
       </div>
-      <div class="coin-section-view">
+
+      <div ref="coinSection" class="start coin-section-view">
         <img
-          class="coin-img-view"
-          v-bind:src="defaultCoin(game.game.playerOneSide)"
+          ref="coinImg"
+          class="start coin-img-view"
+          :src="dataCoinImg"
         />
-        <p>Flipping In: {{ defaultTimer }}s</p>
+        <p ref="coinSectionText" class="start">
+          Flipping In: {{ defaultTimer }}s
+        </p>
       </div>
 
       <div class="player-two-view">
@@ -50,7 +54,7 @@
             <p>{{ game.game.playerTwo.skins.length }}/20</p>
           </div>
           <div class="val-container-view">
-            <p>${{ playerTotalVal(game.game.playerTwo.skins.skinValues) }}</p>
+            <p>${{ playerTotalVal(game.game.playerTwo.skinValues) }}</p>
           </div>
         </div>
       </div>
@@ -96,17 +100,108 @@
 </template>
 
 <script>
+import { computed, ref } from "vue";
+import { useStore } from "vuex";
+// Steps
+// 1 fade away middle coin icon
+// 2 display winner gif
+// 3 fade to winner coin and show text of winner
 export default {
-  props: { active: Boolean, gameID: String, queue: Object },
+  props: { active: Boolean, gameID: String },
+  setup() {
+    // Coin Gifs
+    const endB1 = require("@/assets/coins/endblack1.gif");
+    const endB2 = require("@/assets/coins/endblack2.gif");
+    const endB3 = require("@/assets/coins/endblack3.gif");
+    const endB4 = require("@/assets/coins/endblack4.gif");
+
+    const endR1 = require("@/assets/coins/endred1.gif");
+    const endR2 = require("@/assets/coins/endred2.gif");
+    const endR3 = require("@/assets/coins/endred3.gif");
+    const endR4 = require("@/assets/coins/endred4.gif");
+
+    // Coin Img
+    const blackCoin = require("@/assets/blackchip.png");
+    const redCoin = require("@/assets/RedChip.png");
+
+    const store = useStore();
+
+    // Refs
+    const coinSection = ref();
+    const coinSectionText = ref();
+    const coinImg = ref();
+
+    // Winner Stuff
+    let winnerSide;
+    let winnerText = "Winner: ";
+
+    let dataCoinImg;
+
+    // Coinflipping Gifs
+    const blackCoinGifs = [endB1, endB2, endB3, endB4];
+    const redCoinGifs = [endR1, endR2, endR3, endR4];
+
+    const game = computed(() => store.getters.getChosenGame);
+
+    function randomCoinFlip(side) {
+      const randIndex = Math.floor(Math.random() * 4);
+
+      if (side == "red") {
+        return redCoinGifs[randIndex];
+      }
+
+      else {
+        return blackCoinGifs[randIndex];
+      }
+    }
+
+    function defaultCoin() {
+      let side = game.value.game.playerOneSide;
+
+      if (side == "red") {
+        return redCoin;
+      }
+      else {
+        return blackCoin;
+      }
+    }
+
+    if (game.value.game.winner == game.value.game.playerOne.userSteamId) {
+      winnerText += game.value.game.playerOne.username;
+      winnerSide = game.value.game.playerOneSide;
+    }
+
+    else {
+      winnerText += game.value.game.playerTwo.username;
+      winnerSide = game.value.game.playerTwoSide;
+    }
+
+    dataCoinImg = defaultCoin();
+
+    dataCoinImg = randomCoinFlip(winnerSide);
+
+    /*
+    function callAnimate(div) {
+      div.value.style.opacity = "0";
+    }
+    */
+
+    return {
+      game,
+      coinSection,
+      coinSectionText,
+      coinImg,
+      winnerSide,
+      winnerText,
+      dataCoinImg,
+    }
+  },
   data() {
     return {
       render: false,
     };
   },
   computed: {
-    game() {
-      return this.$store.getters.getChosenGame;
-    },
     showDisplay() {
       if (this.active) {
         return "";
@@ -116,22 +211,12 @@ export default {
       }
     },
     defaultTimer() {
-      return this.$store.getters.getGameDefaultTimer(this.gameID) || 0;
+      return this.$store.getters.getGameFlippingTimer(this.gameID) || 0;
     },
   },
   methods: {
     getSkinValue(skinVal) {
       return skinVal.toFixed(2);
-    },
-    defaultCoin(side) {
-      const black = require("@/assets/blackchip.png");
-      const red = require("@/assets/RedChip.png");
-
-      if (side == "red") {
-        return red;
-      } else {
-        return black;
-      }
     },
     playerTotalVal(skinVals) {
       let total = 0;
@@ -139,8 +224,15 @@ export default {
       return total.toFixed(2);
     },
   },
-  name: "ViewMenuStart",
+  name: "ViewMenuWinner",
 };
 </script>
 
-<style></style>
+<style>
+
+.start {
+  opacity: 1;
+  transition: all 1s;
+}
+
+</style>

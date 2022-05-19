@@ -183,11 +183,11 @@ class SteamBot {
 		const accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
 		const acceptedActions = ["Joining", "Creating"]
 
-		if (accpetedGameModes.includes(gameMode) ==  false && acceptedActions.includes(action) == false) {
+		if (accpetedGameModes.includes(gameMode) == false || acceptedActions.includes(action) == false) {
 
 			console.log("gameMode entered:", gameMode)
-			console.log("Unaccepted Game Mode")
-			return false
+			console.log("action entered:", action)
+			throw "Either the action or gamemode is invalid";
 
 		}
 
@@ -206,7 +206,7 @@ class SteamBot {
 
 				skins.forEach(desired => {
 
-					const item = inv.find(item => item.assetid == desired);
+					const item = inv.find(item => item.id == desired);
 
 					if(item) {
 						offer.addTheirItem(item);
@@ -276,18 +276,21 @@ class SteamBot {
 
 	}
 
-	sendWithdraw(skins, userObject, callback) {
+	sendWithdraw(skins, gameMode, gameID, userObject) {
 
 		const offer = this.manager.createOffer(userObject.SteamID);
 
 		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
-			if (err) return console.error(err);
+			
+			if (err) {
+				return console.error(err);
+			}
 
 			let skinIDs = [];
 			let skinNames = [];
 
 			skins.forEach(skin => {
-				const item = inv.find(item => item.name == skin);
+				const item = inv.find(item => item.id == skin);
 
 				if (item) {
 					skinIDs.push(item.id);
@@ -297,56 +300,54 @@ class SteamBot {
 
 				else {
 					offer.cancel((err) => {
-						if (err) return callback(err)
+						if (err) return console.error(err);
 					});
 
-					return callback(`Could not find ${skin} in Bot Inventory`)
+					return `Could not find ${skin} in Bot Inventory`;
 				}
 
 			});
 
-			let token = userObject.TradeURL.split('token=')[1]
+			let token = userObject.TradeURL.split('token=')[1];
 
 			offer.setToken(token);
 
 			offer.send((err, status) => {
 
-				if (err) return callback(err);
+				if (err) return console.error(err);
 
 				else if (status == 'pending') {
 
 					TradeHistory.create({
 						TradeID: offer.id,
 						SteamID: userObject['SteamID'],
-						BotID: '2',
+						BotID: this.botID,
 						Items: skinIDs,
 						ItemNames: skinNames,
 						TransactionType: 'Withdraw',
 						State: TradeOfferManager.ETradeOfferState[offer.state],
-						GameMode: 'Jackpot',
-						DateCreated: Date.now()
+						GameMode: gameMode,
+						GameID: gameID,
 					})
 						.then((result) => {
 
-							User.findOneAndUpdate({"SteamID": userObject.SteamID}, {$push: {"Trades": offer.id} }, 
+							User.updateOne({"SteamID": userObject.SteamID}, {$push: {Trades: offer.id} }, 
 							(err, doc) => {
-								if (err) return callback(err);
+								if (err) return console.error(err);
 							});
 
 							console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
 
-							let idSecret = process.env.IDENTITY_SECRET;
-
-							this.community.acceptConfirmationForObject(idSecret, offer.id, (err) => {
-								if (err) return callback(err);
+							this.community.acceptConfirmationForObject(this.indentitySecret, offer.id, (err) => {
+								if (err) return console.error(err);
 
 								else {
-									return callback(`Withdraw has been sent to ${userObject.Username}`)
+									return console.log(`Withdraw has been sent to ${userObject.Username}`);
 								}
 							})
 						})
 						.catch((err) => {
-							if(err) return callback(err);
+							if(err) return console.error(err);
 						});
 
 				}

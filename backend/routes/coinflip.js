@@ -15,6 +15,7 @@ router.post("/coinflip/active", (req, res) => {
 		}
 
 		sender.push(entry);
+
 	});
 
 	res.json(sender);
@@ -24,7 +25,13 @@ router.post("/coinflip/active", (req, res) => {
 router.post("/coinflip/history", (req, res) => {
 	
 	console.log("grabbing current cf history")
-	res.json(cfHistory);
+
+	const sender = {
+		topGame: cfHistory.topGame,
+		history: cfHistory.history
+	}
+
+	res.json(sender);
 
 });
 

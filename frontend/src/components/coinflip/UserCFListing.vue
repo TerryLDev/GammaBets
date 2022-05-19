@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters } from "vuex";
 import CFListingButtons from "../widgets/CFListingButtons.vue";
 
 export default {

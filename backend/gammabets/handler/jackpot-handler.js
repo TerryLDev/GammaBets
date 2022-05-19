@@ -1,5 +1,4 @@
 require("dotenv").config(__dirname + "/.env");
-const fs = require("fs");
 
 const JackpotGame = require('../../models/jackpotgame.model');
 const User = require("../../models/user.model");
@@ -13,28 +12,28 @@ class JackpotHandler {
 
 	}
 
-    #callAddPlayerToPot() {
+	#callAddPlayerToPot() {
 
-    }
+	}
 
-    #callAddToHistory() {
+	#callAddToHistory() {
 
-    }
+	}
 
 	#callAddPlayerToQueue() {
 
 	}
 
-    #startTimer() {
+	#startTimer() {
 
-    }
+	}
 
-    // Async Methods
-    async addPlayerToPot() {
-    }
+	// Async Methods
+	async addPlayerToPot() {
+	}
 
-    async addToHistory() {
-    }
+	async addToHistory() {
+	}
     
 }
 

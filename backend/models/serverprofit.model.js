@@ -2,19 +2,18 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const userSchema = new Schema({
-    SkinNames: {
-        type: Array,
-        required: true,
+const serverProfitSchema = new Schema({
+    GameID: {
+        type: String,
+        required: true
     },
     SkinIDs: Array,
-    GameID: String,
     BotID: String
 }, {
     timestamps: true
 }
 );
 
-const User = mongoose.model('User', userSchema);
+const ServerProfit = mongoose.model('ServerProfit', serverProfitSchema);
 
-module.exports = User;
+module.exports = ServerProfit;
