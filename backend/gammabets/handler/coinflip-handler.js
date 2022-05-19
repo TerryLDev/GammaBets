@@ -7,40 +7,8 @@ let allCFGames = [];
 
 let cfHistory = {
     topCycle: 0,
-    topGame: {
-        gameID: "b4tmltzrn44j2rjmhrjyzcd0roaynf8s",
-        steamID: "76561198157301980",
-        username: "Brollow",
-        userPic: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/94/94aa675a40e4019fc6b6360163563ce4ea1177ee_full.jpg",
-        totalValue: 4.13,
-        totalAmount: 2,
-    },
-    history: [
-        {
-            gameID: "b4tmltzrn44j2rjmhrjyzcd0roaynf8s",
-            steamID: "76561198157301980",
-            username: "Brollow",
-            userPic: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/94/94aa675a40e4019fc6b6360163563ce4ea1177ee_full.jpg",
-            totalValue: 4.13,
-            totalAmount: 2,
-        },
-        {
-            gameID: "b4tmltzrn44j2rjmhrjyzcd0roaynf8s",
-            steamID: "76561198157301980",
-            username: "Brollow1",
-            userPic: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/94/94aa675a40e4019fc6b6360163563ce4ea1177ee_full.jpg",
-            totalValue: 8.53,
-            totalAmount: 7,
-        },
-        {
-            gameID: "b4tmltzrn44j2rjmhrjyzcd0roaynf8s",
-            steamID: "76561198157301980",
-            username: "Brollow2",
-            userPic: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/94/94aa675a40e4019fc6b6360163563ce4ea1177ee_full.jpg",
-            totalValue: 4.17,
-            totalAmount: 16,
-        },
-    ],
+    topGame: {},
+    history: [],
 };
 
 let creatingQueue = {

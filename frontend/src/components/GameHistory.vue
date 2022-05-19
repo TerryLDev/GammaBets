@@ -1,4 +1,4 @@
-<template v-if="cfDataLoaded">
+<template>
 	<div id="history" class="primary-color default-cell accent-color">
 		<h3 class="side-menu-title">{{ historyTitle }} History</h3>
 		<div id="history-div">
@@ -22,8 +22,6 @@
 </template>
 
 <script>
-import { computed } from "vue";
-import { useStore } from "vuex";
 import axios from "axios";
 
 import CFHistoryTile from "./widgets/history/CFHistoryTile.vue";
@@ -31,50 +29,47 @@ import CFHistoryTop from "./widgets/history/CFHistoryTop.vue";
 
 export default {
 	props: { historyTitle: String },
-	setup(props) {
-		const store = useStore();
-
-		let cfHistory = computed(() => store.state.coinflip.coinflipHistory);
-
-		let cfDataLoaded = false;
-
-		let isCF = false;
-		let isHS = false;
-		let isLS = false;
-
-		const title = props.historyTitle.toLowerCase();
-
-		if (title == "coinflip") {
-			// get cfHistory
-			isCF = true;
+	data() {
+		return {
+			cfDataLoaded: false,
+			isCF: false,
+			isHS: false,
+			isLS: false,
+		};
+	},
+	computed: {
+		cfHistory() {
+			return this.$store.getters.getCFHistory;
+		},
+	},
+	methods: {
+		checkHistoryTitle() {
+			const title = this.historyTitle.toLowerCase();
+			if (title == "coinflip") {
+				return "cf";
+			}
+		},
+		getCFHistory() {
 			axios
 				.post("api/coinflip/history")
 				.then((res) => {
-					store.dispatch("setCoinflipHistory", res.data);
-					cfDataLoaded = true;
-					console.log(cfHistory.value);
+					console.log(res.data);
+					this.$store.dispatch("setCoinflipHistory", res.data);
+					this.isCF = true;
+					this.cfDataLoaded = true;
+					console.log(this.cfHistory);
 				})
 				.catch((err) => {
-					console.log(err);
+					return console.error(err);
 				});
-		}
-		// Add history for high stakes and low stakes
-		else if (title == "high stake") {
-			isHS = true;
-		} else if (title == "low stake") {
-			isLS = true;
-		}
+		},
+	},
+	beforeMount() {
+		const historyType = this.checkHistoryTitle();
 
-		console.log(cfHistory.value);
-		console.log(isCF, isHS, isLS);
-
-		return {
-			cfDataLoaded,
-			cfHistory,
-			isCF,
-			isHS,
-			isLS,
-		};
+		if (historyType == "cf") {
+			this.getCFHistory();
+		}
 	},
 	components: {
 		CFHistoryTile,
