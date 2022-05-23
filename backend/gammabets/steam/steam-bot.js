@@ -62,20 +62,6 @@ class SteamBot {
 
 		});
 
-		setInterval(function() {
-
-			console.log("Reloading skins");
-
-			MarketPrice.find({}, (err, skins) => {
-				if (err) return console.log(err);
-	
-				else {
-					console.log("Skins Loaded");
-					return skins
-				}
-			});
-
-		}, 1000 * 60 * 60 * 6);
 	}
 
 	runEventListeners() {
@@ -191,7 +177,7 @@ class SteamBot {
 
 		}
 
-		const offer = this.manager.createOffer(steamID);
+		const offer = this.manager.createOffer(tradeURL);
 
 		this.manager.getUserInventoryContents(steamID, 252490, 2, true, (err, inv) => {
 			
@@ -204,6 +190,7 @@ class SteamBot {
 
 				let itemNames = [];
 
+				// skins is an array of skin ids
 				skins.forEach(desired => {
 
 					const item = inv.find(item => item.id == desired);
@@ -214,63 +201,67 @@ class SteamBot {
 					}
 
 					else{
-						offer.cancel((err) => {
+						return console.log(`Could not find ${skin} in Bot Inventory`); // ERROR
+					}
+
+				});
+
+				// checks if theres any errors in the trade
+				offer.getUserDetails((err, details) => {
+
+					if (err) {
+						return console.error(err);
+					}
+
+					else {
+
+						offer.send((err, status) => {
 							if (err) {
 								console.log(err);
 								return false
 							}
+		
+							else {
+		
+								console.log(status, offer.id);
+		
+								TradeHistory.create({
+									TradeID: offer.id,
+									SteamID: steamID,
+									Items: skins,
+									ItemNames: itemNames,
+									TransactionType: 'Deposit',
+									State: TradeOfferManager.ETradeOfferState[offer.state],
+									GameMode: gameMode,
+									GameID: gameID,
+									BotID: this.botID,
+									Action: action,
+								})
+									.then((result) => {
+										
+										if (gameMode == "Coinflip") {
+											joiningQueue.updateTradeID(offer.id, gameID);
+										}
+		
+										User.updateOne({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, res) => {
+											
+											if(err) {
+												return console.log(err);
+											}
+											else {
+												console.log(res);
+											}
+										});
+									})
+									.catch(err => {
+										console.log(err);
+										return false;
+									})
+							}
 						});
-					}
 
+					}
 				})
-
-				let token = tradeURL.split('token=')[1]
-
-				offer.setToken(token)
-
-				offer.send((err, status) => {
-					if (err) {
-						console.log(err);
-						return false
-					}
-
-					else {
-						console.log(status, offer.id);
-
-						TradeHistory.create({
-							TradeID: offer.id,
-							SteamID: steamID,
-							Items: skins,
-							ItemNames: itemNames,
-							TransactionType: 'Deposit',
-							State: TradeOfferManager.ETradeOfferState[offer.state],
-							GameMode: gameMode,
-							GameID: gameID,
-							BotID: this.botID,
-							Action: action,
-						})
-							.then((result) => {
-								
-								if(gameMode == "Coinflip") {
-									joiningQueue.updateTradeID(offer.id, gameID);
-								}
-
-								User.updateOne({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, res) => {
-									
-									if(err) {
-										return console.log(err);
-									}
-									else {
-										console.log(res);
-									}
-								});
-							})
-							.catch(err => {
-								console.log(err);
-								return false;
-							})
-					}
-				});
 			}
 		});
 
@@ -278,7 +269,9 @@ class SteamBot {
 
 	sendWithdraw(skins, gameMode, gameID, userObject) {
 
-		const offer = this.manager.createOffer(userObject.SteamID);
+		let allSkinsFound = true;
+
+		const offer = this.manager.createOffer(userObject.TradeURL);
 
 		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
 			
@@ -286,73 +279,96 @@ class SteamBot {
 				return console.error(err);
 			}
 
+			console.log(skins);
+
 			let skinIDs = [];
 			let skinNames = [];
 
 			skins.forEach(skin => {
-				const item = inv.find(item => item.id == skin);
 
-				if (item) {
-					skinIDs.push(item.id);
-					skinNames.push(item.name);
-					offer.addMyItem(item);
+				const itemIndex = inv.findIndex(item => item.market_hash_name == skin);
+
+				if (itemIndex != undefined && itemIndex != -1) {
+
+					console.log(itemIndex, inv[itemIndex]);
+
+					skinIDs.push(inv[itemIndex].assetid);
+					skinNames.push(inv[itemIndex].market_hash_name);
+					offer.addMyItem(inv[itemIndex]);
+
 				}
 
 				else {
-					offer.cancel((err) => {
-						if (err) return console.error(err);
-					});
 
-					return `Could not find ${skin} in Bot Inventory`;
+					allSkinsFound = false;
+					return console.log(`Could not find ${skin} in Bot Inventory`); // ERROR
+
 				}
 
 			});
 
-			let token = userObject.TradeURL.split('token=')[1];
+			// checks if theres any errors in the trade
+			offer.getUserDetails((err, details) => {
 
-			offer.setToken(token);
+				if (err) {
+					return console.error(err);
+				}
 
-			offer.send((err, status) => {
+				else if (allSkinsFound == false && skins.length > 0) {
 
-				if (err) return console.error(err);
-
-				else if (status == 'pending') {
-
-					TradeHistory.create({
-						TradeID: offer.id,
-						SteamID: userObject['SteamID'],
-						BotID: this.botID,
-						Items: skinIDs,
-						ItemNames: skinNames,
-						TransactionType: 'Withdraw',
-						State: TradeOfferManager.ETradeOfferState[offer.state],
-						GameMode: gameMode,
-						GameID: gameID,
-					})
-						.then((result) => {
-
-							User.updateOne({"SteamID": userObject.SteamID}, {$push: {Trades: offer.id} }, 
-							(err, doc) => {
-								if (err) return console.error(err);
-							});
-
-							console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
-
-							this.community.acceptConfirmationForObject(this.indentitySecret, offer.id, (err) => {
-								if (err) return console.error(err);
-
-								else {
-									return console.log(`Withdraw has been sent to ${userObject.Username}`);
-								}
-							})
-						})
-						.catch((err) => {
-							if(err) return console.error(err);
-						});
+					return console.log("Could not find all skins for Withdraw Trade Offer");
 
 				}
 
-			})
+				else {
+
+					offer.send((err, status) => {
+
+						if (err) return console.error(err);
+		
+						else {
+		
+							console.log(status, offer.id);
+		
+							TradeHistory.create({
+								TradeID: offer.id,
+								SteamID: userObject['SteamID'],
+								BotID: this.botID,
+								Items: skinIDs,
+								ItemNames: skinNames,
+								TransactionType: 'Withdraw',
+								State: TradeOfferManager.ETradeOfferState[offer.state],
+								GameMode: gameMode,
+								GameID: gameID,
+							})
+								.then((result) => {
+		
+									User.updateOne({"SteamID": userObject.SteamID}, {$push: {Trades: offer.id} }, 
+									(err, doc) => {
+										if (err) return console.error(err);
+									});
+		
+									console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
+		
+									this.community.acceptConfirmationForObject(this.indentitySecret, offer.id, (err) => {
+										if (err) return console.error(err);
+		
+										else {
+											return console.log(`Withdraw has been sent to ${userObject.Username}`);
+										}
+									})
+								})
+								.catch((err) => {
+									if(err) return console.error(err);
+								});
+		
+						}
+		
+					});
+
+				}
+
+			});
 			
 		});
 	}

@@ -37,6 +37,9 @@ exports.generateAuthCode = exports.getAuthCode = function(secret, timeOffset) {
 	let time = exports.time(timeOffset);
 
 	let buffer = Buffer.allocUnsafe(8);
+	// The first 4 bytes are the high 4 bytes of a 64-bit integer. To make things easier on ourselves, let's just pretend
+	// that it's a 32-bit int and write 0 for the high bytes. Since we're dividing by 30, this won't cause a problem
+	// until the year 6053.
 	buffer.writeUInt32BE(0, 0);
 	buffer.writeUInt32BE(Math.floor(time / 30), 4);
 
@@ -80,8 +83,17 @@ exports.generateConfirmationKey = exports.getConfirmationKey = function(identity
 	}
 
 	let buffer = Buffer.allocUnsafe(dataLen);
-	buffer.writeUInt32BE(0, 0);
-	buffer.writeUInt32BE(time, 4);
+
+	// Auto-detect whether we have support for Buffer#writeUInt64BE and use it if we can. If we have writeUInt64BE
+	// then we also definitely have BigInt.
+	if (buffer.writeBigUInt64BE) {
+		buffer.writeBigUInt64BE(BigInt(time), 0);
+	} else {
+		// Fall back to old Y2K38-unsafe behavior.
+		// If you're still using Node.js <10.20.0 in 2038, you only have yourself to blame.
+		buffer.writeUInt32BE(0, 0);
+		buffer.writeUInt32BE(time, 4);
+	}
 
 	if (tag) {
 		buffer.write(tag, 8);

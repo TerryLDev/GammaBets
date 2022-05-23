@@ -83,10 +83,12 @@ class CoinFlipBot extends SteamBot{
 
 	// Main Methods
 
-	async cancelOpponentCoinFlipTradeOffer(gameID) {
+	async cancelOpponentCoinFlipTradeOffer(tradeID) {
 
 		try {
-			await this.#callCancelOpponentCoinFlipTradeOffer(gameID);
+
+			await this.#callCancelOpponentCoinFlipTradeOffer(tradeID);
+
 		}
 
 		catch(err) {
@@ -187,7 +189,10 @@ class CoinFlipBot extends SteamBot{
 				
 				offer.cancel((err) => {
 
-					if (err) return console.error(err);
+					if (err) {
+						console.log("An error while tring to cancel trade offer");
+						return console.error(err);
+					}
 
 					else {
 

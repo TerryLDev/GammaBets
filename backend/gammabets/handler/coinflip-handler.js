@@ -3,6 +3,9 @@ require("dotenv").config(__dirname + "/.env");
 const emitter = require('events').EventEmitter;
 const cfEvents = new emitter();
 
+const mainTimer = parseFloat(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
+const countDown = parseFloat(process.env.COIN_FLIP_COUNTDOWN_TIME);
+
 let allCFGames = [];
 
 let cfHistory = {
@@ -91,11 +94,13 @@ let joiningQueue = {
         const gameIndex = this.queue.findIndex(q => q.GameID == gameID);
 
         this.queue[gameIndex].TradeID = tradeID;
+        console.log(this.queue[gameIndex]);
     },
     findTradeID(gameID) {
+
         const gameIndex = this.queue.findIndex(q => q.GameID == gameID);
 
-        if (gameIndex != undefined) {
+        if (gameIndex != undefined && gameIndex > -1) {
             return this.queue[gameIndex].TradeID;
         }
 
@@ -106,9 +111,6 @@ let joiningQueue = {
 };
 
 class CoinFlipHandler {
-
-    mainTimer = parseFloat(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
-    countDown = parseFloat(process.env.COIN_FLIP_COUNTDOWN_TIME);
 
     createGameID() {
 
@@ -162,12 +164,12 @@ class CoinFlipHandler {
             let playerOneTotal = 0;
             let playerTwoTotal = 0;
 
-            cfInnerGameObject.playerOne.skinValues.forEach(val => playerOneTotal+= val);
+            cfInnerGameObject.playerOne.skinValues.forEach(val => playerOneTotal += val);
 
-            cfInnerGameObject.playerTwo.skinValues.forEach(val => playerTwoTotal+= val);
+            cfInnerGameObject.playerTwo.skinValues.forEach(val => playerTwoTotal += val);
 
-            const playerOneEntries = playerTwoTotal * 100;
-            const playerTwoEntries = playerOneTotal * 100;
+            const playerOneEntries = playerOneTotal * 100;
+            const playerTwoEntries = playerTwoTotal * 100;
 
             for (let i = 0; i < playerOneEntries; i++) {
                 listOfPlayers.push(cfInnerGameObject.playerOne.userSteamId);
@@ -218,9 +220,10 @@ class CoinFlipHandler {
         let allSkins = []
 
         for(let i = 0; i < chosenGame.game.playerOne.skins.length; i++) {
+            
             let entry = {
-                id: chosenGame.game.playerOne.skinIDs[i],
-                value: chosenGame.game.playerOne.skinsValues[i]
+                name: chosenGame.game.playerOne.skins[i],
+                value: chosenGame.game.playerOne.skinValues[i]
             };
 
             allSkins.push(entry);
@@ -228,8 +231,8 @@ class CoinFlipHandler {
 
         for(let i = 0; i < chosenGame.game.playerTwo.skins.length; i++) {
             let entry = {
-                id: chosenGame.game.playerTwo.skinIDs[i],
-                value: chosenGame.game.playerTwo.skinsValues[i]
+                name: chosenGame.game.playerTwo.skins[i],
+                value: chosenGame.game.playerTwo.skinValues[i]
             };
 
             allSkins.push(entry);
@@ -251,7 +254,7 @@ class CoinFlipHandler {
             maxValue *= .10
         }
 
-        let highestAttempt = {skins: [], totalVal: 0};
+        let highestAttemptForServerProfit = {skins: [], totalVal: 0};
 
         for(let x = 0; x < 10; x++) {
 
@@ -264,35 +267,43 @@ class CoinFlipHandler {
 
             for (let s = 0; s < shuffleSkins.length; s++) {
 
-                const choice = shuffleSkins[Math.floor(Math.random() * shuffled.length)];
+                const choice = shuffleSkins[Math.floor(Math.random() * shuffleSkins.length)];
 
                 if (choice.value <= maxValue && (choice.value + attempt.totalVal) <= maxValue) {
-                    attempt.skins.push(choice.id);
+                    attempt.skins.push(choice.name);
                     attempt.totalVal += choice.value;
                 }
 
             }
 
-            if (highestAttempt.totalVal < attempt.totalVal) {
-                highestAttempt = attempt;
+            if (highestAttemptForServerProfit.totalVal < attempt.totalVal) {
+                highestAttemptForServerProfit = attempt;
             }
 
         }
 
-        let pWinnings = [];
+        // create an array of the player's winnings
+        let playerWinnings = allSkins;
+        console.log(playerWinnings);
+        console.log(highestAttemptForServerProfit);
 
-        allSkins.forEach(skin => {
-            if (highestAttempt.skins.includes(skin.id) == false) {
-                pWinnings.push(skin.id);
+        // adds the player winnings to list
+        highestAttemptForServerProfit.skins.forEach(highAttemptSkin => {
+
+            const skinIndex = playerWinnings.findIndex(skin => highAttemptSkin.name == skin.name);
+
+            if (skinIndex > -1 && skinIndex != undefined) {
+                playerWinnings.splice(skinIndex, 1);
             }
-        })
+
+        });
 
         // return server profit and player winnings
         const data = {
             botID: chosenGame.game.bot,
             gameID: gameID,
-            serverProfit: highestAttempt.skins,
-            playerWinnings: pWinnings,
+            serverProfit: highestAttemptForServerProfit.skins,
+            playerWinnings: playerWinnings,
             winnerSteamID: chosenGame.game.winner,
         };
 
@@ -303,6 +314,13 @@ class CoinFlipHandler {
     ////////////////
 
     // Call Methods (runnning functions that handle big task for async functions)
+
+    // get the queue thing, kinda annoying
+    #getQueueTradeID(gameID) {
+
+        return joiningQueue.findTradeID(gameID);
+
+    }
 
     // ADD THIS LATER IN DEVELOPMENT
     #checkGameStatus(gameDBObject) {
@@ -379,10 +397,19 @@ class CoinFlipHandler {
             newEntry.game.playerTwoSide = "red";
         }
 
-        newEntry.timer = {defaultTimer: this.mainTimer, flippingTimer: this.countDown};
+        newEntry.timer = {defaultTimer: mainTimer, flippingTimer: countDown};
 
         newEntry.clock = null;
 
+        // basically resets the clock
+        newEntry.stopClock = function() {
+            clearInterval(this.clock);
+            this.timer.defaultTimer = mainTimer;
+            this.timer.flippingTimer = countDown;
+            this.clock = null;
+        };
+
+        // this just doesnt work
         newEntry.startClock = function() {
 
             this.clock = setInterval(() => {
@@ -396,7 +423,6 @@ class CoinFlipHandler {
                     }
 
                     else {
-                        
                         this.stopClock();
 
                         console.log("choose winner:", this.game.gameID);
@@ -430,26 +456,10 @@ class CoinFlipHandler {
                         // Set the game's phase to 0
                         this.game.phase = 0;
 
-                        cfEvents.emit("secondPlayerTradeCanceled", {GameID: this.game.gameID});
-
-                        // Looks for the playerTwo's tradeID
-                        const tradeID = joiningQueue.findTradeID(this.game.gameID);
-
-                        if(tradeID != false) {
-
-                            const data = {GameID: this.game.gameID, TradeID: tradeID}
-
-                            cfEvents.emit("callCancelCFTrade", data);
-                        
-                            console.log("Player Two did not accept trade in time, cancel trade for:" + this.game.gameID);
-                            
-                        }
-
-                        else {
-                            console.log("Player Two did not accept trade in time, AND COULD NOT CANCEL TRADE:" + this.game.gameID);
-                        }
-
                         this.cancelPlayerTwoTrade = false;
+
+                        // calls to cancel trade
+                        cfEvents.emit("secondPlayerTradeCanceled", {GameID: this.game.gameID});
 
                     }
 
@@ -463,13 +473,6 @@ class CoinFlipHandler {
                 cfEvents.emit("cfTimer", data)
             }, 1000)
         }
-
-        // basically resets the clock
-        newEntry.stopClock = function() {
-            clearInterval(this.clock);
-            this.timer.defaultTimer = this.mainTimer;
-            this.timer.flippingTimer = this.countDown;
-        };
 
         allCFGames.push(newEntry);
 
@@ -648,6 +651,7 @@ class CoinFlipHandler {
 
                 setTimeout(() => {
 
+                    // remember to update the list of games on the frontend
                     this.#removeCFGame(winnerData.game.gameID)
 
                 }, 10000);

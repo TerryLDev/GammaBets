@@ -21,6 +21,7 @@ const coinFlipGameSchema = Schema({
         type: String,
         required: true
     },
+    ProfitSent: String, // Not Sent, Sent, Error, Accepted, Declined
     Status: Boolean,
 }, {
     timestamps: true

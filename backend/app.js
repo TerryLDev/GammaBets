@@ -75,8 +75,6 @@ let mongo_uri = process.env.MONGO_URI;
 
 // DB Pulls
 let skins;
-let allUsers;
-
 
 // Connect to MongoDB
 mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
@@ -91,33 +89,6 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
 			skins = skinsList;
 			console.log("done: Skins");
 		});
-
-		User.find({}, (err, data) => {
-			if (err) throw err;
-
-			allUsers = data;
-			console.log("done: User");
-		});
-
-		/* reworking jackpot
-		JackpotGame.findOne({ Status: true }, (err, jp) => {
-			
-			if (err) throw err;
-
-			else if (jp != null) {
-
-				currentJPGame = jp;
-				activeJPGameID = jp.GameID;
-
-				if (jp.Players.length > 1) {
-					countDown = true;
-				}
-			}
-
-			console.log("done: JP");
-		});
-
-		*/
 		
 		CoinFlipGame.find({Status: true}, (err, cfs) => {
 
@@ -197,6 +168,7 @@ const SteamStrategy = passportSteam.Strategy;
 passport.serializeUser((user, done) => {
 	done(null, user);
 });
+
 passport.deserializeUser((user, done) => {
 	done(null, user);
 });
@@ -536,10 +508,10 @@ io.on("connection", (socket) => {
 
 setInterval(async function () {
 
-	updateSkinPrices();
-	jpBotZero.getSkins();
-	cfBotZero.getSkins();
-	cfBotOne.getSkins();
+	await updateSkinPrices();
+	await jpBotZero.getSkins();
+	await cfBotZero.getSkins();
+	await cfBotOne.getSkins();
 	
 }, 1000 * 60 * 60 * 6);
 
@@ -550,47 +522,22 @@ setInterval(async function () {
 // trade offers, error messages, etc
 
 /*
+
 const alerts = new AlertCenter();
 
 alertEvents.on("tradeLink", data => {
 	io.to(data.steamID).emit("tradeLink", data);
 });
+
 */
 
 //////////////////////////////////////////////////////////////
-/*
-
-setTimeout(function() {
-
-	cfGameHandler.opponentJoiningGame(allCFGames[4].game.gameID, "0001", "Test User", "https://external-preview.redd.it/nG54AKMR_K7IeAc_1NB3C5fB6pylKPAUp_WsC6ttQ8Q.jpg?auto=webp&s=8fc8ced8cfbe164f8a59be6feefde08713f660fa")
-
-	console.log("sent")
-	
-}, 10000)
-
-
-setTimeout(function() {
-
-	const fakeGameObj = {
-		GameID: allCFGames[4].game.gameID,
-		Players: [{}]
-	}
-
-	let player = allCFGames[4].game.playerOne;
-
-	fakeGameObj.Players.push(player);
-
-	cfGameHandler.opponentAcceptedTrade(fakeGameObj);
-
-	console.log("sent new")
-
-}, 15000)
-*/
 
 // Coin flip events
 
 // done - might be pretty hard on the server, but we'll see
 cfEvents.on("cfTimer", (data) => {
+
 	// returns the list of games timers
 	io.emit("cfTimer", data);
 
@@ -657,19 +604,48 @@ cfEvents.on("callCancelCFTrade", async (data) => {
 
 });
 
-// this is kinda janky tbh
 // This is called after the trade hass been cancels, cf game object has been updated, and its ready to push an update to the frontend
 cfEvents.on("secondPlayerTradeCanceled", (data) => {
 
 	// data = {GameID: **}
 
 	const cfIndex = allCFGames.findIndex(game => game.game.gameID == data.GameID);
-	gameObject = {
+	let gameObject = {
 
 		game: allCFGames[cfIndex].game,
 		timer: allCFGames[cfIndex].timer
 
 	};
+
+	// Looks for the playerTwo's tradeID
+	const tradeID = joiningQueue.findTradeID(data.GameID);
+	
+	// checks if it's a valid TradeID
+	if(tradeID != false) {
+
+		let cfBot = cfGameHandler.findCFBot(data.GameID);
+
+		console.log(cfBot);
+
+		if (cfBot == cfBotOne.botID) {
+
+			cfBotOne.cancelOpponentCoinFlipTradeOffer(tradeID);
+
+		}
+
+		else {
+
+			cfBotZero.cancelOpponentCoinFlipTradeOffer(tradeID);
+
+		}
+
+		console.log("Player Two did not accept trade in time, playerTwo trade CANCELED for: " + data.GameID);
+
+	}
+
+	else {
+		console.log("Player Two did not accept trade in time, AND COULD NOT CANCEL TRADE: " + data.GameID);
+	}
 
 	io.emit("secondPlayerTradeCanceled", gameObject);
 
@@ -684,8 +660,7 @@ cfEvents.on("cfWinner", (data) => {
 		timer: allCFGames[gameIndex].timer
 	}
 	*/
-	console.log(data);
-
+	
 	io.emit("cfWinner", data);
 	
 });
@@ -701,7 +676,7 @@ cfEvents.on("withdrawWinnings", (data) => {
 		botID: chosenGame.game.bot,
 		gameID: gameID,
 		serverProfit: highestAttempt.skins,
-		playerWinnings: pWinnings,
+		playerWinnings: pWinnings, [array of skin names]
 		winnerSteamID: chosenGame.game.winner,
 	};
 	*/
@@ -744,7 +719,7 @@ cfEvents.on("withdrawWinnings", (data) => {
 
 	if (data.serverProfit.length > 0) {
 
-		serverProfitUtils.logProfit(data.serverProfit);
+		serverProfitUtils.logProfit(data.serverProfit, data.gameID, data.botID);
 
 	}
 

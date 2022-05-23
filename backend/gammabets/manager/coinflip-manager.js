@@ -105,6 +105,7 @@ class CoinFlipManager extends GameManager {
                         PlayerOneTradeState: tradeDBObject.State,
                         PlayerOneTradeID: tradeDBObject.TradeID,
                         BotID: tradeDBObject.BotID,
+                        ProfitSent: "Not Sent",
                         Status: true
                     }
 

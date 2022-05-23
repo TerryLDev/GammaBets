@@ -3,9 +3,8 @@
 		<h3 class="side-menu-title">{{ historyTitle }} History</h3>
 		<div id="history-div">
 			<Transition>
-				<div v-if="isCF && cfDataLoaded">
+				<div v-if="isCF && cfDataLoaded && cfDataDefined">
 					<CFHistoryTop :topGame="cfHistory.topGame" />
-					<!-- Also check if it's for jackpot -->
 					<div
 						id="recent-history"
 						v-for="histObj in cfHistory.history"
@@ -32,6 +31,7 @@ export default {
 	data() {
 		return {
 			cfDataLoaded: false,
+			cfDataDefined: false,
 			isCF: false,
 			isHS: false,
 			isLS: false,
@@ -53,7 +53,6 @@ export default {
 			axios
 				.post("api/coinflip/history")
 				.then((res) => {
-					console.log(res.data);
 					this.$store.dispatch("setCoinflipHistory", res.data);
 					this.isCF = true;
 					this.cfDataLoaded = true;
@@ -74,6 +73,14 @@ export default {
 	components: {
 		CFHistoryTile,
 		CFHistoryTop,
+	},
+	watch: {
+		cfHistory(newVal) {
+			if (newVal.topGame.userPic != undefined) {
+				this.cfDataDefined = true;
+			}
+			console.log(this.cfDataDefined);
+		},
 	},
 	name: "GameHistory",
 };

@@ -1,5 +1,4 @@
 require("dotenv").config(__dirname + "/.env");
-const fs = require("fs");
 
 const mainApp = require("../../app");
 
@@ -231,6 +230,7 @@ class HighStakesHandler {
     }
 
     async addToHistory() {
+        
     }
 
     async startHighStakesTimer() {

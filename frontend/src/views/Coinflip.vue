@@ -92,7 +92,7 @@ export default {
 		});
 
 		socket.on("cfHistoryUpdate", (data) => {
-			store.dispatch("updateCFHistory", data);
+			store.dispatch("setCoinflipHistory", data);
 		});
 
 		////////////////////////////////

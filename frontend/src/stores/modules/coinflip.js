@@ -136,9 +136,6 @@ const coinflip = {
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
     },
-    updateHistory(state, historyArray) {
-      state.coinflipHistory = historyArray;
-    },
   },
   actions: {
 
@@ -202,9 +199,6 @@ const coinflip = {
     // fix this
     updateWinner({ commit }, data) {
       commit("updateWinner", data);
-    },
-    updateCFHistory({ commit }, histAry) {
-      commit("updateHistory", histAry);
     },
   },
 };
