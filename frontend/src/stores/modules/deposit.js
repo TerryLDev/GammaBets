@@ -67,7 +67,11 @@ const deposit = {
       state.depositMin = 0;
     },
     setDepositMax(state, max) {
-      state.depositMax = max;
+      if (max == 0) {
+        state.depositMax = 9999999;
+      } else {
+        state.depositMax = max;
+      }
     },
     resetDepositMax(state) {
       state.depositMax = 0;

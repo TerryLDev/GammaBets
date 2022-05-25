@@ -110,6 +110,8 @@ let joiningQueue = {
     }
 };
 
+let pastCFSides = ["red", "black"];
+
 class CoinFlipHandler {
 
     createGameID() {
@@ -164,19 +166,19 @@ class CoinFlipHandler {
             let playerOneTotal = 0;
             let playerTwoTotal = 0;
 
-            cfInnerGameObject.playerOne.skinValues.forEach(val => playerOneTotal += val);
+            cfInnerGameObject.playerOne.skins.forEach(skin => playerOneTotal += skin.value);
 
-            cfInnerGameObject.playerTwo.skinValues.forEach(val => playerTwoTotal += val);
+            cfInnerGameObject.playerTwo.skins.forEach(skin => playerTwoTotal += skin.value);
 
             const playerOneEntries = playerOneTotal * 100;
             const playerTwoEntries = playerTwoTotal * 100;
 
             for (let i = 0; i < playerOneEntries; i++) {
-                listOfPlayers.push(cfInnerGameObject.playerOne.userSteamId);
+                listOfPlayers.push(cfInnerGameObject.playerOne.steamID);
             }
 
             for (let i = 0; i < playerTwoEntries; i++) {
-                listOfPlayers.push(cfInnerGameObject.playerTwo.userSteamId);
+                listOfPlayers.push(cfInnerGameObject.playerTwo.steamID);
             }
 
             let shuffled = listOfPlayers.sort(() => Math.random() - 0.5);
@@ -195,13 +197,19 @@ class CoinFlipHandler {
                 timer: allCFGames[gameIndex].timer
             }
 
+            const side = winner == allCFGames[gameIndex].game.playerOne.userSteamId ? allCFGames[gameIndex].game.playerOneSide : allCFGames[gameIndex].game.playerTwoSide;
+
             this.sendWinnings(allCFGames[gameIndex].game.gameID);
+
+            this.#updatePastSides(side);
 
             return data;
         }
 
         else {
+
             return false;
+
         }
     
     }
@@ -219,24 +227,23 @@ class CoinFlipHandler {
 
         let allSkins = []
 
-        for(let i = 0; i < chosenGame.game.playerOne.skins.length; i++) {
-            
+        chosenGame.game.playerOne.skins.forEach(skin => {
             let entry = {
-                name: chosenGame.game.playerOne.skins[i],
-                value: chosenGame.game.playerOne.skinValues[i]
+                name: skin.name,
+                value: skin.value
             };
 
             allSkins.push(entry);
-        }
+        });
 
-        for(let i = 0; i < chosenGame.game.playerTwo.skins.length; i++) {
+        chosenGame.game.playerTwo.skins.forEach(skin => {
             let entry = {
-                name: chosenGame.game.playerTwo.skins[i],
-                value: chosenGame.game.playerTwo.skinValues[i]
+                name: skin.name,
+                value: skin.value
             };
 
             allSkins.push(entry);
-        }
+        });
 
         let maxValue = 0;
             
@@ -350,6 +357,27 @@ class CoinFlipHandler {
 
     }
 
+    //////////////////////////
+
+    #updatePastSides(side) {
+        if (side == "red" || side == "black") {
+            if (pastCFSides.length >= 100) {
+                pastCFSides.shift();
+            }
+            pastCFSides.push(side);
+
+            const data = {
+                past: pastCFSides
+            };
+
+            cfEvents.emit("updatePastCFSides", data);
+        }
+
+        else {
+            throw "Side must be 'red' or 'black'"
+        }
+    }
+
     // this checks if it is time to switch to a new 24 hours cycle
     #checkHistoryCycle(historyObject) {
 
@@ -370,22 +398,103 @@ class CoinFlipHandler {
     // done
     #callNewGame(gameObject) {
 
-        let newEntry = {};
+        let newEntry = {
+            game: {
+                gameID: gameObject.GameID,
+                bot: gameObject.BotID,
+                gameState: true,
+                playerOne: gameObject.Players[0],
+                playerTwo: {},
+                playerTwoJoining: false,
+                playerTwoJoined: false,
+                waitingToFlip: false,
+                winner: "none",
+                phase: 0,
+            },
+            cancelPlayerTwoTrade: false,
+            timer: {defaultTimer: mainTimer, flippingTimer: countDown},
+            clock: null,
+            // stop the clocks and resets the values
+            stopClock() {
+                clearInterval(this.clock);
+                this.timer.defaultTimer = mainTimer;
+                this.timer.flippingTimer = countDown;
+                this.clock = null;
+            },
+            // this just doesnt work
+            startClock() {
 
-        newEntry.game = {
-            gameID: gameObject.GameID,
-            bot: gameObject.BotID,
-            gameState: true,
-            playerOne: gameObject.Players[0],
-            playerTwo: {},
-            playerTwoJoining: false,
-            playerTwoJoined: false,
-            waitingToFlip: false,
-            winner: "none",
-            phase: 0,
-        }
+                this.clock = setInterval(() => {
 
-        newEntry.cancelPlayerTwoTrade = false;
+                    // Flipping Countdown
+                    if (this.game.waitingToFlip && this.game.playerTwoJoined) {
+
+                        // Flipping timer still counting down
+                        if (this.timer.flippingTimer > 0) {
+
+                            this.timer.flippingTimer -= 1;
+
+                        }
+
+                        // Flipping Countdown has hit 0
+                        else {
+                            // Stop the clock
+                            this.stopClock();
+                            
+                            // Log that it's time to choose a winner for the game
+                            console.log("choose winner:", this.game.gameID);
+
+                            // Emit a winner event
+                            const data = this.game;
+
+                            cfEvents.emit("chooseCFWinner", data);
+                        }
+                    }
+
+                    // Waiting for player TWO to accept his trade
+                    else if (this.game.playerTwoJoining) {
+
+                        // continue it
+                        if (this.timer.defaultTimer > 0) {
+
+                            this.timer.defaultTimer -= 1;
+
+                        }
+
+                        // cancel trade if it hits 0
+                        else {
+                            
+                            // Stops the clock and resets the values
+                            this.stopClock();
+
+                            // Sets cancelPlayerTwoTrade to true
+                            this.cancelPlayerTwoTrade = true;
+
+                            // Set playerTwoJoining to false;
+                            this.game.playerTwoJoining = false;
+                            
+                            // Set the game's phase to 0
+                            this.game.phase = 0;
+
+                            this.cancelPlayerTwoTrade = false;
+
+                            // calls to cancel trade
+                            cfEvents.emit("secondPlayerTradeCanceled", {GameID: this.game.gameID});
+
+                        }
+
+                    }
+
+                    const data = {
+                        timer: this.timer,
+                        GameID: this.game.gameID,
+                    };
+
+                    cfEvents.emit("cfTimer", data)
+
+                }, 1000)
+            }
+        };
 
         if (gameObject.Red == gameObject.Players[0].userSteamId) {
             newEntry.game.playerOneSide = "red";
@@ -395,83 +504,6 @@ class CoinFlipHandler {
         else {
             newEntry.game.playerOneSide = "black";
             newEntry.game.playerTwoSide = "red";
-        }
-
-        newEntry.timer = {defaultTimer: mainTimer, flippingTimer: countDown};
-
-        newEntry.clock = null;
-
-        // basically resets the clock
-        newEntry.stopClock = function() {
-            clearInterval(this.clock);
-            this.timer.defaultTimer = mainTimer;
-            this.timer.flippingTimer = countDown;
-            this.clock = null;
-        };
-
-        // this just doesnt work
-        newEntry.startClock = function() {
-
-            this.clock = setInterval(() => {
-
-                if (this.game.waitingToFlip && this.game.playerTwoJoined) {
-
-                    if (this.timer.flippingTimer > 0) {
-
-                        this.timer.flippingTimer -= 1;
-
-                    }
-
-                    else {
-                        this.stopClock();
-
-                        console.log("choose winner:", this.game.gameID);
-                        // emit a winner
-                        const data = this.game;
-                        cfEvents.emit("chooseCFWinner", data);
-                    }
-                }
-
-                else if(this.game.playerTwoJoining) {
-
-                    // continue it
-                    if (this.timer.defaultTimer > 0) {
-
-                        this.timer.defaultTimer -= 1;
-
-                    }
-
-                    // cancel trade if it hits 0
-                    else {
-                        
-                        // Stops the clock and resets the values
-                        this.stopClock();
-
-                        // Sets cancelPlayerTwoTrade to true
-                        this.cancelPlayerTwoTrade = true;
-
-                        // Set playerTwoJoining to false;
-                        this.game.playerTwoJoining = false;
-                        
-                        // Set the game's phase to 0
-                        this.game.phase = 0;
-
-                        this.cancelPlayerTwoTrade = false;
-
-                        // calls to cancel trade
-                        cfEvents.emit("secondPlayerTradeCanceled", {GameID: this.game.gameID});
-
-                    }
-
-                }
-
-                const data = {
-                    timer: this.timer,
-                    GameID: this.game.gameID,
-                };
-
-                cfEvents.emit("cfTimer", data)
-            }, 1000)
         }
 
         allCFGames.push(newEntry);
@@ -528,8 +560,8 @@ class CoinFlipHandler {
     #callMoveGameToHistory(innerGameObject) {
 
         // format history object
-        const winnerUsername = innerGameObject.winner == innerGameObject.playerOne.userSteamId ? innerGameObject.playerOne.username : innerGameObject.playerTwo.username;
-        const winnerUserPic = innerGameObject.winner == innerGameObject.playerOne.userSteamId ? innerGameObject.playerOne.userPicture : innerGameObject.playerTwo.userPicture;
+        const winnerUsername = innerGameObject.winner == innerGameObject.playerOne.steamID ? innerGameObject.playerOne.username : innerGameObject.playerTwo.username;
+        const winnerUserPic = innerGameObject.winner == innerGameObject.playerOne.steamID ? innerGameObject.playerOne.userPicture : innerGameObject.playerTwo.userPicture;
 
         let historyObject = {
             gameID: innerGameObject.gameID,
@@ -540,8 +572,8 @@ class CoinFlipHandler {
             totalAmount: innerGameObject.playerOne.skins.length + innerGameObject.playerTwo.skins.length,
         };
 
-        innerGameObject.playerOne.skinValues.forEach(val => historyObject.totalValue += val);
-        innerGameObject.playerTwo.skinValues.forEach(val => historyObject.totalValue += val);
+        innerGameObject.playerOne.skins.forEach(skin => historyObject.totalValue += skin.value);
+        innerGameObject.playerTwo.skins.forEach(skin => historyObject.totalValue += skin.value);
 
         // push history object
         function popHistory() {
@@ -582,6 +614,8 @@ class CoinFlipHandler {
 
         else {
             allCFGames.splice(index, 1);
+            const data = {GameID: gameID};
+            cfEvents.emit("removeCFGame", data);
         }
 
     }
@@ -647,7 +681,7 @@ class CoinFlipHandler {
 
                 cfEvents.emit("cfWinner", await winnerData);
 
-                this.#callMoveGameToHistory(winnerData.game);
+                this.#callMoveGameToHistory(await winnerData.game);
 
                 setTimeout(() => {
 
@@ -661,7 +695,7 @@ class CoinFlipHandler {
         }
 
         catch(err) {
-
+            return console.error(err);
         }
     }
 
@@ -676,10 +710,12 @@ class CoinFlipHandler {
         }
 
         catch(err) {
+
             console.error(err);
+            
         }
 
     }
 }
 
-module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, creatingQueue, joiningQueue};
+module.exports = {CoinFlipHandler, cfEvents, allCFGames, cfHistory, creatingQueue, joiningQueue, pastCFSides};

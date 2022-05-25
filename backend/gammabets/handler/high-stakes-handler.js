@@ -1,15 +1,49 @@
 require("dotenv").config(__dirname + "/.env");
 
-const mainApp = require("../../app");
-
 const HighStakesJackpot = require('../../models/highstakes.model');
 const User = require("../../models/user.model");
 const emitter = require('events').EventEmitter;
 const highStakesEvents = new emitter();
 
-class HighStakesHandler {
+const jpTimer = parseFloat(process.env.JACKPOT_TIMER);
 
-    jpTimer = parseFloat(process.env.JACKPOT_TIMER);
+let highStakesActiveGame = {
+    GameID: "",
+    Players: [],
+    TotalPotValue: 0,
+    isSpinning: false,
+};
+
+let highStakesQueue = {
+    GameID: "",
+    Players: [],
+    TotalPotValue: 0,
+    isSpinning: false,
+};
+
+const highStakesTimer = {
+    time: jpTimer,
+    clock: undefined,
+    start() {
+        this.clock = setInterval(() => {
+            if (this.time > 0) {
+                time--;
+            }
+            else {
+                this.stop();
+            }
+        }, 1000);
+    },
+    stop() {
+        clearInterval()
+        this.clock = null;
+        this.time = jpTimer;
+    },
+}
+
+let highStakesHistory = [];
+
+class HighStakesHandler {
 
     // Generate Game ID
     createGameID() {
@@ -37,7 +71,7 @@ class HighStakesHandler {
             mainApp.isThereAnActiveHighStakesGame = true;
 
             mainApp.highStakesActiveGame = highStakesQueue;
-            mainApp.highStakesActiveGame.Time = this.jpTimer;
+            mainApp.highStakesActiveGame.Time = jpTimer;
 
             hsGame.Players.forEach(player => {
 
@@ -68,7 +102,7 @@ class HighStakesHandler {
             })
 
             mainApp.highStakesActiveGame.TotalPotValue = hsGame.TotalPotValue;
-            mainApp.highStakesActiveGame.Time = this.jpTimer;
+            mainApp.highStakesActiveGame.Time = jpTimer;
 
             if (mainApp.highStakesActiveGame.Players.length >= 2) {
 
@@ -145,7 +179,7 @@ class HighStakesHandler {
 
     timer() {
 
-        mainApp.highStakesActiveGame.Time = this.jpTimer
+        mainApp.highStakesActiveGame.Time = jpTimer
 
         highStakesEvents.emit("startHighStakesTimer", {Time: mainApp.highStakesActiveGame.Time});
 
@@ -218,7 +252,7 @@ class HighStakesHandler {
 
     checkQueue() {
 
-        if (mainApp.highStakesQueue.GameID == undefined || mainApp.highStakesQueue.GameID == null) {
+        if (highStakesQueue.Players == 0) {
 
             return false;
 

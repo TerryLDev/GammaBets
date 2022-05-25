@@ -6,7 +6,7 @@
 				class="secondary-color default-secondary-cell accent-color"
 			>
 				<h2 id="jp-total-amount-text" class="top-spinner-area-h">
-					${{ totalPotValue }}
+					${{ totalPotValue.toFixed(2) }}
 				</h2>
 				<p class="top-spinner-area-t">Total Amount:</p>
 			</div>
@@ -58,17 +58,14 @@ import { useStore } from "vuex";
 import { computed } from "vue";
 
 export default {
+	props: { totalPotValue: Number },
 	setup() {
 		const store = useStore();
 
 		const itemTotal = computed(() => store.getters.getHighStakesTotalItems);
-		const totalPotValue = computed(
-			() => store.getters.getHighStakesTotalPotValue
-		);
 
 		return {
 			itemTotal,
-			totalPotValue,
 		};
 	},
 	data() {

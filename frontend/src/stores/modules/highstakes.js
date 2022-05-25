@@ -3,12 +3,16 @@ import axios from "axios";
 const highStakes = {
   state: {
     active: false,
-    game: { GameID: "", Players: [], TotalPotValue: 0 },
+    game: {},
     history: [],
   },
   getters: {
     getHighStakesTotalItems(state) {
       let itemTotal = 0;
+
+      if (state.game.Players == undefined) {
+        return itemTotal;
+      }
 
       state.game.Players.forEach((player) => {
         itemTotal += player.skins.length;
@@ -16,19 +20,13 @@ const highStakes = {
 
       return itemTotal;
     },
-    getHighStakesTotalPotValue(state) {
-      return state.game.TotalPotValue.toFixed(2);
-    },
   },
   mutations: {
-    setHighStakesGameID(state, gameID) {
-      state.game.GameID = gameID;
+    setHighStakesCurrentGame(state, data) {
+      state.game = data;
     },
     setHighStakesPlayers(state, players) {
       state.game.Players = players;
-    },
-    setHighStakesTotalPotValue(state, val) {
-      state.game.TotalPotValue = val;
     },
     setHighStakesState(state, active) {
       state.active = active;
@@ -39,9 +37,7 @@ const highStakes = {
       axios
         .post("/api/jackpot/highstakes")
         .then((res) => {
-          commit("setHighStakesGameID", res.data.GameID);
-          commit("setHighStakesPlayers", res.data.Players);
-          commit("setHighStakesTotalPotValue", res.data.TotalPotValue);
+          commit("setHighStakesCurrentGame", res.data);
         })
         .catch((err) => {
           console.log(err);

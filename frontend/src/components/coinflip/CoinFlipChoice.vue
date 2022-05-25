@@ -12,9 +12,7 @@
         @click="chooseSide('red')"
       >
         <h3 class="choice-button-text">Red</h3>
-        <p class="choice-button-percent-text">
-          <span id="red-percent-num">50</span>%
-        </p>
+        <p class="choice-button-percent-text">{{ redPercent }}%</p>
       </button>
 
       <button
@@ -24,9 +22,7 @@
         @click="chooseSide('red')"
       >
         <h3 class="choice-button-text">Red</h3>
-        <p class="choice-button-percent-text">
-          <span id="red-percent-num">50</span>%
-        </p>
+        <p class="choice-button-percent-text">{{ redPercent }}%</p>
       </button>
 
       <div id="cf-deposit-container">
@@ -51,9 +47,7 @@
         @click="chooseSide('black')"
       >
         <h3 class="choice-button-text">Black</h3>
-        <p class="choice-button-percent-text">
-          <span id="black-percent-num">50</span>%
-        </p>
+        <p class="choice-button-percent-text">{{ blackPercent }}%</p>
       </button>
 
       <button
@@ -63,21 +57,19 @@
         @click="chooseSide('black')"
       >
         <h3 class="choice-button-text">Black</h3>
-        <p class="choice-button-percent-text">
-          <span id="black-percent-num">50</span>%
-        </p>
+        <p class="choice-button-percent-text">{{ blackPercent }}%</p>
       </button>
     </div>
 
     <div id="percent-bar">
-      <div id="red-bar">
+      <div ref="redBar" id="red-bar" class="percent-action">
         <p style="margin: 0 0 0 10px" class="percent-bar-text">
-          Red - <span id="red-percent-num">50</span>%
+          Red - {{ redPercent }}%
         </p>
       </div>
-      <div id="black-bar">
+      <div ref="blackBar" id="black-bar" class="percent-action">
         <p style="margin: 0 10px 0 0" class="percent-bar-text">
-          <span id="black-percent-num">50</span>% - Black
+          {{ blackPercent }}% - Black
         </p>
       </div>
     </div>
@@ -85,11 +77,25 @@
 </template>
 
 <script>
+import axios from "axios";
+import { io } from "socket.io-client";
+
+const env = process.env.NODE_ENV;
+let socket;
+if (env == "development") {
+  socket = io("http://localhost:4000");
+} else {
+  socket = io(window.location.origin);
+}
+
 export default {
   data() {
     return {
       minPrice: 1.0,
       maxPrice: 0,
+      pastWinningSides: [],
+      redPercent: 50.0,
+      blackPercent: 50.0,
     };
   },
   computed: {
@@ -115,6 +121,43 @@ export default {
         store.dispatch("setDepositType", "Coinflip");
       }
     },
+    setRedPercent(sidesArray) {
+      const redSides = sidesArray.filter((side) => side == "red");
+      this.redPercent = ((redSides.length / sidesArray.length) * 100).toFixed(
+        2
+      );
+      const per = this.redPercent + "%";
+      this.$refs.redBar.style.width = per;
+    },
+    setBlackPercent(sidesArray) {
+      const blackSides = sidesArray.filter((side) => side == "black");
+      this.blackPercent = (
+        (blackSides.length / sidesArray.length) *
+        100
+      ).toFixed(2);
+      const per = this.blackPercent + "%";
+      this.$refs.blackBar.style.width = per;
+    },
+  },
+  beforeCreate() {
+    axios
+      .post("/api/coinflip/past-sides")
+      .then((res) => {
+        console.log(res.data);
+        this.setRedPercent(res.data.past);
+        this.setBlackPercent(res.data.past);
+        this.pastWinningSides = res.data.past;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  },
+  mounted() {
+    socket.on("pastCFSides", (data) => {
+      this.setRedPercent(data.past);
+      this.setBlackPercent(data.past);
+      this.pastWinningSides = data.past;
+    });
   },
   name: "CoinFlipChoice",
 };
@@ -272,5 +315,9 @@ export default {
   font-size: 12px;
   line-height: 14px;
   color: #ffffff;
+}
+
+.percent-action {
+  transition: all 0.5s;
 }
 </style>

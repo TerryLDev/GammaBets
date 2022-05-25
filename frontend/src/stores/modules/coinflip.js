@@ -5,7 +5,6 @@ const coinflip = {
     activeCoinflips: [],
     coinflipHistory: {},
     chosenSide: "",
-    pastWinningSides: [],
     viewMenu: { isVisible: false, chosenGame: {} },
     joiningQueue: [],
     chosenQueue: {},
@@ -136,6 +135,18 @@ const coinflip = {
     updateJoiningQueue(state, queues) {
       state.joiningQueue = queues;
     },
+    removeCFGame(state, gameID) {
+      // removes game
+      const gameIndex = state.activeCoinflips.findIndex(game => game.game.gameID == gameID);
+
+      if (gameIndex > -1 && gameIndex != undefined) {
+        state.activeCoinflips.splice(gameIndex, 1);
+      }
+
+      else {
+        console.log("Please refresh the page, coinflip games need an update");
+      }
+    },
   },
   actions: {
 
@@ -195,10 +206,11 @@ const coinflip = {
     updateJoiningQueue({ commit }, queues) {
       commit("updateJoiningQueue", queues);
     },
-
-    // fix this
     updateWinner({ commit }, data) {
       commit("updateWinner", data);
+    },
+    removeCFGame({ commit }, gameID) {
+      commit("removeCFGame", gameID);
     },
   },
 };

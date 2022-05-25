@@ -16,32 +16,45 @@ class GameManager {
 
     userBetArraySlot(tradeDBObject, dbSkins, userDB) {
 
-        let skinVals = [];
-        let skinPics = [];
+        let errorOccured = false;
 
-        tradeDBObject.ItemNames.forEach((skin) => {
+        let skins = [];
 
-            dbSkins.forEach((val) => {
+        tradeDBObject.Skins.forEach((skin) => {
 
-                if (skin == val["SkinName"]) {
+            const dbSkinIndex = dbSkins.findIndex(val => skin.name == val["SkinName"]);
 
-                    skinPics.push(val["SkinPictureURL"]);
-                    skinVals.push(val["Value"]);
+            if (dbSkinIndex != undefined && dbSkinIndex > -1) {
 
-                }
+                let entry = {
+                    name: dbSkins[dbSkinIndex]["SkinName"],
+                    id: skin.id,
+                    value: dbSkins[dbSkinIndex]["Value"],
+                    imageURL: dbSkins[dbSkinIndex]["SkinPictureURL"]
+                };
 
-            });
+                skins.push(entry);
+
+            }
+
+            else {
+                console.log("Index found:", dbSkinIndex)
+                console.log("PLEASE FIX THIS PROBLEM");
+                console.log("Skin doesn't exsist in our Database");
+                errorOccured = true;
+            }
         });
 
         let userBet = {
             username: userDB.Username,
-            userSteamId: tradeDBObject["SteamID"],
+            steamID: tradeDBObject["SteamID"],
             userPicture: userDB.ProfilePictureURL,
-            skins: tradeDBObject.ItemNames,
-            skinValues: skinVals,
-            skinIDs: tradeDBObject.Items,
-            skinPictures: skinPics,
+            skins: skins,
         };
+
+        if (errorOccured) {
+            return false;
+        }
 
         return userBet;
 

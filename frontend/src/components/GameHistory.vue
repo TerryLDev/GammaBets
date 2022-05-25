@@ -47,6 +47,8 @@ export default {
 			const title = this.historyTitle.toLowerCase();
 			if (title == "coinflip") {
 				return "cf";
+			} else if (title == "high stakes") {
+				console.log("hs");
 			}
 		},
 		getCFHistory() {

@@ -1,4 +1,4 @@
-const ServerProfit = require("../models/serverprofit.model");
+const ServerProfit = require("../../models/serverprofit.model");
 
 function logProfit(skins, gameID, botID) {
 

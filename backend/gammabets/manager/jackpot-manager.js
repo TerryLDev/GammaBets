@@ -1,7 +1,5 @@
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-const mainApp = require('../../app');
-
 const {HighStakesHandler, highStakesEvents} = require("../handler/high-stakes-handler");
 // const {} = require("../handler/low-stakes-handler");
 
@@ -39,6 +37,11 @@ class JackpotManager extends GameManager {
             else {
 
                 let userBet = this.userBetArraySlot(tradeDoc, dbskins, userDoc);
+
+                if (userBet == false) {
+                    console.log("PLEASE FIX THIS PROBLEM");
+                    return console.log("Error Occurred while making the userbet");
+                }
 
                 if (tradeDoc.GameMode == "High Stakes") {
 

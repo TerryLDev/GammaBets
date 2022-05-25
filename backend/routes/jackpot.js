@@ -11,4 +11,12 @@ router.post("/jackpot/highstakes", (req, res) => {
 
 });
 
+/* push the history of highstakes
+router.post("/jackpot/highstakes/history", (req, res) => {
+	
+	res.json(mainApp.highStakesActiveGame);
+
+});
+*/
+
 module.exports = router;

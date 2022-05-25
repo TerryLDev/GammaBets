@@ -16,7 +16,7 @@
       </div>
       <p
         style="margin: auto 0 auto auto; padding-right: 10px; font-size: 14px"
-        v-if="maxPrice == 0"
+        v-if="maxPrice == 9999999"
       >
         Max: No Limit
       </p>

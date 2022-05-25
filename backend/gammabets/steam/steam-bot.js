@@ -10,17 +10,19 @@ const TradeHistory = require('../../models/tradehistory.model');
 const MarketPrice = require('../../models/marketprice.model');
 
 const {CoinFlipHandler, allCFGames, joiningQueue} = require("../handler/coinflip-handler");
+const CoinFlipGame = require('../../models/coinflipgame.model');
+const CoinFlipDBScripts = require("../dbScripts/coinflip-db");
 
 class SteamBot {
 
 	loginAttempts = 0;
 
-	constructor(username, password, twoFactorCode, indentitySecret, sharedSecret, botID) {
+	constructor(username, password, twoFactorCode, identitySecret, sharedSecret, botID) {
 
 		this.username = username;
 		this.password = password;
 		this.twoFactorCode = twoFactorCode;
-		this.indentitySecret = indentitySecret;
+		this.identitySecret = identitySecret;
 		this.sharedSecret = sharedSecret;
 		this.botID = botID;
 		this.skins;
@@ -49,6 +51,7 @@ class SteamBot {
 
 	}
 
+	// get skins and update their values
 	getSkins() {
 
 		MarketPrice.find({}, (err, skins) => {
@@ -74,7 +77,7 @@ class SteamBot {
 			this.manager.setCookies(cookies);
 
 			this.community.setCookies(cookies)
-			this.community.startConfirmationChecker(3000, this.indentitySecret);
+			this.community.startConfirmationChecker(3000, this.identitySecret);
 		})
 
 		this.client.on("error", (err) => {
@@ -164,6 +167,8 @@ class SteamBot {
 	// return the trade object
 	sendDeposit(gameMode = "", gameID = "", skins, steamID, tradeURL, action) {
 
+		let allSkinsFound = true;
+
 		// acceptable gameMode's = "Coinflip", "High Stakes", "Low Stakes"
 
 		const accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
@@ -188,7 +193,7 @@ class SteamBot {
 
 			else {
 
-				let itemNames = [];
+				let items = []; // an array of skin objects 
 
 				// skins is an array of skin ids
 				skins.forEach(desired => {
@@ -196,11 +201,19 @@ class SteamBot {
 					const item = inv.find(item => item.id == desired);
 
 					if(item) {
+
+						let entry = {
+							name: item.market_hash_name,
+							id: item.id
+						}
+
+						items.push(entry);
+
 						offer.addTheirItem(item);
-						itemNames.push(item.market_hash_name)
 					}
 
 					else{
+						allSkinsFound = false;
 						return console.log(`Could not find ${skin} in Bot Inventory`); // ERROR
 					}
 
@@ -213,7 +226,7 @@ class SteamBot {
 						return console.error(err);
 					}
 
-					else {
+					else if (allSkinsFound) {
 
 						offer.send((err, status) => {
 							if (err) {
@@ -228,8 +241,7 @@ class SteamBot {
 								TradeHistory.create({
 									TradeID: offer.id,
 									SteamID: steamID,
-									Items: skins,
-									ItemNames: itemNames,
+									Skins: items,
 									TransactionType: 'Deposit',
 									State: TradeOfferManager.ETradeOfferState[offer.state],
 									GameMode: gameMode,
@@ -239,7 +251,7 @@ class SteamBot {
 								})
 									.then((result) => {
 										
-										if (gameMode == "Coinflip") {
+										if (gameMode == "Coinflip" && action == "Joining") {
 											joiningQueue.updateTradeID(offer.id, gameID);
 										}
 		
@@ -261,6 +273,11 @@ class SteamBot {
 						});
 
 					}
+
+					else {
+						// send alert message to user too
+						return console.log("Could not find all items in inventory");
+					}
 				})
 			}
 		});
@@ -269,6 +286,8 @@ class SteamBot {
 
 	sendWithdraw(skins, gameMode, gameID, userObject) {
 
+		// const accpetedGameModes = ["Coinflip", "High Stakes", "Low Stakes"]
+
 		let allSkinsFound = true;
 
 		const offer = this.manager.createOffer(userObject.TradeURL);
@@ -276,24 +295,28 @@ class SteamBot {
 		this.manager.getInventoryContents(252490, 2, true, (err, inv) => {
 			
 			if (err) {
+
 				return console.error(err);
+
 			}
 
 			console.log(skins);
 
-			let skinIDs = [];
-			let skinNames = [];
+			let items = [];
 
 			skins.forEach(skin => {
 
-				const itemIndex = inv.findIndex(item => item.market_hash_name == skin);
+				const itemIndex = inv.findIndex(item => item.market_hash_name == skin.name);
 
 				if (itemIndex != undefined && itemIndex != -1) {
 
-					console.log(itemIndex, inv[itemIndex]);
+					let entry = {
+						name: inv[itemIndex].market_hash_name,
+						id: inv[itemIndex].id
+					}
 
-					skinIDs.push(inv[itemIndex].assetid);
-					skinNames.push(inv[itemIndex].market_hash_name);
+					items.push(entry);
+
 					offer.addMyItem(inv[itemIndex]);
 
 				}
@@ -334,8 +357,7 @@ class SteamBot {
 								TradeID: offer.id,
 								SteamID: userObject['SteamID'],
 								BotID: this.botID,
-								Items: skinIDs,
-								ItemNames: skinNames,
+								Skins: items,
 								TransactionType: 'Withdraw',
 								State: TradeOfferManager.ETradeOfferState[offer.state],
 								GameMode: gameMode,
@@ -350,11 +372,66 @@ class SteamBot {
 		
 									console.log(`Offer #${offer.id} sent, but requires confirmation. Status: ${status}`);
 		
-									this.community.acceptConfirmationForObject(this.indentitySecret, offer.id, (err) => {
-										if (err) return console.error(err);
+									this.community.acceptConfirmationForObject(this.identitySecret, offer.id, (err) => {
+										if (err) {
+
+											// check if it went through
+											this.manager.getOffer(offer.id, (err, tradeOffer) => {
+												if (err) {
+													CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Error")
+													return console.error(err);
+												}
+
+												else {
+
+													if (TradeOfferManager.ETradeOfferState[tradeOffer.state] == "CreatedNeedsConfirmation") {
+
+														// try to confirm it again after 30 seconds
+														setTimeout(() => {
+
+															this.community.acceptConfirmationForObject(this.identitySecretm, tradeOffer.id, (err) => {
+
+																if (err) {
+																	CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Sent");
+																}
+
+																else {
+																	CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Error");
+																}
+
+															})
+
+														}, 30000);
+													}
+
+													else if (TradeOfferManager.ETradeOfferState[tradeOffer.state] == "Active") {
+
+														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Sent");
+														
+													}
+
+													else if (TradeOfferManager.ETradeOfferState[tradeOffer.state] == "Accepted") {
+
+														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Accepted");
+
+													}
+
+													else {
+
+														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Error");
+
+													}
+
+												}
+
+											});
+
+										}
 		
 										else {
-											return console.log(`Withdraw has been sent to ${userObject.Username}`);
+
+											CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Sent");
+
 										}
 									})
 								})

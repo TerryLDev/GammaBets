@@ -41,6 +41,11 @@ class CoinFlipManager extends GameManager {
 
                     let userBet = this.userBetArraySlot(tradeDBObject, skins, user);
 
+                    if (userBet == false) {
+                        console.log("PLEASE FIX THIS PROBLEM");
+                        return console.log("Error Occurred while making the userbet");
+                    }
+
                     const cfTotal = this.getCFGameTotal(currentGame.game.playerOne.skinValues, userBet.skinValues);
 
                     let query = {
@@ -97,6 +102,12 @@ class CoinFlipManager extends GameManager {
                 else {
 
                     let userBet = this.userBetArraySlot(tradeDBObject, dbSkins, user);
+
+                    if (userBet == false) {
+                        console.log("PLEASE FIX THIS PROBLEM");
+                        return console.log("Error Occurred while making the userbet");
+                    }
+
                     const playerArray = [userBet];
 
                     let query = {
@@ -105,7 +116,7 @@ class CoinFlipManager extends GameManager {
                         PlayerOneTradeState: tradeDBObject.State,
                         PlayerOneTradeID: tradeDBObject.TradeID,
                         BotID: tradeDBObject.BotID,
-                        ProfitSent: "Not Sent",
+                        WinningsSent: "Not Sent",
                         Status: true
                     }
 
@@ -130,7 +141,8 @@ class CoinFlipManager extends GameManager {
         }
 
         else {
-            console.log("could not find queue in creatingQueue");
+            console.log("FIX THIS PROBLEM");
+            return console.log("Could not find queue in creatingQueue");
             // please do something here
         }
 

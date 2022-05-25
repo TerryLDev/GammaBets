@@ -18,7 +18,7 @@
         </div>
         <div class="val-items-container-view">
           <div class="val-container-view">
-            <p>${{ playerTotalVal(game.game.playerOne.skinValues) }}</p>
+            <p>${{ playerTotalVal(game.game.playerOne.skins) }}</p>
           </div>
           <div class="item-container-view">
             <p>{{ game.game.playerOne.skins.length }}/20</p>
@@ -27,11 +27,7 @@
       </div>
 
       <div ref="coinSection" class="start coin-section-view">
-        <img
-          ref="coinImg"
-          class="start coin-img-view"
-          :src="dataCoinImg"
-        />
+        <img ref="coinImg" class="start coin-img-view" :src="dataCoinImg" />
         <p ref="coinSectionText" class="start">
           Flipping In: {{ defaultTimer }}s
         </p>
@@ -54,7 +50,7 @@
             <p>{{ game.game.playerTwo.skins.length }}/20</p>
           </div>
           <div class="val-container-view">
-            <p>${{ playerTotalVal(game.game.playerTwo.skinValues) }}</p>
+            <p>${{ playerTotalVal(game.game.playerTwo.skins) }}</p>
           </div>
         </div>
       </div>
@@ -72,11 +68,11 @@
       >
         <div
           class="skin-slot-view"
-          v-for="(skinPic, index) in game.game.playerOne.skinPictures"
-          v-bind:key="skinPic"
+          v-for="skin in game.game.playerOne.skins"
+          v-bind:key="skin"
         >
-          <img :src="skinPic" />
-          <p>${{ getSkinValue(game.game.playerOne.skinValues[index]) }}</p>
+          <img :src="skin.imageURL" />
+          <p>${{ skin.value.toFixed(2) }}</p>
         </div>
       </div>
       <div
@@ -88,11 +84,11 @@
       >
         <div
           class="skin-slot-view"
-          v-for="(skinPic, index) in game.game.playerTwo.skinPictures"
-          v-bind:key="skinPic"
+          v-for="skin in game.game.playerTwo.skins"
+          v-bind:key="skin"
         >
-          <img :src="skinPic" />
-          <p>${{ getSkinValue(game.game.playerTwo.skinValues[index]) }}</p>
+          <img :src="skin.imageURL" />
+          <p>${{ skin.value.toFixed(2) }}</p>
         </div>
       </div>
     </div>
@@ -148,9 +144,7 @@ export default {
 
       if (side == "red") {
         return redCoinGifs[randIndex];
-      }
-
-      else {
+      } else {
         return blackCoinGifs[randIndex];
       }
     }
@@ -160,8 +154,7 @@ export default {
 
       if (side == "red") {
         return redCoin;
-      }
-      else {
+      } else {
         return blackCoin;
       }
     }
@@ -169,9 +162,7 @@ export default {
     if (game.value.game.winner == game.value.game.playerOne.userSteamId) {
       winnerText += game.value.game.playerOne.username;
       winnerSide = game.value.game.playerOneSide;
-    }
-
-    else {
+    } else {
       winnerText += game.value.game.playerTwo.username;
       winnerSide = game.value.game.playerTwoSide;
     }
@@ -194,7 +185,7 @@ export default {
       winnerSide,
       winnerText,
       dataCoinImg,
-    }
+    };
   },
   data() {
     return {
@@ -215,12 +206,9 @@ export default {
     },
   },
   methods: {
-    getSkinValue(skinVal) {
-      return skinVal.toFixed(2);
-    },
-    playerTotalVal(skinVals) {
+    playerTotalVal(skins) {
       let total = 0;
-      skinVals.forEach((val) => (total += val));
+      skins.forEach((skin) => (total += skin.value));
       return total.toFixed(2);
     },
   },
@@ -229,10 +217,8 @@ export default {
 </script>
 
 <style>
-
 .start {
   opacity: 1;
   transition: all 1s;
 }
-
 </style>

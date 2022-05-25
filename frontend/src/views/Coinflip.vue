@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import { computed } from "@vue/runtime-core";
+import { computed, onMounted } from "@vue/runtime-core";
 import { useStore } from "vuex";
 
 import CoinFlipChoice from "../components/coinflip/CoinFlipChoice.vue";
@@ -36,6 +36,10 @@ if (env == "development") {
 
 export default {
 	setup() {
+		onMounted(() => {
+			document.title = "GammaBets | CoinFlip";
+		});
+
 		const store = useStore();
 
 		function closeViewMenu(event) {
@@ -66,9 +70,6 @@ export default {
 
 		socket.on("newCFGame", (data) => {
 			store.dispatch("addNewCoinFlip", data);
-
-			const gamePhase = { gameID: data.game.gameID, value: 0 };
-			store.dispatch("setGamePhase", gamePhase);
 		});
 
 		socket.on("secondPlayerAccepctedTrade", (data) => {
@@ -93,6 +94,10 @@ export default {
 
 		socket.on("cfHistoryUpdate", (data) => {
 			store.dispatch("setCoinflipHistory", data);
+		});
+
+		socket.on("removeCFGame", (data) => {
+			store.dispatch("removeCFGame", data.GameID);
 		});
 
 		////////////////////////////////

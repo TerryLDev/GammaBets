@@ -4,28 +4,22 @@
       <img class="listing-profile-div-img" :src="game.playerOne.userPicture" />
       <div class="listing-profile-div-user-and-val">
         <p>{{ game.playerOne.username }}</p>
-        <p>${{ playerValue(game.playerOne.skinValues) }}</p>
+        <p>${{ playerValue(game.playerOne.skins) }}</p>
       </div>
     </div>
 
-    <div
-      class="listing-player-skins"
-      v-if="game.playerOne.skinPictures.length > 5"
-    >
-      <template
-        v-for="(skinPic, index) in game.playerOne.skinPictures"
-        :key="skinPic"
-      >
-        <img v-if="index < 5" :src="skinPic" />
+    <div class="listing-player-skins" v-if="game.playerOne.skins.length > 5">
+      <template v-for="(skin, index) in game.playerOne.skins" :key="skin">
+        <img v-if="index < 5" :src="skin.imageURL" />
       </template>
-      <p>+{{ game.playerOne.skinPictures.length - 5 }}</p>
+      <p>+{{ game.playerOne.skins.length - 5 }}</p>
     </div>
 
     <div v-else class="listing-player-skins">
       <img
-        v-for="skinPic in game.playerOne.skinPictures"
-        :key="skinPic"
-        :src="skinPic"
+        v-for="skin in game.playerOne.skins"
+        :key="skin"
+        :src="skin.imageURL"
       />
     </div>
     <CFListingButtons :phase="phase(game.gameID)" :game="game" />
@@ -53,9 +47,9 @@ export default {
         return "black-listing";
       }
     },
-    playerValue(playerSkinVals) {
+    playerValue(playerSkins) {
       let totalVal = 0;
-      playerSkinVals.forEach((val) => (totalVal += val));
+      playerSkins.forEach((skin) => (totalVal += skin.value));
       return totalVal.toFixed(2);
     },
     buttonClass(playerSide) {

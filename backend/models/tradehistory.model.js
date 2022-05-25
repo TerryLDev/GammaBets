@@ -15,8 +15,7 @@ const tradeHistorySchema = Schema({
         type: String,
         required: true
     },
-    Items: Array,
-    ItemNames: Array,
+    Skins: Array,
     TransactionType: String,
     State: String,
     GameMode: String,

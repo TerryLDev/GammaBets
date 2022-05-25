@@ -1,6 +1,5 @@
 const express = require("express");
 require("dotenv").config(__dirname + "/.env");
-const path = require("path");
 const passport = require("passport");
 const session = require("express-session");
 const passportSteam = require("passport-steam");
@@ -47,8 +46,7 @@ const community = new SteamCommunity();
 const manager = new TradeOfferManager();
 const client = new SteamUser();
 
-const selectWinner = require("./gammabets/jackpotwinner");
-const serverProfitUtils = require("./gammabets/server-profit");
+const serverProfitUtils = require("./gammabets/dbScripts/server-profit");
 
 const { updateSkinPrices } = require("./gammabets/updateskinvalues");
 
@@ -130,37 +128,14 @@ app.use(
 // Localhost port
 const port = process.env.PORT || 4000;
 
-// Intialize Bots
-// Random Login Time to avoid request Errors
-
-const randomOne = (Math.floor(Math.random() * 10) + 1) * 1000;
-const randomTwo = (Math.floor(Math.random() * 10) + 1) * 1000;
-const randomThree = (Math.floor(Math.random() * 10) + 1) * 1000;
-
+// Login the steambots
 // JP Bot(s)
-let jpBotZero;
+const jpBotZero = new JackpotBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET), process.env.JP_BOT_0_IDENTITY_SECRET, process.env.JP_BOT_0_SHARED_SECRET, process.env.JP_BOT_0_SERVER_ID);;
 
 // CF Bot(s)
-let cfBotZero;
-let cfBotOne;
+const cfBotZero = new CoinFlipBot(process.env.CF_BOT_0_USERNAME, process.env.CF_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_0_SHARED_SECRET), process.env.CF_BOT_0_IDENTITY_SECRET, process.env.CF_BOT_0_SHARED_SECRET, process.env.CF_BOT_0_SERVER_ID);
 
-setTimeout(() => {
-
-	jpBotZero = new JackpotBot(process.env.JP_BOT_0_USERNAME, process.env.JP_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.JP_BOT_0_SHARED_SECRET), process.env.JP_BOT_0_IDENTITY_SECRET, process.env.JP_BOT_0_SHARED_SECRET, process.env.JP_BOT_0_SERVER_ID);
-
-}, randomOne);
-
-setTimeout(() => {
-
-	cfBotZero = new CoinFlipBot(process.env.CF_BOT_0_USERNAME, process.env.CF_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_0_SHARED_SECRET), process.env.CF_BOT_0_IDENTITY_SECRET, process.env.CF_BOT_0_SHARED_SECRET, process.env.CF_BOT_0_SERVER_ID);
-
-}, randomTwo);
-
-setTimeout(() => {
-
-	cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVER_ID);
-
-}, randomThree);
+const cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVER_ID);
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -172,8 +147,6 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((user, done) => {
 	done(null, user);
 });
-
-
 
 passport.use(
 	new SteamStrategy(
@@ -361,15 +334,20 @@ io.on("connection", (socket) => {
 								let userInv = [];
 
 								inv.forEach((item) => {
+
 									skins.forEach((skin) => {
+
 										if (item["name"] == skin["SkinName"]) {
+
 											userInv.push({
+												
 												name: item["name"],
 												id: item["id"],
 												price: skin["Value"],
-												imageURL:
-													skin["SkinPictureURL"],
+												imageURL: skin["SkinPictureURL"],
+
 											});
+
 										}
 									});
 								});
@@ -512,6 +490,7 @@ setInterval(async function () {
 	await jpBotZero.getSkins();
 	await cfBotZero.getSkins();
 	await cfBotOne.getSkins();
+	skins = await jpBotZero.skins;
 	
 }, 1000 * 60 * 60 * 6);
 
@@ -723,6 +702,8 @@ cfEvents.on("withdrawWinnings", (data) => {
 
 	}
 
+
+
 });
 
 // update cf history here
@@ -736,7 +717,21 @@ cfEvents.on("cfHistory", data => {
 
 	io.emit("cfHistoryUpdate", socketData);
 
-})
+});
+
+cfEvents.on("removeCFGame", data => {
+	// data = {GameID: **}
+	io.emit("removeCFGame", data);
+});
+
+cfEvents.on("updatePastCFSides", data => {
+	/*
+	const data = {
+		past: pastCFSides
+	};
+	*/
+	io.emit("pastCFSides", data);
+});
 
 //////////////////////////////////////////////////////////////
 
@@ -745,29 +740,6 @@ cfEvents.on("cfHistory", data => {
 //////////////////////////////////////////////////////////////
 
 const hsHandler = new HighStakesHandler();
-
-exports.highStakesActiveGame = {};
-
-/* ^ Format ^
-{
-    GameID: **
-    Players: [{object from db}, {}, {}],
-    TotalPotValue: **,
-}
-*/
-
-exports.highStakesQueue = {};
-/* ^ Format ^
-{
-    GameID: **
-    Players: [{object from db}, {}, {}],
-    TotalPotValue: **,
-}
-*/
-
-exports.highStakesHistory = [];
-exports.isHighStakesSpinning = false;
-exports.isThereAnActiveHighStakesGame = false;
 
 // High Stakes Events
 highStakesEvents.on("newHighStakesPot", data => {
