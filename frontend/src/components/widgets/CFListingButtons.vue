@@ -40,9 +40,9 @@ export default {
 		},
 	},
 	methods: {
-		playerValue(playerSkinVals) {
+		playerValue(skins) {
 			let totalVal = 0;
-			playerSkinVals.forEach((val) => (totalVal += val));
+			skins.forEach((skin) => (totalVal += skin.value));
 			return totalVal.toFixed(2);
 		},
 		buttonClass(playerSide) {
@@ -55,8 +55,8 @@ export default {
 		openDepositMenu() {
 			const store = this.$store;
 
-			let min = this.playerValue(this.game.playerOne.skinValues) * 0.95;
-			let max = this.playerValue(this.game.playerOne.skinValues) * 1.05;
+			let min = this.playerValue(this.game.playerOne.skins) * 0.95;
+			let max = this.playerValue(this.game.playerOne.skins) * 1.05;
 
 			store.dispatch("setDepositMin", min);
 			store.dispatch("setDepositMax", max);
