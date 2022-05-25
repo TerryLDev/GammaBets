@@ -60,14 +60,14 @@ class GameManager {
 
     }
 
-    getCFGameTotal(playerOneVals, playerTwoVals) {
+    getCFGameTotal(playerOneSkins, playerTwoSkins) {
         let total = 0;
 
-        playerOneVals.forEach(val => {
-            total += val
+        playerOneSkins.forEach(skin => {
+            total += skin.value
         });
-        playerTwoVals.forEach(val => {
-            total += val
+        playerTwoSkins.forEach(skin => {
+            total += skin.value
         });
         
         return total;

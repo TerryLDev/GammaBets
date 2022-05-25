@@ -46,7 +46,7 @@ class CoinFlipManager extends GameManager {
                         return console.log("Error Occurred while making the userbet");
                     }
 
-                    const cfTotal = this.getCFGameTotal(currentGame.game.playerOne.skinValues, userBet.skinValues);
+                    const cfTotal = this.getCFGameTotal(currentGame.game.playerOne.skins, userBet.skins);
 
                     let query = {
                         $push : {
