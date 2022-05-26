@@ -2,7 +2,7 @@
   <div
     class="inventory-skin-slot"
     :id="skin.id"
-    v-on:click="selectSkin($event, skin.id, skin.price)"
+    v-on:click="selectSkin($event, skin)"
     v-bind:class="{ selected: selectedClass }"
   >
     <img class="inventory-skin-slot-img" :src="skin.imageURL" />
@@ -18,21 +18,21 @@ export default {
   },
   data() {
     return {
-      selectedClass: this.$store.state.deposit.selectedSkins.includes(
+      selectedClass: this.$store.state.deposit.selectedSkinIDs.includes(
         this.skin.id
       ),
     };
   },
   methods: {
-    selectSkin(event, id, price) {
-      if (this.$store.state.deposit.selectedSkins.includes(id)) {
-        document.getElementById(id).classList.remove("selected");
-        this.$store.dispatch("removeSelectedSkin", id);
-        this.$store.dispatch("substractSelectedPrice", price);
+    selectSkin(event, skin) {
+      if (this.$store.state.deposit.selectedSkinIDs.includes(skin.id)) {
+        document.getElementById(skin.id).classList.remove("selected");
+        this.$store.dispatch("removeSelectedSkin", skin);
+        this.$store.dispatch("substractSelectedPrice", skin.price);
       } else {
-        document.getElementById(id).classList.add("selected");
-        this.$store.dispatch("addSelectedSkin", id);
-        this.$store.dispatch("addSelectedPrice", price);
+        document.getElementById(skin.id).classList.add("selected");
+        this.$store.dispatch("addSelectedSkin", skin);
+        this.$store.dispatch("addSelectedPrice", skin.price);
       }
     },
   },

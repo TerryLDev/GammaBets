@@ -1,6 +1,17 @@
 const axios = require('axios');
 require("dotenv").config(__dirname + "/.env");
 const MarketPrice = require("../models/marketprice.model");
+const mainApp = require("../app");
+
+function updateMainAppSkins() {
+	MarketPrice.find({}, (err, allSkins) => {
+		if(err) return console.error(err);
+
+		else {
+			mainApp.skins = allSkins;
+		}
+	});
+}
 
 function updateSkinPrices() {
 
@@ -17,6 +28,9 @@ function updateSkinPrices() {
 		});
 
 		console.log("Logged All Skins");
+
+		updateMainAppSkins();
+		
 	})
 	.catch(err => {
 		console.log(err);

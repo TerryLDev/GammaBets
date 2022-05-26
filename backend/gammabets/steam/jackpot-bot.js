@@ -19,12 +19,14 @@ class JackpotBot extends SteamBot {
 
 	constructor(username, password, twoFactorCode, indentitySecret, sharedSecret, botID) {
 
-        super(username, password, twoFactorCode, indentitySecret, sharedSecret, botID);
+    super(username, password, twoFactorCode, indentitySecret, sharedSecret, botID);
 		this.jpManager = new JackpotManager();
 
 		this.#cfSteamEventListners();
 
-    }
+  }
+
+	// Main Listener
 
 	async #cfSteamEventListners() {
 
@@ -35,8 +37,6 @@ class JackpotBot extends SteamBot {
 				if (TradeOfferManager.ETradeOfferState[offer.state] == "Canceled") {
 
 					console.log("Steam User: " + offer.partner + "\nCanceled Trade: " + offer.id);
-
-
 
 				}
 
@@ -68,85 +68,44 @@ class JackpotBot extends SteamBot {
 		
 	}
 
-	sendJPDepositTradeOffer(steamid, itemArray, tradeurl, potType) {
+	////////////////////////////////
 
-		const offer = this.manager.createOffer(steamid);
+	// finds the total value and determines if its meets the pot requirements
+	#validateHighStakes(playerSkins) {
 
-		this.manager.getUserInventoryContents(steamid, 252490, 2, true, (err, inv) => {
-			if (err) return console.error(err);
+		let playerTotal = 0
 
-			else {
-				let itemNames = []
-
-				itemArray.forEach(desired => {
-					// might break
-
-					////////////////////////////////////
-					// double check this in the future// 
-					////////////////////////////////////
-					const item = inv.find(item => item.assetid == desired);
-
-					if(item) {
-						offer.addTheirItem(item);
-						itemNames.push(item.market_hash_name)
-					}
-
-					else{
-						offer.cancel((err) => {
-							if (err) return console.log(err)
-						});
-					}
-				})
-
-				let token = tradeurl.split('token=')[1]
-
-				offer.setToken(token)
-
-				offer.send((err, status) => {
-
-					if (err) return console.error(err);
-
-					else {
-						let gmQuery;
-
-						if (potType == "high") {
-
-							gmQuery = "High Stakes"
-
-						}
-
-						else {
-
-							gmQuery = "Low Stakes";
-
-						}
-						
-						console.log(status, offer.id);
-
-						// Should log the trade offer to the server
-						TradeHistory.create({
-							TradeID: offer.id,
-							SteamID: steamid,
-							BotID: this.botID,
-							Items: itemArray,
-							ItemNames: itemNames,
-							TransactionType: 'Deposit',
-							State: TradeOfferManager.ETradeOfferState[offer.state],
-							GameMode: gmQuery
-						})
-							.then((result) => {
-								User.updateOne({"SteamID": steamid}, {$push: {"Trades": offer.id} }, (err, doc) => {
-									if (err) return console.error(err);
-								});
-							})
-							.catch((err) => {
-								console.error(err);
-							});
-					}
-				});
-			}
+		playerSkins.forEach(skin => {
+			const skinIndex = this.skins.findIndex(botSkin => skin.name == botSkin["SkinName"]);
+			playerTotal += this.skins[skinIndex]["Value"];
 		})
 
+		if (playerTotal > 1) {
+			return true
+		}
+
+		else {
+			return false
+		}
+
+	}
+
+	async joinHighStakesPot(steamID, tradeURL, skins) {
+
+		try {
+
+			if (await this.#validateHighStakes(skins)) {
+				this.sendDeposit("High Stakes", "none", skins, steamID, tradeURL, "Joining");
+			}
+
+			else {
+				return console.log("Can not validate skins player has selected")
+			}
+
+		}
+		catch (err) {
+			return console.error(err);
+		}
 	}
 
 }

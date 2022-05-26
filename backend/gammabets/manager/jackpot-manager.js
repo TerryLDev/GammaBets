@@ -1,9 +1,7 @@
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-const {HighStakesHandler, highStakesEvents} = require("../handler/high-stakes-handler");
+const {HighStakesHandler, highStakesActiveGame} = require("../handler/high-stakes-handler");
 // const {} = require("../handler/low-stakes-handler");
-
-const mongoose = require("mongoose");
 const TradeHistory = require('../../models/tradehistory.model');
 const HighStakesJackpot = require("../../models/highstakes.model");
 const User = require('../../models/user.model');
@@ -62,141 +60,123 @@ class JackpotManager extends GameManager {
 
     }
 
+    #updateTradeDocandUserPlayerGames(tradeDoc, gameDoc) {
+
+        TradeHistory.updateOne({TradeID: tradeDoc.TradeID}, {GameID: gameDoc.GameID}, (err) => {
+            if (err) return console.error(err);
+            else {
+                return console.log(`Updated GameID in TradeDoc: ${tradeDoc.TradeID}`);
+            }
+        });
+
+        User.updateOne({SteamID: tradeDoc.SteamID}, {$push: {GamesPlayed: gameDoc.GameID}}, (err) => {
+            if (err) return console.error(err);
+            else {
+                return console.log(`Pushed GameID in GamesPlayed for User: ${tradeDoc.SteamID}`);
+            }
+        })
+
+    }
+
+    #getTotalPlayerVal(playerSkins) {
+        let total = 0;
+        playerSkins.forEach(skin => total += skin.value);
+        return total;
+    }
+
     #acceptedHighStakesGame(tradeDoc, userBet) {
+        // check if the pot is spinning
+        // (true) if its spinning - add to queue
+        if (this.highStakesHandler.checkIfPotIsSpinning()) {
+            // if the queue is empty - create new queue
+            if (this.highStakesHandler.checkIfQueueEmpty()) {
+                const newQueueID = this.highStakesHandler.createGameID();
 
-        // get the total value of the players deposit
-        const userTotal = this.userTotalValue(userBet.skinValues);
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
 
-        // if the pot is spinning, add them to the queue
-        if (mainApp.isHighStakesSpinning) {
-
-            // if true, add them to the current queue
-            if (this.highStakesHandler.checkQueue()) {
-
-                const queueGameID = mainApp.highStakesQueue.GameID;
-                const newQueueTotal = mainApp.highStakesQueue.TotalPotValue + userTotal;
-
-                HighStakesJackpot.findOneAndUpdate({GameID: queueGameID}, { $push: {Players: userBet}, $set: {TotalPotValue: newQueueTotal}}, {new : true}, (err, queuePot) => {
-                    if (err) {
-                        console.log("Error Occurred while adding player to queue");
-                        return console.log(err);
-                    }
-
-                    else {
-                        this.highStakesHandler.addPlayerToQueue(newQueueTotal, userBet);
-
-                        this.#updatePlayerTradeHistory(tradeDoc.TradeID, queueGameID);
-                    }
-                });
-
-            }
-
-            // if false, start a new queue and generate a new game in the db
-            else {
-                //
-                const newGameID = this.highStakesHandler.createGameID();
-                let playerList = [];
-                playerList.push(userBet);
-
-                HighStakesJackpot.create({
-                    GameID: newGameID,
-                    Players: playerList,
-                    TotalPotValue: userTotal,
+                const query = {
+                    GameID: newQueueID,
+                    TotalPotValue: totalPlayerValue,
+                    Players: [userBet],
+                    BotID: tradeDoc.BotID,
                     Status: true,
+                    WinningsSent: "Not Sent"
+                };
+
+                HighStakesJackpot.create(query)
+                .then(doc => {
+                    this.highStakesHandler.newQueue(doc);
+                    this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
                 })
-                .then(newQueue => {
-
-                    this.highStakesHandler.createNewQueue(newQueue);
-
-                    this.#updatePlayerTradeHistory(tradeDoc.TradeID, newGameID);
-
-                })
-                .catch(err => {
-
-                    return console.log(err);
-
+                .catch(error => {
+                    return console.error(error);
                 });
             }
+            // else - add to current queue
+            else {
+                const currentQueueID = this.highStakesHandler.getCurrentQueueID();
 
-        }
-        
-        // if it's not spinnning, check if there's an active game or not
-        else {
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
 
-            // if the game is active, add them to the pot
-            if (mainApp.isThereAnActiveHighStakesGame) {
-
-                const newPotValue = mainApp.highStakesActiveGame.TotalPotValue + userTotal;
-
-                HighStakesJackpot.findOneAndUpdate({GameID: mainApp.highStakesActiveGame.GameID}, { $push: {Players: userBet}, $set: {TotalPotValue: newPotValue} }, { new : true }, (err, currentPot) => {
-
-                    if (err) {
-                        return console.log(err);
-                    }
+                HighStakesJackpot.findOneAndUpdate({GameID: currentQueueID}, {$push: { Players: userBet}, $inc: {TotalPotValue: totalPlayerValue} }, {new: true}, (err, doc) => {
+                    if (err) return console.error(err);
 
                     else {
-                        console.log(currentPot);
-                        this.highStakesHandler.addPlayerToPot(newPotValue, userBet);
-
-                        this.#updatePlayerTradeHistory(tradeDoc.TradeID, mainApp.highStakesActiveGame.GameID);
+                        console.log("New Player Joining High Stakes QUEUE: " + userBet.username);
+                        this.highStakesHandler.addPlayerToQueue(userBet, doc.TotalPotValue);
+                        this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
                     }
+                });
+            }
+        }
 
+        // (false) else - add to pot
+        else {
+            // check if pot is empty
+            if (this.highStakesHandler.isPotEmpty()) {
+                // (true) create new pot
+                const newGameID = this.highStakesHandler.createGameID();
+
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
+
+                const query = {
+                    GameID: newGameID,
+                    TotalPotValue: totalPlayerValue,
+                    Players: [userBet],
+                    BotID: tradeDoc.BotID,
+                    Status: true,
+                    WinningsSent: "Not Sent"
+                }
+
+                HighStakesJackpot.create(query)
+                .then(doc => {
+                    this.highStakesHandler.newGame(doc);
+                    this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
+                })
+                .catch(err => {
+                    return console.error(err);
+                });
+            }
+            else {
+                // (false) add to current pot
+                const currentGameID = this.highStakesHandler.getCurrentGameID();
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
+
+                HighStakesJackpot.findOneAndUpdate({GameID: currentGameID}, {$push: { Players: userBet}, $inc: {TotalPotValue: totalPlayerValue} }, {new: true}, (err, doc) => {
+                    if (err) return console.error(err);
+
+                    else {
+                        console.log("New Player Joining High Stakes POT: " + userBet.username);
+                        this.highStakesHandler.addPlayerToGame(userBet, doc.TotalPotValue);
+                        this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
+                    }
                 });
 
             }
-            
-            // done (maybe)
-            // if not, create a new game
-            else {
-
-                const newGameID = this.highStakesHandler.createGameID();
-                let playerList = [];
-                playerList.push(userBet);
-
-                // oof
-                HighStakesJackpot.create({
-                    GameID: newGameID,
-                    TotalPotValue: userTotal,
-                    Players: playerList,
-                    Status: true
-                })
-                .then(newPot => {
-
-                    console.log(newPot);
-
-                    this.highStakesHandler.createNewGame(newPot);
-
-                    this.#updatePlayerTradeHistory(tradeDoc.TradeID, newGameID);
-
-                })
-                .catch(err => {
-                    return console.log(err);
-                }) 
-
-            }
-
         }
-
     }
 
     #acceptedLowStakesGame() {
-
-    }
-
-    #updatePlayerTradeHistory(tradeID, gameID) {
-
-        TradeHistory.updateOne({TradeID: tradeID}, {GameID: gameID}, {}, (err, result) => {
-
-            if (err) {
-                console.log("Error Occured while updating user's trade history");
-                return console.log(err);
-            }
-
-            else {
-                console.log(result);
-            }
-
-        });
 
     }
 

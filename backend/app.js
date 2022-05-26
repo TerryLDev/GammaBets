@@ -24,16 +24,14 @@ const TradeHistory = require("./models/tradehistory.model");
 const Support = require("./models/support.model");
 const MarketPrice = require("./models/marketprice.model");
 const CoinFlipGame = require("./models/coinflipgame.model");
-const JackpotGame = require("./models/jackpotgame.model");
 const HighStakesJackpot = require("./models/highstakes.model");
-const LowStakesJackpot = require("./models/lowstakes.model")
+const LowStakesJackpot = require("./models/lowstakes.model");
 
 // Router
 const mainRoutes = require("./routes/main");
 const jackpotRoutes = require("./routes/jackpot");
 const coinflipRoutes = require("./routes/coinflip");
 const supportRoutes = require("./routes/support");
-
 const productionRoutes = require("./routes/production");
 
 // SteamBot
@@ -55,7 +53,7 @@ const { CoinFlipHandler, cfEvents, allCFGames, cfHistory, joiningQueue } = requi
 const cfGameHandler = new CoinFlipHandler();
 
 // Importing and Setting up Jackpot GameHandler
-const {HighStakesHandler, highStakesEvents} = require("./gammabets/handler/high-stakes-handler");
+const { highStakesEvents } = require("./gammabets/handler/high-stakes-handler");
 
 // Importing Alert Center
 const {AlertCenter, alertEvents} = require("./gammabets/alertcenter")
@@ -367,6 +365,15 @@ io.on("connection", (socket) => {
 
 	socket.on("createNewCoinFlipGame", async (data) => {
 
+		/* data = {
+			steamID: steamID,
+			skins: listOfSkins,
+			tradeURL: tradeURL,
+			side: "red" or "black"
+			gameID: gameId,
+		};
+		*/
+
 		try {
 
 			console.log("New Request: Coinflip")
@@ -408,7 +415,6 @@ io.on("connection", (socket) => {
 
 		/* data = {
 			steamID: steamID,
-			username: user,
 			skins: listOfSkins,
 			tradeURL: tradeURL,
 			gameID: gameId,
@@ -440,7 +446,7 @@ io.on("connection", (socket) => {
 	
 				}
 	
-			}, 1000);
+			}, 2000);
 
 		}
 
@@ -452,33 +458,17 @@ io.on("connection", (socket) => {
 		
 	});
 
-	socket.on("jackpotDeposit", async (data) => {
+	socket.on("joinHighStakes", (data) => {
 
 		/*
 		data = {
-
-			SteamID: **,
-			Skins: **,
-			TradeURL: **,
-			PotType: **,
-
+			skins: [{skin obj},],
+			steamID: **,
+			tradeURL: **
 		}
 		*/
 
-		setTimeout(function() {
-			
-			if (data.PotType == "high") {
-
-				jpBotZero.sendJPDepositTradeOffer(data.SteamID, data.Skins, data.TradeURL, data.PotType);
-
-			}
-
-			else {
-
-				jpBotZero.sendJPDepositTradeOffer(data.SteamID, data.Skins, data.TradeURL, data.PotType);
-
-			}
-		}, 1000);
+		jpBotZero.joinHighStakesPot(data.steamID, data.tradeURL, data.skins)
 
 	});
 
@@ -490,7 +480,6 @@ setInterval(async function () {
 	await jpBotZero.getSkins();
 	await cfBotZero.getSkins();
 	await cfBotOne.getSkins();
-	skins = await jpBotZero.skins;
 	
 }, 1000 * 60 * 60 * 6);
 
@@ -735,34 +724,107 @@ cfEvents.on("updatePastCFSides", data => {
 
 //////////////////////////////////////////////////////////////
 
-// High Stakes Events and Variables
+// High Stakes Events
 
 //////////////////////////////////////////////////////////////
 
-const hsHandler = new HighStakesHandler();
+highStakesEvents.on("newHighStakesGame", data => {
+	/*
+	const data = {
+		GameID: highStakesActiveGame.GameID,
+		Players: highStakesActiveGame.Players,
+		TotalPotValue: highStakesActiveGame.TotalPotValue,
+		Winner: highStakesActiveGame.Winner
+	};
+	*/
 
-// High Stakes Events
-highStakesEvents.on("newHighStakesPot", data => {
-	//data = {GameID: "", Players: [], TotalPotValue: 0};
-
-	io.emit("newHighStakesPot", data);
-
+	io.emit("newHighStakesGame", data);
 });
 
 highStakesEvents.on("newHighStakesPlayer", data => {
+
 	/*
 	const data = {
 		Player: playerBet,
 		TotalPotValue: highStakesActiveGame.TotalPotValue
-	}
+	};
 	*/
 
 	io.emit("newHighStakesPlayer", data);
 
 });
 
-highStakesEvents.on("startHighStakesTimer", data => {
+highStakesEvents.on("highStakesTimer", data => {
 
-	io.emit("startHighStakesTimer", data);
+	/*
+	data = {time: num}
+	*/
+
+	io.emit("highStakesTimer", data);
 
 });
+
+highStakesEvents.on("highStakesHistoryUpdate", data => {
+
+	/*
+	const data = {
+		topGame: this.topGame,
+		history: this.history
+	}
+	*/
+
+	io.emit("highStakesHistory", data);
+
+});
+
+highStakesEvents.on("highStakesWinner", data => {
+	
+	/*
+	const winnerData = {
+		winner: potWinner
+	}
+	*/
+
+	io.emit("highStakesWinner", data);
+
+});
+
+highStakesEvents.on("highStakesServerProfit", data => {
+
+	/*
+	const data = {
+		serverProfit: serverProfit, // array of skins
+		playerWinnings: allSkinsInPot, // array of skins
+		winner: this.Winner,
+		botID: this.BotID,
+		gameID: this.GameID
+	};
+	*/
+
+	User.findOne({SteamID: data.winner}, (err, user) => {
+
+		if (err) return console.log(err);
+
+		else {
+
+			if (data.botID == jpBotZero.botID) {
+
+				jpBotZero.sendWithdraw(data.playerWinnings, "High Stakes", data.gameID, user);
+			
+			}
+
+			else {
+
+				return console.log("CAN NOT FIND JP BOT");
+
+			}
+
+			serverProfitUtils.logProfit(data.serverProfit, data.gameID, data.botID);
+
+		}
+
+	});
+
+});
+
+module.exports = {skins};

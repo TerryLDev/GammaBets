@@ -1,10 +1,10 @@
 <template>
 	<QuickPlay />
-	<JackpotTimer :totalPotValue="totalPotVal" />
+	<JackpotTimer :totalPotValue="totalPotVal" :depositMax="betMax" :depositType="potName" :depositMin="betMin" />
 	<JackpotPlayArea
-		:potMin="potMin"
+		:potMin="betMin"
 		:potName="potName"
-		:potMax="potMax"
+		:potMax="betMax"
 		:bets="playerBets"
 		:totalPotVal="totalPotVal"
 	/>
@@ -13,7 +13,7 @@
 
 <script>
 // @ is an alias to /src
-//import axios from "axios";
+
 import JackpotTimer from "../components/jackpot/JackpotTimer.vue";
 import JackpotPlayArea from "../components/jackpot/JackpotPlayerArea.vue";
 import GameHistory from "../components/GameHistory.vue";
@@ -22,9 +22,9 @@ import QuickPlay from "../components/QuickPlay.vue";
 export default {
 	data() {
 		return {
-			potMin: "1.00",
 			potName: "High Stakes",
-			potMax: "No Limit",
+			betMin: 1.00,
+			betMax: 0,
 			totalPotVal: 0.0,
 		};
 	},

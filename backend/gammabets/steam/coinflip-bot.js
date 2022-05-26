@@ -81,6 +81,16 @@ class CoinFlipBot extends SteamBot{
 
 	////////////////////////
 
+	// Skin List
+
+	#makeSkinIDList(skins) {
+		let skinIDs = [];
+
+		skins.forEach(skin => skinIDs.push(skin.id));
+
+		return skinIDs;
+	}
+
 	// Main Methods
 
 	async cancelOpponentCoinFlipTradeOffer(tradeID) {
@@ -105,7 +115,9 @@ class CoinFlipBot extends SteamBot{
 
 			if (cfGame) {
 
-				this.sendDeposit("Coinflip", cfGame.game.gameID, skins, steamID, tradeURL, "Joining");
+				const skinIDs = this.#makeSkinIDList(skins);
+
+				this.sendDeposit("Coinflip", cfGame.game.gameID, skinIDs, steamID, tradeURL, "Joining");
 
 				User.findOne({SteamID: steamID}, (err, user) => {
 					if (err) return console.error(err);
@@ -132,12 +144,14 @@ class CoinFlipBot extends SteamBot{
 		}
 	}
 
-	// please for the love god fix this mess
+	// please for the love god fix this mess - I think it's better
 	async newCoinflip(steamID, skins, tradeURL, side, gameID) {
 
 		try {
 
-			await this.sendDeposit("Coinflip", gameID, skins, steamID, tradeURL, "Creating");
+			const skinIDs = await this.#makeSkinIDList(skins);
+
+			await this.sendDeposit("Coinflip", gameID, skinIDs, steamID, tradeURL, "Creating");
 
 			creatingQueue.addToQueue(gameID, steamID, side);
 

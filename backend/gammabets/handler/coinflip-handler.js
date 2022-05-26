@@ -1,20 +1,21 @@
 require("dotenv").config(__dirname + "/.env");
-
+const CoinFlipDBScripts = require("../dbScripts/coinflip-db");
 const emitter = require('events').EventEmitter;
 const cfEvents = new emitter();
 
 const mainTimer = parseFloat(process.env.COIN_FLIP_OPPONENT_JOINING_TIME);
 const countDown = parseFloat(process.env.COIN_FLIP_COUNTDOWN_TIME);
+const taxWord = process.env.TAX_WORD;
 
-let allCFGames = [];
+const allCFGames = [];
 
-let cfHistory = {
+const cfHistory = {
     topCycle: 0,
     topGame: {},
     history: [],
 };
 
-let creatingQueue = {
+const creatingQueue = {
     queue: [],
     addToQueue(gameID, steamID, side) {
         const entry = {
@@ -42,7 +43,7 @@ let creatingQueue = {
     
 };
 
-let joiningQueue = {
+const joiningQueue = {
     queue: [],
     // adds player to the joining queue for a coin flip
     addToQueue(gameID, steamID, username = "No Name Found", userPicURL) {
@@ -110,7 +111,7 @@ let joiningQueue = {
     }
 };
 
-let pastCFSides = ["red", "black"];
+let pastCFSides = ['red', 'black'];
 
 class CoinFlipHandler {
 
@@ -203,6 +204,8 @@ class CoinFlipHandler {
 
             this.#updatePastSides(side);
 
+            CoinFlipDBScripts.updateWinner(allCFGames[gameIndex].game.gameID, winner);
+
             return data;
         }
 
@@ -253,7 +256,7 @@ class CoinFlipHandler {
 
         const winnerName = chosenGame.game.playerOne.username == chosenGame.game.winner ? chosenGame.game.playerOne.username : chosenGame.game.playerTwo.username
 
-        if (winnerName.toLowerCase().includes("gammabets")) {
+        if (winnerName.toLowerCase().includes(taxWord)) {
             maxValue *= .05
         }
 

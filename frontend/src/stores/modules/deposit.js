@@ -1,7 +1,7 @@
 const deposit = {
   state: {
     skins: [],
-    selectedSkins: [],
+    selectedSkins: [], // array of skin objects
     selectedPrice: 0,
     gameID: "", //
     depositMin: 0,
@@ -36,7 +36,9 @@ const deposit = {
       state.selectedSkins.push(skin);
     },
     removeSelectedSkin(state, skin) {
-      const index = state.selectedSkins.indexOf(skin);
+      const index = state.selectedSkins.findIndex(
+        (sSkin) => sSkin.id == skin.id
+      );
       state.selectedSkins.splice(index, 1);
     },
     addSelectedPrice(state, price) {

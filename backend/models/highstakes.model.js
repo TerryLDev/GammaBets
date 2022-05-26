@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const jackpotGameSchema = Schema({
+const highStakesGameSchema = Schema({
     GameID: {
         type: String,
         required: true,
@@ -10,10 +10,13 @@ const jackpotGameSchema = Schema({
     },
     TotalPotValue: Number,
     Players: Array,
+    BotID: String,
     Status: Boolean,
     Winner: String,
+    WinningsSent: String,
+    WinningsTradeID: String,
     }, {timestamps: true});
 
-const HighStakesJackpot = mongoose.model("HighStakesJackpot", jackpotGameSchema)
+const HighStakesJackpot = mongoose.model("HighStakesJackpot", highStakesGameSchema)
 
 module.exports = HighStakesJackpot;

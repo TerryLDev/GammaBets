@@ -17,6 +17,15 @@ if (env == "development") {
 export default {
   methods: {
     validateDeposit(depoState) {
+      // check if they have a tradeURL
+      if (
+        this.$store.state.user.profile.TradeURL == undefined ||
+        this.$store.state.user.profile.TradeURL.length == 0
+      ) {
+        return false;
+      }
+
+      // Check Deposit requirements
       if (
         depoState.selectedPrice >= depoState.depositMin &&
         depoState.selectedPrice <= depoState.depositMax
@@ -43,7 +52,7 @@ export default {
 
       const choseSkins = depositState.selectedSkins.length > 0;
 
-      // check deposit type
+      // check deposit type - CoinFlip Deposit
       if (depositState.depositType == "Coinflip" && choseSkins) {
         // creating a game
         if (depositState.gameID == undefined || depositState.gameID == "") {
@@ -55,10 +64,10 @@ export default {
               side: this.$store.state.coinflip.chosenSide,
             };
 
+            socket.emit("createNewCoinFlipGame", data);
+
             this.$store.dispatch("resetDepositAll");
             this.$store.dispatch("setLoadingTrue");
-
-            socket.emit("createNewCoinFlipGame", data);
           }
         }
 
@@ -69,21 +78,29 @@ export default {
               steamID: this.$store.state.user.profile.SteamID,
               skins: depositState.selectedSkins,
               tradeURL: this.$store.state.user.profile.TradeURL,
-              side: this.$store.state.coinflip.chosenSide,
               gameID: depositState.gameID,
             };
 
+            socket.emit("joinActiveCoinFlipGame", data);
+
             this.$store.dispatch("resetDepositAll");
             this.$store.dispatch("setLoadingTrue");
-
-            socket.emit("joinActiveCoinFlipGame", data);
           }
         }
-      } else if (depositState.depositType == "High Stakes" && choseSkins) {
+      }
+      // High Stakes Deposit
+      else if (depositState.depositType == "High Stakes" && choseSkins) {
         if (this.validateDeposit(depositState)) {
+          const data = {
+            steamID: this.$store.state.user.profile.SteamID,
+            skins: depositState.selectedSkins,
+            tradeURL: this.$store.state.user.profile.TradeURL,
+          };
+
+          socket.on("joinHighStakes", data);
+
           this.$store.dispatch("resetDepositAll");
           this.$store.dispatch("setLoadingTrue");
-          console.log("err");
         }
       }
     },

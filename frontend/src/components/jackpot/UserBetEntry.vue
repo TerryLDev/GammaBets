@@ -3,23 +3,21 @@
     <img class="player-bet-profile-img" :src="player.userPicture" />
 
     <div v-if="player.skinPictures.length > 9" class="player-bet-skins">
-      <template v-for="(skinPic, index) in player.skinPictures" :key="skinPic">
-        <img v-if="index < 9" class="player-skin-img" :src="skinPic" />
+      <template v-for="(skin, index) in player.skins" :key="skin">
+        <img v-if="index < 9" class="player-skin-img" :src="skin.imageURL" />
       </template>
 
       <p>+{{ player.skinPictures.length - 9 }}</p>
     </div>
 
     <div v-else class="player-bet-skins">
-      <template v-for="skinPic in player.skinPictures" :key="skinPic">
-        <img class="player-skin-img" :src="skinPic" />
+      <template v-for="skin in player.skins" :key="skin">
+        <img class="player-skin-img" :src="skin.imageURL" />
       </template>
     </div>
 
     <div class="player-bet-val-and-name">
-      <h5>
-        ${{ playerValue(player.skinValues) }} {{ getPlayerPercent(player) }}%
-      </h5>
+      <h5>${{ playerValue(player.skins) }} {{ getPlayerPercent(player) }}%</h5>
       <h6>{{ player.username }}</h6>
     </div>
   </div>
@@ -27,13 +25,13 @@
 
 <script>
 export default {
-  props: { player: { type: Object } },
+  props: { player: Object },
   methods: {
-    playerValue(playerValues) {
+    playerValue(playerSkins) {
       let totalVal = 0;
 
-      playerValues.forEach((val) => {
-        totalVal += val;
+      playerSkins.forEach((skin) => {
+        totalVal += skin.value;
       });
 
       return totalVal.toFixed(2);
@@ -41,10 +39,7 @@ export default {
     getPlayerPercent(player) {
       const total = this.$store.state.highStakes.game.TotalPotValue;
 
-      let percent = (
-        (this.playerValue(player.skinValues) / total) *
-        100
-      ).toFixed(2);
+      let percent = ((this.playerValue(player.skins) / total) * 100).toFixed(2);
 
       return percent;
     },

@@ -1,22 +1,43 @@
 const router = require("express").Router();
 const express = require('express');
 
-const mainApp = require("../app");
+const { highStakesActiveGame, highStakesHistory, highStakesTimer } = require("../gammabets/handler/high-stakes-handler");
+
 
 // When user accesses the page, send the most recent pot info (pull array of people in pot)
 
 router.post("/jackpot/highstakes", (req, res) => {
+
+	const sender = {
+		GameID: highStakesActiveGame.GameID,
+    Players: highStakesActiveGame.Players,
+    TotalPotValue: highStakesActiveGame.TotalPotValue,
+    Winner: highStakesActiveGame.Winner,
+	}
 	
-	res.json(mainApp.highStakesActiveGame);
+	res.json(sender);
 
 });
 
-/* push the history of highstakes
+router.post("/jackpot/highstakes/timer", (req, res) => {
+
+	const sender = {
+		time: highStakesTimer.time
+	}
+	
+	res.json(sender);
+
+});
+
 router.post("/jackpot/highstakes/history", (req, res) => {
+
+	const sender = {
+		topGame: highStakesHistory.topGame,
+		history: highStakesHistory.history,
+	};
 	
-	res.json(mainApp.highStakesActiveGame);
+	res.json(sender);
 
 });
-*/
 
 module.exports = router;

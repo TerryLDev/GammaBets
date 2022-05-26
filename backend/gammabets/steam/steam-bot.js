@@ -12,6 +12,7 @@ const MarketPrice = require('../../models/marketprice.model');
 const {CoinFlipHandler, allCFGames, joiningQueue} = require("../handler/coinflip-handler");
 const CoinFlipGame = require('../../models/coinflipgame.model');
 const CoinFlipDBScripts = require("../dbScripts/coinflip-db");
+const JackpotDBScripts = require("../dbScripts/jackpot-db");
 
 class SteamBot {
 
@@ -226,6 +227,7 @@ class SteamBot {
 						return console.error(err);
 					}
 
+					// checks if all the skins was found
 					else if (allSkinsFound) {
 
 						offer.send((err, status) => {
@@ -252,7 +254,9 @@ class SteamBot {
 									.then((result) => {
 										
 										if (gameMode == "Coinflip" && action == "Joining") {
+
 											joiningQueue.updateTradeID(offer.id, gameID);
+
 										}
 		
 										User.updateOne({SteamID: steamID}, {$push: {Trades: offer.id}}, {upsert: false}, (err, res) => {
@@ -377,8 +381,21 @@ class SteamBot {
 
 											// check if it went through
 											this.manager.getOffer(offer.id, (err, tradeOffer) => {
+
 												if (err) {
-													CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Error")
+
+													if (gameMode == "Coinflip") {
+
+														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Error")
+
+													}
+
+													else if (gameMode == "High Stakes") {
+
+														JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, offer.id, "Error");
+
+													}
+
 													return console.error(err);
 												}
 
@@ -386,39 +403,96 @@ class SteamBot {
 
 													if (TradeOfferManager.ETradeOfferState[tradeOffer.state] == "CreatedNeedsConfirmation") {
 
-														// try to confirm it again after 30 seconds
-														setTimeout(() => {
+														try {
 
-															this.community.acceptConfirmationForObject(this.identitySecretm, tradeOffer.id, (err) => {
+															// try to confirm it again after 30 seconds
+															setTimeout(function() {
 
-																if (err) {
-																	CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Sent");
-																}
+																this.community.acceptConfirmationForObject(this.identitySecretm, tradeOffer.id, (err) => {
 
-																else {
-																	CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Error");
-																}
+																	if (gameMode == "Coinflip") {
 
-															})
+																		if (err) {
+																			CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Error");
+																		}
+		
+																		else {
+																			CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Sent");
+																		}
 
-														}, 30000);
+																	}
+
+																	else if (gameMode == "High Stakes") {
+
+																		if (err) {
+																			JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, tradeOffer.id, "Error");
+																		}
+		
+																		else {
+																			JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, tradeOffer.id, "Sent");
+																		}
+
+																	}
+	
+																})
+	
+															}, 30000);
+
+														}
+
+														catch (err) {
+
+															return console.error(err);
+															
+														}
+														
 													}
 
 													else if (TradeOfferManager.ETradeOfferState[tradeOffer.state] == "Active") {
 
-														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Sent");
+														if (gameMode == "Coinflip") {
+
+															CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Sent");
+
+														}
+
+														else if (gameMode == "High Stakes") {
+
+															JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, offer.id, "Sent");
+
+														}
 														
 													}
 
 													else if (TradeOfferManager.ETradeOfferState[tradeOffer.state] == "Accepted") {
 
-														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Accepted");
+														if(gameMode == "Coinflip") {
+
+															CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Accepted");
+
+														}
+
+														else if (gameMode == "High Stakes") {
+
+															JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, offer.id, "Accepted");
+
+														}
 
 													}
 
 													else {
 
-														CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, tradeOffer.id, "Error");
+														if(gameMode == "Coinflip") {
+
+															CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Error");
+
+														}
+
+														else if (gameMode == "High Stakes") {
+
+															JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, offer.id, "Error");
+
+														}
 
 													}
 
@@ -430,9 +504,16 @@ class SteamBot {
 		
 										else {
 
-											CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Sent");
+											if(gameMode == "Coinflip") {
+												CoinFlipDBScripts.withdrawSentAndConfirmed(gameID, offer.id, "Sent");
+											}
+
+											else if (gameMode == "High Stakes") {
+												JackpotDBScripts.withdrawSentAndConfirmedHS(gameID, offer.id, "Sent");
+											}
 
 										}
+
 									})
 								})
 								.catch((err) => {
