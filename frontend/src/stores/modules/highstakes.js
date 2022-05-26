@@ -8,18 +8,39 @@ const highStakes = {
       TotalPotValue: 0,
       Winner: "",
     },
-    time: 0,
+    time: 120,
     pastGames: {
       topGame: {
-        GameID: '',
+        GameID: "",
         Players: [],
         TotalPotValue: 0,
-        Winner: '',
+        Winner: "",
       },
       history: [],
-    }
+    },
   },
   getters: {
+    getHighStakesTotalValue(state) {
+      return state.currentGame.TotalPotValue;
+    },
+    getHighStakesPlayerBets(state) {
+      return state.currentGame.Players;
+    },
+    getHighStakesHistory(state) {
+      return state.pastGames;
+    },
+    getHighStakesTotalItems(state) {
+      let totalItems = 0;
+
+      state.currentGame.Players.forEach((player) => {
+        totalItems += player.skins.length;
+      });
+
+      return totalItems;
+    },
+    getHighStakesTime(state) {
+      return state.time;
+    },
   },
   mutations: {
     setHighStakesCurrentGame(state, data) {
@@ -41,7 +62,7 @@ const highStakes = {
 
       data.history.forEach((gameObj) => {
         state.pastGames.history.push(gameObj);
-      })
+      });
     },
   },
   actions: {
@@ -59,7 +80,17 @@ const highStakes = {
       axios
         .post("api/jackpot/highstakes/timer")
         .then((res) => {
-          commit("setHighStakesCurrentGame", res.data);
+          commit("setHighStakesTimer", res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    getAPIHighStakesHistory({ commit }) {
+      axios
+        .post("api/jackpot/highstakes/history")
+        .then((res) => {
+          commit("setHighStakesHistory", res.data);
         })
         .catch((err) => {
           console.log(err);

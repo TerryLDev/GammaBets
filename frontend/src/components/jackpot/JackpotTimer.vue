@@ -20,6 +20,7 @@
           style="transform: rotate(-90deg) scaleY(-1)"
         >
           <circle
+            ref="jpTimerCircle"
             id="jp-timer-circle"
             cx="50"
             cy="50"
@@ -31,7 +32,7 @@
             fill="none"
           />
         </svg>
-        <p id="jp-current-time">120</p>
+        <p id="jp-current-time">{{ timerText }}</p>
       </div>
       <div
         id="jp-total-item"
@@ -55,7 +56,7 @@
 <script>
 // for the timer circle use the translation element, convert the timeleft to the value of the stroke-dashoffset (timeleft/startTime) = (283/0), 283 = empty, 0 = full
 import { useStore } from "vuex";
-import { computed } from "vue";
+import { computed, watch, ref } from "vue";
 
 export default {
   props: {
@@ -66,11 +67,20 @@ export default {
   },
   setup() {
     const store = useStore();
+    const jpTimerCircle = ref();
 
     const itemTotal = computed(() => store.getters.getHighStakesTotalItems);
+    const timerText = computed(() => store.getters.getHighStakesTime);
+
+    watch(timerText, (newValue) => {
+      const circleStrokeDashoffset = 283 - (newValue * 283) / 120;
+      jpTimerCircle.value.style.strokeDashoffset = circleStrokeDashoffset;
+    });
 
     return {
       itemTotal,
+      timerText,
+      jpTimerCircle,
     };
   },
   methods: {
@@ -161,12 +171,6 @@ export default {
   cursor: pointer;
 }
 
-#jp-total-amount-text {
-}
-
-#jp-total-item-text {
-}
-
 /* Timer */
 
 #jp-timer {
@@ -194,6 +198,7 @@ export default {
 }
 
 #jp-timer-circle {
+  transition: all 0.5s;
   grid-area: 1 / 1 / span 1 / span 1;
 }
 

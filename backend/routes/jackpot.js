@@ -15,6 +15,7 @@ router.post("/jackpot/highstakes", (req, res) => {
     Winner: highStakesActiveGame.Winner,
 	}
 	
+	console.log("Getting High Stakes Current Game");
 	res.json(sender);
 
 });
@@ -25,6 +26,7 @@ router.post("/jackpot/highstakes/timer", (req, res) => {
 		time: highStakesTimer.time
 	}
 	
+	console.log("Getting High Stakes Current Time");
 	res.json(sender);
 
 });
@@ -36,6 +38,7 @@ router.post("/jackpot/highstakes/history", (req, res) => {
 		history: highStakesHistory.history,
 	};
 	
+	console.log("Getting High Stakes History")
 	res.json(sender);
 
 });

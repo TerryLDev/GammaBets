@@ -2,7 +2,7 @@
   <div class="player-bet" v-bind:class="getUserBetClass(player)" v-if="player">
     <img class="player-bet-profile-img" :src="player.userPicture" />
 
-    <div v-if="player.skinPictures.length > 9" class="player-bet-skins">
+    <div v-if="player.skins.length > 9" class="player-bet-skins">
       <template v-for="(skin, index) in player.skins" :key="skin">
         <img v-if="index < 9" class="player-skin-img" :src="skin.imageURL" />
       </template>

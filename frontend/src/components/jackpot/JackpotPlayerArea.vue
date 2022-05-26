@@ -1,9 +1,9 @@
 <template>
   <div id="jp-play-area" class="primary-color default-cell accent-color">
     <div class="pot-info secondary-color default-secondary-cell accent-color">
-      <h3 style="text-align: right">Min: ${{ potMin }}</h3>
+      <h3 style="text-align: right">Min: ${{ potMin.toFixed(2) }}</h3>
       <h3>{{ potName }} Pot</h3>
-      <h3 v-if="potMax == 'No Limit'">Max: {{ potMax }}</h3>
+      <h3 v-if="potMax == 0">Max: No Limit</h3>
       <h3 v-else>Max: ${{ potMax }}</h3>
     </div>
     <div id="jp-pot">
@@ -21,9 +21,9 @@ import UserBetEntry from "./UserBetEntry.vue";
 
 export default {
   props: {
-    potMin: { type: String },
+    potMin: { type: Number },
     potName: { type: String },
-    potMax: { type: String },
+    potMax: { type: Number },
     bets: { type: Array },
   },
   name: "JackpotPlayerArea",
