@@ -18,14 +18,14 @@ export default {
   },
   data() {
     return {
-      selectedClass: this.$store.state.deposit.selectedSkinIDs.includes(
+      selectedClass: this.$store.state.deposit.selectedSkins.includes(
         this.skin.id
       ),
     };
   },
   methods: {
     selectSkin(event, skin) {
-      if (this.$store.state.deposit.selectedSkinIDs.includes(skin.id)) {
+      if (this.$store.state.deposit.selectedSkins.includes(skin)) {
         document.getElementById(skin.id).classList.remove("selected");
         this.$store.dispatch("removeSelectedSkin", skin);
         this.$store.dispatch("substractSelectedPrice", skin.price);

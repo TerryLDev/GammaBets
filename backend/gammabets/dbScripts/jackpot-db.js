@@ -13,7 +13,7 @@ function withdrawSentAndConfirmedHS(gameID, withdrawState, winningsTradeID) {
 }
 
 function updateWinnerHS(gameID, winnerSteamID) {
-  HighStakesJackpot.updateOne({GameID: gameID}, {Winner: winnerSteamID}, (err) => {
+  HighStakesJackpot.updateOne({GameID: gameID}, {Winner: winnerSteamID, Status: false}, (err) => {
 
     if (err) return console.log(err);
 

@@ -180,9 +180,9 @@ class JackpotManager extends GameManager {
 
     }
 
-    tradeAccepted(offerID, dbSkins) {
+    tradeAccepted(tradeOfferObject, dbSkins) {
 
-        TradeHistory.findOne({TradeID: offerID}, (err, tradeHisDoc) => {
+        TradeHistory.findOneAndUpdate({TradeID: tradeOfferObject.id}, {State: TradeOfferManager.ETradeOfferState[tradeOfferObject.state]}, {new: true}, (err, tradeHisDoc) => {
 
             if (err) {
                 return console.log(err);
@@ -193,9 +193,17 @@ class JackpotManager extends GameManager {
                 return console.log("Invalid TradeID Lookup or Manual Change");
             }
 
-            else {
+            else if (tradeHisDoc.TransactionType == "Deposit") {
 
                 this.#callTradeAccepted(tradeHisDoc, dbSkins)
+
+            }
+
+            else if (tradeHisDoc.TransactionType == "Withdraw") {
+
+                return console.log(`Withdraw Complete: ${tradeHisDoc.TradeID}, User: ${tradeHisDoc.SteamID}`)
+
+
 
             }
 

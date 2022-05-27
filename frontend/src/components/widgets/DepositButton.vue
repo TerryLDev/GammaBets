@@ -74,6 +74,7 @@ export default {
         // joining a game
         else {
           if (this.validateDeposit(depositState)) {
+
             const data = {
               steamID: this.$store.state.user.profile.SteamID,
               skins: depositState.selectedSkins,
@@ -97,11 +98,18 @@ export default {
             tradeURL: this.$store.state.user.profile.TradeURL,
           };
 
-          socket.on("joinHighStakes", data);
+          console.log(data);
+
+          socket.emit("joinHighStakes", data);
+
+          console.log("sent hs deposit");
 
           this.$store.dispatch("resetDepositAll");
           this.$store.dispatch("setLoadingTrue");
         }
+      }
+      else {
+        console.log("Error in Deposit");
       }
     },
   },

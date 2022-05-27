@@ -26,7 +26,7 @@ const highStakesActiveGame = {
     },
     resetGame() {
         this.GameID = '';
-        this.Players.length = 0;
+        this.Players = [];
         this.TotalPotValue = 0;
         this.BotID = '';
         this.Winner = '';
@@ -115,7 +115,12 @@ const highStakesActiveGame = {
             });
 
             const attemptAverage = attempt.totalVal / attempt.skins.length;
-            const bestAttemptAverage = bestAttemptAtProfit.totalVal / bestAttemptAtProfit.skins.length;
+
+            let bestAttemptAverage = 0;
+
+            if (bestAttemptAtProfit.skins.length > 0) {
+                bestAttemptAverage = bestAttemptAtProfit.totalVal / bestAttemptAtProfit.skins.length;
+            }
 
             if (attemptAverage > bestAttemptAverage) {
                 bestAttemptAtProfit.skins = attempt.skins;
@@ -131,8 +136,10 @@ const highStakesActiveGame = {
             const serverProfitSkinIndex = allSkinsInPot.findIndex(potSkin => attemptSkin.name == potSkin.name);
 
             if (serverProfitSkinIndex != undefined && serverProfitSkinIndex > -1) {
+
                 serverProfit.push(allSkinsInPot[serverProfitSkinIndex]);
                 allSkinsInPot.splice(serverProfitSkinIndex, 1);
+                
             }
 
         })
@@ -186,6 +193,7 @@ const highStakesTimer = {
 
         else {
             // else (false) shift queue to newGame
+            highStakesActiveGame.resetGame();
             highStakesActiveGame.GameID = highStakesQueue.GameID;
             highStakesQueue.Players.forEach(player => highStakesActiveGame.Players.push(player));
             highStakesActiveGame.TotalPotValue = highStakesQueue.TotalPotValue;
@@ -194,22 +202,24 @@ const highStakesTimer = {
 
             highStakesQueue.resetQueue();
 
-            const data = {
-                GameID: highStakesActiveGame.GameID,
-                Players: highStakesActiveGame.Players,
-                TotalPotValue: highStakesActiveGame.TotalPotValue,
-                Winner: highStakesActiveGame.Winner
-            };
-    
-            highStakesEvents.emit("newHighStakesGame", data);
-    
-            highStakesActiveGame.checkStartTimer();
         }
 
         highStakesActiveGame.isSpinning = false;
+
+        const data = {
+            GameID: highStakesActiveGame.GameID,
+            Players: highStakesActiveGame.Players,
+            TotalPotValue: highStakesActiveGame.TotalPotValue,
+            Winner: highStakesActiveGame.Winner
+        };
+
+        highStakesEvents.emit("newHighStakesGame", data);
+
+        highStakesActiveGame.checkStartTimer();
+
     },
     stop() {
-        clearInterval(clock);
+        clearInterval(this.clock);
         this.clock = undefined;
         this.time = jpTimer;
     },
@@ -217,7 +227,7 @@ const highStakesTimer = {
         this.clock = setInterval(() => {
             
             if (this.time > 0) {
-                time--;
+                this.time--;
             }
 
             else {
@@ -247,7 +257,7 @@ const highStakesTimer = {
                     // send winning's to player and logs server profit to db
                     highStakesEvents.emit("highStakesServerProfit", serverProfitData);
 
-                    setTimeout(this.spinningDelayAndResetPot, 15000);
+                    setTimeout(this.spinningDelayAndResetPot, 20000);
 
                 }, 1000);
 

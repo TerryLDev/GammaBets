@@ -45,6 +45,8 @@ const manager = new TradeOfferManager();
 const client = new SteamUser();
 
 const serverProfitUtils = require("./gammabets/dbScripts/server-profit");
+const JackpotDBScripts = require("./gammabets/dbScripts/jackpot-db");
+const CoinFlipDBScripts = require("./gammabets/dbScripts/coinflip-db");
 
 const { updateSkinPrices } = require("./gammabets/updateskinvalues");
 
@@ -53,7 +55,7 @@ const { CoinFlipHandler, cfEvents, allCFGames, cfHistory, joiningQueue } = requi
 const cfGameHandler = new CoinFlipHandler();
 
 // Importing and Setting up Jackpot GameHandler
-const { highStakesEvents } = require("./gammabets/handler/high-stakes-handler");
+const { highStakesEvents, HighStakesHandler } = require("./gammabets/handler/high-stakes-handler");
 
 // Importing Alert Center
 const {AlertCenter, alertEvents} = require("./gammabets/alertcenter")
@@ -98,11 +100,24 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
 
 				})
 
-				console.log("done: Coinflip")
+				console.log("done: Coinflip");
 			}
 
 		})
-		
+
+		HighStakesJackpot.findOne({Status: true}, (err, gameDoc) => {
+			if (err) console.log(err);
+			else {
+
+
+				if (gameDoc != null && gameDoc != undefined) {
+					const hsHandler = new HighStakesHandler;
+					hsHandler.newGame(gameDoc);
+				}
+				
+				console.log("done: High Stakes Pot")
+			}
+		});
 		
 	}
 });
@@ -228,6 +243,7 @@ const io = socket(server, {cors: {
 	origin: "http://localhost:8080"
 }
 });
+
 app.set("socketio", io);
 
 const messages = [];
@@ -460,6 +476,8 @@ io.on("connection", (socket) => {
 
 	socket.on("joinHighStakes", (data) => {
 
+		console.log(`User: ${data.steamID}, is Joining High Stakes Jackpot`);
+
 		/*
 		data = {
 			skins: [{skin obj},],
@@ -468,7 +486,19 @@ io.on("connection", (socket) => {
 		}
 		*/
 
-		jpBotZero.joinHighStakesPot(data.steamID, data.tradeURL, data.skins)
+		if (jpBotZero.client.steamID == null) {
+			jpBotZero.logIntoSteam()
+			.then(() => {
+				jpBotZero.joinHighStakesPot(data.steamID, data.tradeURL, data.skins);
+			})
+			.catch(err => {
+				console.log(err);
+			})
+		}
+
+		else {
+			jpBotZero.joinHighStakesPot(data.steamID, data.tradeURL, data.skins);
+		}
 
 	});
 
@@ -691,8 +721,6 @@ cfEvents.on("withdrawWinnings", (data) => {
 
 	}
 
-
-
 });
 
 // update cf history here
@@ -820,6 +848,7 @@ highStakesEvents.on("highStakesServerProfit", data => {
 			}
 
 			serverProfitUtils.logProfit(data.serverProfit, data.gameID, data.botID);
+			JackpotDBScripts.updateWinnerHS(data.gameID, data.winner);
 
 		}
 

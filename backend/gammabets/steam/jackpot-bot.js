@@ -50,7 +50,7 @@ class JackpotBot extends SteamBot {
 
 					console.log("Steam User: " + offer.partner + "\nAccepted Trade: " + offer.id);
 
-					this.jpManager.tradeAccepted(offer.id, this.skins);
+					this.jpManager.tradeAccepted(offer, this.skins);
 
 				}
 

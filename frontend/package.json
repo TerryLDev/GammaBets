@@ -18,6 +18,7 @@
     "socket.io": "^4.4.1",
     "socket.io-client": "^4.4.1",
     "vue": "^3.0.0",
+    "vue-observe-visibility": "^1.0.0",
     "vue-passport": "^1.1.0",
     "vue-router": "^4.0.0-0",
     "vuex": "^4.0.0-0"

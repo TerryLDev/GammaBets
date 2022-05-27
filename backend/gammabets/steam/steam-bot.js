@@ -76,27 +76,25 @@ class SteamBot {
 
 		this.client.on('webSession', (sessionid, cookies) => {
 			this.manager.setCookies(cookies);
-
-			this.community.setCookies(cookies)
-			this.community.startConfirmationChecker(3000, this.identitySecret);
+			this.community.setCookies(cookies);
 		})
 
 		this.client.on("error", (err) => {
 
 			if (err == "Error: RateLimitExceeded") {
 
-				console.log("Bot 1 has exceeded its rate limit");
+				console.log(`Bot ${this.botID} has exceeded its rate limit`);
 				this.client.logOff();
 
 			}
 		
-			if (err == "Error: InvalidPassword") {
+			else if (err == "Error: InvalidPassword") {
 		
 				if (this.loginAttempts < 5) {
 		
-					setTimeout(function() {
+					setTimeout(() => {
 		
-						bot.logIntoSteam();
+						this.logIntoSteam();
 						console.log("Error: InvalidPassword");
 						console.log("Logging in again");
 		
@@ -110,6 +108,11 @@ class SteamBot {
 
 				}
 
+			}
+
+			else if(err == "Error: Not Logged In") {
+				console.log(`Bot: ${this.botID}, Logged Off. Logging back in`);
+				this.logIntoSteam();
 			}
 		
 			else {
@@ -125,7 +128,7 @@ class SteamBot {
 
 				let shared = this.sharedSecret;
 				let bot = this.botID;
-				console.log("Wrong Code for Bot: " + bot);
+				console.log("Wrong Code for Bot: " + this.botID);
 
 				this.loginAttemptsCounter(1);
 
@@ -134,7 +137,7 @@ class SteamBot {
 					let code = SteamTotp.generateAuthCode(shared);
 					callback(code);
 	
-				}, 1000 * 30);
+				}, 30000);
 
 			}
 		
@@ -155,6 +158,8 @@ class SteamBot {
 			setTimeout(this.logIntoSteam(), 1500);
 
 		});
+
+
 		
 	}
 
@@ -199,7 +204,7 @@ class SteamBot {
 				// skins is an array of skin ids
 				skins.forEach(desired => {
 
-					const item = inv.find(item => item.id == desired);
+					const item = inv.find(item => item.id == desired.id);
 
 					if(item) {
 
@@ -304,8 +309,6 @@ class SteamBot {
 
 			}
 
-			console.log(skins);
-
 			let items = [];
 
 			skins.forEach(skin => {
@@ -379,6 +382,8 @@ class SteamBot {
 									this.community.acceptConfirmationForObject(this.identitySecret, offer.id, (err) => {
 										if (err) {
 
+											console.log(err);
+
 											// check if it went through
 											this.manager.getOffer(offer.id, (err, tradeOffer) => {
 
@@ -406,9 +411,9 @@ class SteamBot {
 														try {
 
 															// try to confirm it again after 30 seconds
-															setTimeout(function() {
+															setTimeout(() => {
 
-																this.community.acceptConfirmationForObject(this.identitySecretm, tradeOffer.id, (err) => {
+																this.community.acceptConfirmationForObject(this.identitySecret, tradeOffer.id, (err) => {
 
 																	if (gameMode == "Coinflip") {
 

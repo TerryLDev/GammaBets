@@ -1,31 +1,38 @@
 <template>
-  <div class="player-bet" v-bind:class="getUserBetClass(player)" v-if="player">
-    <img class="player-bet-profile-img" :src="player.userPicture" />
+  <Transition name="fade-user-bet">
+    <div class="player-bet" v-bind:class="getUserBetClass(player)" v-if="player && renderBet">
+      <img class="player-bet-profile-img" :src="player.userPicture" />
 
-    <div v-if="player.skins.length > 9" class="player-bet-skins">
-      <template v-for="(skin, index) in player.skins" :key="skin">
-        <img v-if="index < 9" class="player-skin-img" :src="skin.imageURL" />
-      </template>
+      <div v-if="player.skins.length > 9" class="player-bet-skins">
+        <template v-for="(skin, index) in player.skins" :key="skin">
+          <img v-if="index < 9" class="player-skin-img" :src="skin.imageURL" />
+        </template>
 
-      <p>+{{ player.skinPictures.length - 9 }}</p>
+        <p>+{{ player.skins.length - 9 }}</p>
+      </div>
+
+      <div v-else class="player-bet-skins">
+        <template v-for="skin in player.skins" :key="skin">
+          <img class="player-skin-img" :src="skin.imageURL" />
+        </template>
+      </div>
+
+      <div class="player-bet-val-and-name">
+        <h5>${{ playerValue(player.skins) }} {{ getPlayerPercent(player) }}%</h5>
+        <h6>{{ player.username }}</h6>
+      </div>
     </div>
-
-    <div v-else class="player-bet-skins">
-      <template v-for="skin in player.skins" :key="skin">
-        <img class="player-skin-img" :src="skin.imageURL" />
-      </template>
-    </div>
-
-    <div class="player-bet-val-and-name">
-      <h5>${{ playerValue(player.skins) }} {{ getPlayerPercent(player) }}%</h5>
-      <h6>{{ player.username }}</h6>
-    </div>
-  </div>
+  </Transition>
 </template>
 
 <script>
 export default {
   props: { player: Object },
+  data() {
+    return {
+      renderBet: false,
+    };
+  },
   methods: {
     playerValue(playerSkins) {
       let totalVal = 0;
@@ -37,7 +44,7 @@ export default {
       return totalVal.toFixed(2);
     },
     getPlayerPercent(player) {
-      const total = this.$store.state.highStakes.game.TotalPotValue;
+      const total = this.$store.getters.getHighStakesTotalValue;
 
       let percent = ((this.playerValue(player.skins) / total) * 100).toFixed(2);
 
@@ -61,11 +68,29 @@ export default {
       }
     },
   },
+  mounted() {
+    this.renderBet = true;
+  },
   name: "UserBetEntry",
 };
 </script>
 
 <style>
+.fade-user-bet-enter-from,
+.fade-user-bet-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.fade-user-bet-enter-to {
+  opacity: 1;
+}
+
+.fade-user-bet-leave-active,
+.fade-user-bet-enter-active {
+  transition: all 1s;
+}
+
 .player-bet {
   display: grid;
   grid-template: auto / 1fr auto 1fr;

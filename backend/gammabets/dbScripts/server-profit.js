@@ -4,7 +4,7 @@ function logProfit(skins, gameID, botID) {
 
   const query = {
     GameID: gameID,
-    SkinIDs: skins,
+    Skins: skins,
     BotID: botID
   }
 

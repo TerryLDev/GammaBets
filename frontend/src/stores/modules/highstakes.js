@@ -6,7 +6,8 @@ const highStakes = {
       GameID: "",
       Players: [],
       TotalPotValue: 0,
-      Winner: "",
+      Winner: "none",
+      readyToSpin: false,
     },
     time: 120,
     pastGames: {
@@ -41,13 +42,30 @@ const highStakes = {
     getHighStakesTime(state) {
       return state.time;
     },
+    getHighStakesWinner(state) {
+      return state.currentGame.Winner;
+    },
+    getSpinnerStatus(state) {
+      return state.currentGame.readyToSpin;
+    }
   },
   mutations: {
     setHighStakesCurrentGame(state, data) {
       state.currentGame.GameID = data.GameID;
+      state.currentGame.Players = [];
       data.Players.forEach((player) => state.currentGame.Players.push(player));
       state.currentGame.TotalPotValue = data.TotalPotValue;
-      state.currentGame.Winner = data.Winner;
+      state.currentGame.Winner = data.winner;
+      if (
+        state.currentGame.Winner != "" &&
+        state.currentGame.Winner != "" &&
+        state.currentGame.Winner != undefined
+      ) {
+        state.currentGame.readyToSpin = true;
+      }
+      else {
+        state.currentGame.readyToSpin = false;
+      }
     },
     setHighStakesTimer(state, data) {
       state.time = data.time;
@@ -63,6 +81,23 @@ const highStakes = {
       data.history.forEach((gameObj) => {
         state.pastGames.history.push(gameObj);
       });
+    },
+    newHighStakesPlayer(state, data) {
+      state.currentGame.Players.push(data.Player);
+      state.currentGame.TotalPotValue = data.TotalPotValue;
+    },
+    setHighStakesWinner(state, data) {
+      state.currentGame.Winner = data.winner;
+      if (
+        state.currentGame.Winner != "" &&
+        state.currentGame.Winner != "" &&
+        state.currentGame.Winner != undefined
+      ) {
+        state.currentGame.readyToSpin = true;
+      }
+      else {
+        state.currentGame.readyToSpin = false;
+      }
     },
   },
   actions: {
@@ -95,6 +130,21 @@ const highStakes = {
         .catch((err) => {
           console.log(err);
         });
+    },
+    newHighStakesGame({ commit }, game) {
+      commit("setHighStakesCurrentGame", game);
+    },
+    newHighStakesPlayer({ commit }, data) {
+      commit("newHighStakesPlayer", data);
+    },
+    setHighStakesTimer({ commit }, time) {
+      commit("setHighStakesTimer", time);
+    },
+    setHighStakesHistory({ commit }, data) {
+      commit("setHighStakesHistory", data);
+    },
+    setHighStakesWinner({ commit }, data) {
+      commit("setHighStakesWinner", data);
     },
   },
 };

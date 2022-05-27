@@ -7,7 +7,7 @@ const serverProfitSchema = new Schema({
         type: String,
         required: true
     },
-    SkinIDs: Array,
+    Skins: Array,
     BotID: String
 }, {
     timestamps: true

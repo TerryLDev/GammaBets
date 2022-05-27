@@ -42,21 +42,38 @@
         <p class="top-spinner-area-t">Total Items:</p>
       </div>
     </div>
-
-    <button
-      id="jp-deposit"
-      class="secondary-color default-secondary-cell accent-color"
-      @click="openDepositMenu"
-    >
-      Deposit
-    </button>
+    <Transition name="timer-trans" mode="out-in">
+      <button
+        v-if="imagesloaded == false"
+        id="jp-deposit"
+        class="secondary-color default-secondary-cell accent-color"
+        @click="openDepositMenu"
+      >
+        Deposit
+      </button>
+      <div v-else-if="imagesloaded" id="spinner-div">
+        <div id="spinner-block">
+          <div ref="spinnerImageHolder" id="spinner-image-holder">
+            <SpinnerPlayerImage
+              v-for="(img, index) in playerImgList"
+              :key="img"
+              :imgSrc="img"
+              :picIndex="index + 1"
+            />
+          </div>
+        </div>
+        <div id="spinner-line"></div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script>
 // for the timer circle use the translation element, convert the timeleft to the value of the stroke-dashoffset (timeleft/startTime) = (283/0), 283 = empty, 0 = full
+// https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg
 import { useStore } from "vuex";
 import { computed, watch, ref } from "vue";
+import SpinnerPlayerImage from "./SpinnerPlayerImage.vue";
 
 export default {
   props: {
@@ -67,21 +84,43 @@ export default {
   },
   setup() {
     const store = useStore();
+
     const jpTimerCircle = ref();
 
     const itemTotal = computed(() => store.getters.getHighStakesTotalItems);
     const timerText = computed(() => store.getters.getHighStakesTime);
+    const highStakesWinner = computed(() => store.getters.getHighStakesWinner);
 
     watch(timerText, (newValue) => {
       const circleStrokeDashoffset = 283 - (newValue * 283) / 120;
       jpTimerCircle.value.style.strokeDashoffset = circleStrokeDashoffset;
     });
 
+    setTimeout(() => {
+      store.dispatch("setHighStakesWinner", { winner: "yikes" });
+    }, 2000);
+
+    setTimeout(() => {
+      store.dispatch("setHighStakesWinner", { winner: "" }); 
+    }, 19000);
+
     return {
       itemTotal,
       timerText,
       jpTimerCircle,
+      highStakesWinner,
     };
+  },
+  data() {
+    return {
+      playerImgList: [],
+      imagesloaded: false,
+    };
+  },
+  computed: {
+    ifReadyToSpin() {
+      return this.$store.getters.getSpinnerStatus;
+    },
   },
   methods: {
     openDepositMenu() {
@@ -92,8 +131,43 @@ export default {
       store.dispatch("isVisibleToggle");
       store.dispatch("setDepositType", this.depositType);
     },
+    generateImagesDev() {
+      for (let i = 0; i < 201; i++) {
+        this.playerImgList.push(
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg"
+        );
+      }
+      this.imagesloaded = true;
+      setTimeout(() => {
+        this.$refs.spinnerImageHolder.style.transform = "translateX(-16200px)";
+      }, 1500);
+    },
+    /*
+    generateImages() {
+      const allPlayers = this.$store.getters.getHighStakesPlayerBets;
+      for (let i = 0; i < 200; i++) {
+        this.playerImgList.push(
+          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg"
+        );
+      }
+      this.imagesloaded = true;
+      setTimeout(() => {
+        this.$refs.spinnerImageHolder.style.transform = "translateX(-16200px)";
+      }, 1500);
+    },
+    */
+  },
+  watch: {
+    ifReadyToSpin(newVal) {
+      if (newVal) {
+        this.generateImagesDev();
+      } else {
+        this.imagesloaded = false;
+      }
+    },
   },
   name: "JackpotTimer",
+  components: { SpinnerPlayerImage },
 };
 </script>
 
@@ -198,7 +272,7 @@ export default {
 }
 
 #jp-timer-circle {
-  transition: all 0.5s;
+  transition: all 1s;
   grid-area: 1 / 1 / span 1 / span 1;
 }
 
@@ -213,5 +287,59 @@ export default {
   text-align: center;
   color: #ffffff;
   grid-area: 1 / 1 / span 1 / span 1;
+}
+
+/* Spinner Animation */
+
+#spinner-div {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+#spinner-block {
+  float: left;
+  width: 600px;
+  height: 82px;
+  padding: 0;
+  border: black solid 4px;
+  border-radius: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#spinner-image-holder {
+  width: 16800px;
+  height: 82px;
+  padding: 0;
+  background-color: white;
+  transition: all 10s;
+  transition-timing-function: cubic-bezier(.08,.88,.03,1);
+}
+
+#spinner-line {
+  padding: 0px;
+  margin: 0px;
+  height: 82px;
+  border-right: 3px solid green;
+  border-radius: 10px;
+  position: absolute;
+}
+
+
+.timer-trans-enter-from,
+.timer-trans-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.timer-trans-enter-to {
+  opacity: 1;
+}
+
+.timer-trans-leave-active,
+.timer-trans-enter-active {
+  transition: all 1s;
 }
 </style>
