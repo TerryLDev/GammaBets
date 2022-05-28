@@ -71,16 +71,24 @@ const highStakes = {
       state.time = data.time;
     },
     setHighStakesHistory(state, data) {
+      // topGame
       state.pastGames.topGame.GameID = data.topGame.GameID;
+      state.pastGames.topGame.Players = [];
+
       data.topGame.Players.forEach((player) =>
         state.pastGames.topGame.Players.push(player)
       );
+
       state.pastGames.topGame.TotalPotValue = data.topGame.TotalPotValue;
       state.pastGames.topGame.Winner = data.topGame.Winner;
 
+      // history
+      state.pastGames.history = [];
       data.history.forEach((gameObj) => {
         state.pastGames.history.push(gameObj);
       });
+
+      console.log(state.pastGames);
     },
     newHighStakesPlayer(state, data) {
       state.currentGame.Players.push(data.Player);

@@ -278,6 +278,14 @@ const highStakesHistory = {
         Winner: '',
     },
     history: [],
+    getHistoryFormat(gameObj) {
+        return {
+            GameID: gameObj.GameID,
+            Players: gameObj.Players,
+            TotalPotValue: gameObj.TotalPotValue,
+            Winner: gameObj.Winner,
+        }
+    },
     shiftHistory() {
         if (this.history.length >= 5) {
             this.history.shift();
@@ -295,12 +303,16 @@ const highStakesHistory = {
         this.topGame.Winner = gameObj.Winner;
     },
     addGame(gameObj) {
+
         const currentTime = Date.now();
 
         // check if it's been 24 hours
         if ((currentTime - this.timeCycle) > (1000 * 60 * 60 * 24)) {
             this.newTopGame(gameObj);
+            this.shiftHistory();
+            this.history.push(this.getHistoryFormat(gameObj));
             this.timeCycle = currentTime;
+            console.log(this.history);
         }
 
         // check if the new game beats the current top game

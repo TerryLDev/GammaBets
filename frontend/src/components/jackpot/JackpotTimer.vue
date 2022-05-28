@@ -55,10 +55,9 @@
         <div id="spinner-block">
           <div ref="spinnerImageHolder" id="spinner-image-holder">
             <SpinnerPlayerImage
-              v-for="(img, index) in playerImgList"
+              v-for="img in playerImgList"
               :key="img"
               :imgSrc="img"
-              :picIndex="index + 1"
             />
           </div>
         </div>
@@ -69,8 +68,6 @@
 </template>
 
 <script>
-// for the timer circle use the translation element, convert the timeleft to the value of the stroke-dashoffset (timeleft/startTime) = (283/0), 283 = empty, 0 = full
-// https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg
 import { useStore } from "vuex";
 import { computed, watch, ref } from "vue";
 import SpinnerPlayerImage from "./SpinnerPlayerImage.vue";
@@ -89,26 +86,16 @@ export default {
 
     const itemTotal = computed(() => store.getters.getHighStakesTotalItems);
     const timerText = computed(() => store.getters.getHighStakesTime);
-    const highStakesWinner = computed(() => store.getters.getHighStakesWinner);
 
     watch(timerText, (newValue) => {
       const circleStrokeDashoffset = 283 - (newValue * 283) / 120;
       jpTimerCircle.value.style.strokeDashoffset = circleStrokeDashoffset;
     });
 
-    setTimeout(() => {
-      store.dispatch("setHighStakesWinner", { winner: "yikes" });
-    }, 2000);
-
-    setTimeout(() => {
-      store.dispatch("setHighStakesWinner", { winner: "" }); 
-    }, 19000);
-
     return {
       itemTotal,
       timerText,
       jpTimerCircle,
-      highStakesWinner,
     };
   },
   data() {
@@ -121,8 +108,21 @@ export default {
     ifReadyToSpin() {
       return this.$store.getters.getSpinnerStatus;
     },
+    highStakesWinner() {
+      return this.$store.getters.getHighStakesWinner;
+    },
   },
   methods: {
+    getNegativeRandomInt(min, max) {
+      return Math.abs(Math.floor(Math.random() * (max - min + 1)) + min) * -1;
+    },
+    getPlayerTotalValuePercentage(potTotal, player) {
+      let total = 0;
+      player.skins.forEach((skin) => {
+        total += skin.value;
+      });
+      return Math.floor((total / potTotal) * 100);
+    },
     openDepositMenu() {
       const store = this.$store;
 
@@ -131,36 +131,50 @@ export default {
       store.dispatch("isVisibleToggle");
       store.dispatch("setDepositType", this.depositType);
     },
-    generateImagesDev() {
-      for (let i = 0; i < 201; i++) {
-        this.playerImgList.push(
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg"
-        );
-      }
-      this.imagesloaded = true;
-      setTimeout(() => {
-        this.$refs.spinnerImageHolder.style.transform = "translateX(-16200px)";
-      }, 1500);
-    },
-    /*
     generateImages() {
-      const allPlayers = this.$store.getters.getHighStakesPlayerBets;
-      for (let i = 0; i < 200; i++) {
-        this.playerImgList.push(
-          "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg"
+      const store = this.$store;
+
+      const allPlayers = store.getters.getHighStakesPlayerBets;
+
+      const winnerIndex = allPlayers.findIndex(
+        (player) => player.steamID == this.highStakesWinner
+      );
+      const winnerImg = allPlayers[winnerIndex].userPicture;
+      const imageList = [];
+      allPlayers.forEach((player) => {
+        const playerValPercent = this.getPlayerTotalValuePercentage(
+          this.totalPotValue,
+          player
         );
+
+        for (let i = 0; i < playerValPercent; i++) {
+          imageList.push(player.userPicture);
+        }
+      });
+
+      for (let i = 0; i < 201; i++) {
+        const randomPlayerImg = Math.floor(Math.random() * imageList.length);
+        this.playerImgList.push(imageList[randomPlayerImg]);
       }
+
+      this.playerImgList[196] = winnerImg;
+
       this.imagesloaded = true;
       setTimeout(() => {
-        this.$refs.spinnerImageHolder.style.transform = "translateX(-16200px)";
+        const randomInt = this.getNegativeRandomInt(16167, 16242);
+        console.log(randomInt);
+        this.$refs.spinnerImageHolder.style.transform = `translateX(${randomInt}px)`;
       }, 1500);
+      setTimeout(() => {
+        console.log("done");
+        // Transition to to show the winner and their percentage
+      }, 13000)
     },
-    */
   },
   watch: {
     ifReadyToSpin(newVal) {
       if (newVal) {
-        this.generateImagesDev();
+        this.generateImages();
       } else {
         this.imagesloaded = false;
       }
@@ -315,7 +329,7 @@ export default {
   padding: 0;
   background-color: white;
   transition: all 10s;
-  transition-timing-function: cubic-bezier(.08,.88,.03,1);
+  transition-timing-function: cubic-bezier(0.08, 0.88, 0.03, 1);
 }
 
 #spinner-line {
@@ -326,7 +340,6 @@ export default {
   border-radius: 10px;
   position: absolute;
 }
-
 
 .timer-trans-enter-from,
 .timer-trans-leave-to {

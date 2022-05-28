@@ -59,6 +59,7 @@ export default {
 
     socket.on("highStakesHistory", (data) => {
       store.dispatch("setHighStakesHistory", data);
+      console.log(data);
     });
 
     socket.on("highStakesWinner", (data) => {

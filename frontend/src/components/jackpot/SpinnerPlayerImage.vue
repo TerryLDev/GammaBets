@@ -1,13 +1,12 @@
 <template>
   <div class="player-spinner-img-div">
     <img :src="imgSrc" class="player-spinner-img" />
-    <p class="num">{{ picIndex }}</p>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["imgSrc", "picIndex"],
+  props: ["imgSrc"],
   name: "SpinnerPlayerImage",
 };
 </script>
@@ -27,12 +26,5 @@ export default {
   height: 82px;
   padding-right: 2px;
   display: inline-block;
-}
-.num {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
 }
 </style>

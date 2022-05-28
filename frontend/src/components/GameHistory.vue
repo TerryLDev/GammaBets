@@ -1,35 +1,33 @@
 <template>
   <div id="history" class="primary-color default-cell accent-color">
     <h3 class="side-menu-title">{{ historyTitle }} History</h3>
-    <div id="history-div">
-      <Transition>
-        <div v-if="isCF && cfDataLoaded && cfDataDefined">
-          <CFHistoryTop :topGame="cfHistory.topGame" />
-          <div
-            id="recent-history"
-            v-for="histObj in cfHistory.history"
-            :key="histObj.gameID"
-          >
-            <CFHistoryTile :historyObject="histObj" />
-            <div class="tile-line-break"></div>
-          </div>
+    <Transition>
+      <div v-if="isCF" id="history-div">
+        <CFHistoryTop :topGame="cfHistory.topGame" />
+        <div
+          id="recent-history"
+          v-for="histObj in cfHistory.history"
+          :key="histObj.gameID"
+        >
+          <CFHistoryTile :historyObject="histObj" />
+          <div class="tile-line-break"></div>
         </div>
+      </div>
 
-        <div v-else-if="isHS && hsDefined">
-          <CFHistoryTop :topGame="cfHistory.topGame" />
-          <div
-            id="recent-history"
-            v-for="histObj in cfHistory.history"
-            :key="histObj.gameID"
-          >
-            <CFHistoryTile :historyObject="histObj" />
-            <div class="tile-line-break"></div>
-          </div>
+      <div v-else-if="isHS" id="history-div">
+        <JPHistoryTop :topGame="hsHistory.topGame" />
+        <div class="tile-line-break"></div>
+        <div
+          id="recent-history"
+          v-for="histObj in hsHistory.history"
+          :key="histObj.gameID"
+        >
+          <JPHistoryTile :historyObject="histObj" />
+          <div class="tile-line-break"></div>
         </div>
-
-        <div v-else></div>
-      </Transition>
-    </div>
+      </div>
+      <h1 v-else>KILL ME</h1>
+    </Transition>
   </div>
 </template>
 
@@ -38,31 +36,23 @@ import axios from "axios";
 
 import CFHistoryTile from "./widgets/history/CFHistoryTile.vue";
 import CFHistoryTop from "./widgets/history/CFHistoryTop.vue";
+import JPHistoryTop from "./widgets/history/JPHistoryTop.vue";
+import JPHistoryTile from "./widgets/history/JPHistoryTile.vue";
 
 export default {
   props: { historyTitle: String },
   data() {
     return {
-      cfDataLoaded: false,
-      cfDataDefined: false,
-      hsDefined: false,
+      cfHistory: {},
+      hsHistory: {},
       isCF: false,
       isHS: false,
       isLS: false,
     };
   },
-  computed: {
-    cfHistory() {
-      return this.$store.getters.getCFHistory;
-    },
-    hsHistory() {
-      return this.$store.getters.getHighStakesHistory;
-    },
-  },
   methods: {
     checkHistoryTitle() {
       const title = this.historyTitle.toLowerCase();
-
       if (title == "coinflip") {
         return "cf";
       } else if (title == "high stakes") {
@@ -74,9 +64,20 @@ export default {
         .post("api/coinflip/history")
         .then((res) => {
           this.$store.dispatch("setCoinflipHistory", res.data);
+          this.cfHistory = res.data;
           this.isCF = true;
-          this.cfDataLoaded = true;
-          console.log(this.cfHistory);
+        })
+        .catch((err) => {
+          return console.error(err);
+        });
+    },
+    getHSHistory() {
+      axios
+        .post("api/jackpot/highstakes/history")
+        .then((res) => {
+          this.$store.dispatch("setHighStakesHistory", res.data);
+          this.hsHistory = res.data;
+          this.isHS = true;
         })
         .catch((err) => {
           return console.error(err);
@@ -89,28 +90,14 @@ export default {
     if (historyType == "cf") {
       this.getCFHistory();
     } else if (historyType == "hs") {
-      this.isHS = true;
+      this.getHSHistory();
     }
   },
   components: {
     CFHistoryTile,
     CFHistoryTop,
-  },
-  watch: {
-    cfHistory(newVal) {
-      if (newVal.topGame.userPic != undefined) {
-        this.cfDataDefined = true;
-      } else {
-        this.cfDataDefined = false;
-      }
-    },
-    hsHistory(newVal) {
-      if (newVal.topGame.GameID != "" && newVal.history.length > 0) {
-        this.hsDefined = true;
-      } else {
-        this.hsDefined = false;
-      }
-    },
+    JPHistoryTop,
+    JPHistoryTile,
   },
   name: "GameHistory",
 };
@@ -125,6 +112,7 @@ export default {
   margin-left: 20px;
   display: block;
   padding: 0px 10px 15px;
+  overflow-y: scroll;
 }
 
 #history-div {
@@ -137,13 +125,23 @@ export default {
   width: 100%;
 }
 
+#recent-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
 .top-history-title {
-  margin: 0px 0px 15px 0px;
+  margin: 10px 0px 15px 0px;
   font-family: "Montserrat";
   font-style: normal;
   font-weight: 700;
   font-size: 18px;
-  line-height: 22px;
+  line-height: 18px;
   color: #00ff19;
 }
 
@@ -152,12 +150,13 @@ export default {
   font-style: normal;
   font-weight: 700;
   font-size: 14px;
-  line-height: 17px;
+  line-height: 14px;
   color: #ffffff;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
 }
 
 .top-history-info p {
@@ -166,7 +165,7 @@ export default {
 }
 
 .tile-line-break {
-  border: 2px solid rgba(229, 239, 172, 0.5);
+  border-top: 2px solid rgba(229, 239, 172, 0.5);
   box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
   width: 100%;
   margin: 0px 0px 10px;

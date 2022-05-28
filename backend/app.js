@@ -856,4 +856,78 @@ highStakesEvents.on("highStakesServerProfit", data => {
 
 });
 
+setTimeout(() => {
+	const hsHandler = new HighStakesHandler;
+	hsHandler.newGame({
+		GameID: "gncqdvgi35o0jlfndovv7bqutmvsglwv",
+		Players: [
+			{
+				username:"terryluciano1",
+				steamID:"76561199211188775",
+				userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
+				skins: [
+					{
+						name: "Bombing Kilt",
+						id: 3704786221484486064,
+						value: 0.58,
+						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835df5GLCfCk4nReh8DEiv5dRPqo9q7c3Rf8HyYC8VA/"
+					},
+					{
+						name: "Epidemic Roadsign Vest",
+						id:"3704786221484370481",
+						value: 0.94,
+						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc7GLCfCk4nReh8DEiv5dYO6k6pLU-Q_28hhmLJOc/"
+					}
+				]
+			},
+			{
+				username:"Brollow",
+				steamID:"76561198157301980",
+				userPicture: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/94/94aa675a40e4019fc6b6360163563ce4ea1177ee_full.jpg",
+				skins:[
+					{
+						name:"Forest Camo Pants",
+						id: "3704786221484425764",
+						value:0.11,
+						imageURL: "https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5GPMfCk4nReh8DEiv5daMK84rrwwQ_m6f-_bfrM/"
+					},
+					{
+						name: "Troll Daddy Chest Plate",
+						id:"3704786221484485809",
+						value: 0.62,
+						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Be42LEfCk4nReh8DEiv5dbOaE_rb0zR_mDlEHGGQ/"
+					},
+					{
+						name:"Black Hoodie",
+						id:"3704786221485435733",
+						value:0.54,
+						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ja5WXMfCk4nReh8DEiv5daPqk5q7IxRv2_CuOfQ1k/"
+					},
+					{
+						name: "Cloth",
+						id: "3704786221484425771",
+						value:0.14,
+						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5GHEfCk4nReh8DEiv5dYMKA5pLYzRv6605EYJLk/"
+					}
+				]
+			},
+			{
+				username:"Daddy Disappointment",
+				steamID:"76561198072093858",
+				userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg",
+				skins: [
+					{
+						name:"Frostwulf Mask",
+						id:"3704786221485422419",
+						value:1.02,
+						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Bd5GLFfCk4nReh8DEiv5ddOas3q7cwR_i-bfIrfE4/"
+					}
+				]
+			}
+		],
+		TotalPotValue: 3.95,
+		BotID: 'JP0',
+	});
+}, 10000)
+
 module.exports = {skins};
