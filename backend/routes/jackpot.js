@@ -33,15 +33,9 @@ router.post("/jackpot/highstakes/timer", (req, res) => {
 
 router.post("/jackpot/highstakes/history", (req, res) => {
 
-	console.log(highStakesHistory);
-	const historyThing = [];
-	for(let x = 0; x < 5; x++) {
-		historyThing.push(highStakesHistory.history[0]);
-	}
-
 	const sender = {
 		topGame: highStakesHistory.topGame,
-		history: historyThing,
+		history: highStakesHistory.history,
 	};
 	
 	console.log("Getting High Stakes History")

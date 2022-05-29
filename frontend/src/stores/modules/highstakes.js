@@ -18,6 +18,7 @@ const highStakes = {
         Winner: "",
       },
       history: [],
+      isDefinedHistory: false,
     },
   },
   getters: {
@@ -47,6 +48,9 @@ const highStakes = {
     },
     getSpinnerStatus(state) {
       return state.currentGame.readyToSpin;
+    },
+    getIsHighStakesHistoryDefined(state) {
+      return state.pastGames.isDefinedHistory;
     }
   },
   mutations: {
@@ -88,7 +92,9 @@ const highStakes = {
         state.pastGames.history.push(gameObj);
       });
 
-      console.log(state.pastGames);
+      if (state.pastGames.history.length > 0) {
+        state.pastGames.isDefinedHistory = true;
+      }
     },
     newHighStakesPlayer(state, data) {
       state.currentGame.Players.push(data.Player);
