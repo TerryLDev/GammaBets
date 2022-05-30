@@ -35,6 +35,12 @@ class CoinFlipBot extends SteamBot{
 	async #cfSteamEventListners() {
 
 		try {
+
+			this.manager.on('newOffer', (offer) => {
+				console.log("New Offer Received");
+				console.log("Is Offer Sent by Bot:", offer.isOurOffer);
+				this.declineTradeOffer(offer);
+			});
 			
 			this.manager.on("sentOfferChanged", (offer, oldState) => {
 
@@ -65,6 +71,16 @@ class CoinFlipBot extends SteamBot{
 
 				}
 
+				// Trade sent was countered
+				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Countered") {
+					console.log("Steam User: " + offer.partner + "\nCountered Trade: " + offer.id);
+					TradeHistory.updateOne({TradeID: offer.id}, (err) => {
+						if (err) {
+							console.error(err);
+						}
+					});
+				}
+
 			});
 
 		}
@@ -80,16 +96,6 @@ class CoinFlipBot extends SteamBot{
 	}
 
 	////////////////////////
-
-	// Skin List
-
-	#makeSkinIDList(skins) {
-		let skinIDs = [];
-
-		skins.forEach(skin => skinIDs.push(skin.id));
-
-		return skinIDs;
-	}
 
 	// Main Methods
 
@@ -115,9 +121,7 @@ class CoinFlipBot extends SteamBot{
 
 			if (cfGame) {
 
-				const skinIDs = this.#makeSkinIDList(skins);
-
-				this.sendDeposit("Coinflip", cfGame.game.gameID, skinIDs, steamID, tradeURL, "Joining");
+				this.sendDeposit("Coinflip", cfGame.game.gameID, skins, steamID, tradeURL, "Joining");
 
 				User.findOne({SteamID: steamID}, (err, user) => {
 					if (err) return console.error(err);
@@ -149,9 +153,7 @@ class CoinFlipBot extends SteamBot{
 
 		try {
 
-			const skinIDs = await this.#makeSkinIDList(skins);
-
-			await this.sendDeposit("Coinflip", gameID, skinIDs, steamID, tradeURL, "Creating");
+			await this.sendDeposit("Coinflip", gameID, skins, steamID, tradeURL, "Creating");
 
 			creatingQueue.addToQueue(gameID, steamID, side);
 

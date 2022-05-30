@@ -20,9 +20,24 @@ const highStakesActiveGame = {
 
                 highStakesTimer.start();
 
+                this.checkTotalAmountOfSkins();
+
             }
 
         }
+    },
+    checkTotalAmountOfSkins() {
+
+        let total = 0;
+        this.Players.forEach(player => {
+            total += player.skins.length;
+        });
+
+        if (total >= 100) {
+            highStakesActiveGame.isSpinning = true;
+            highStakesTimer.time = 1;
+        }
+        
     },
     resetGame() {
         this.GameID = '';
@@ -171,7 +186,7 @@ const highStakesQueue = {
     },
     resetQueue() {
         this.GameID = '';
-        this.Players.length = 0;
+        this.Players = [];
         this.TotalPotValue = 0;
         this.BotID = '';
     },
@@ -187,12 +202,12 @@ const highStakesTimer = {
         // shift and reset
         // check if the queue is empty
         if (highStakesQueue.isQueueEmpty()) {
-            // if (true) reset the pot
+            // if (true - there is no queue) reset the pot
             highStakesActiveGame.resetGame();
         }
 
         else {
-            // else (false) shift queue to newGame
+            // else (false - there is a queue) shift queue to newGame
             highStakesActiveGame.resetGame();
             highStakesActiveGame.GameID = highStakesQueue.GameID;
             highStakesQueue.Players.forEach(player => highStakesActiveGame.Players.push(player));
@@ -294,7 +309,7 @@ const highStakesHistory = {
     },
     newTopGame(gameObj) {
         // reset Players
-        this.topGame.Players.length = 0;
+        this.topGame.Players = [];
 
         // add new top game
         this.topGame.GameID = gameObj.GameID;
@@ -312,20 +327,19 @@ const highStakesHistory = {
             this.shiftHistory();
             this.history.push(this.getHistoryFormat(gameObj));
             this.timeCycle = currentTime;
-            console.log(this.history);
         }
 
         // check if the new game beats the current top game
         else if (this.topGame.TotalPotValue < gameObj.TotalPotValue) {
             this.newTopGame(gameObj);
             this.shiftHistory();
-            this.history.push(gameObj);
+            this.history.push(this.getHistoryFormat(gameObj));
         }
 
         // push the new game to history
         else {
             this.shiftHistory();
-            this.history.push(gameObj);
+            this.history.push(this.getHistoryFormat(gameObj));
         }
 
         const data = {

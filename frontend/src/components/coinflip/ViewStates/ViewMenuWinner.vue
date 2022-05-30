@@ -189,21 +189,22 @@ export default {
   },
   data() {
     return {
-      render: false,
+      showDisplay: "none",
     };
   },
   computed: {
-    showDisplay() {
-      if (this.active) {
-        return "";
-      } else {
-        this.$nextTick();
-        return "none";
-      }
-    },
     defaultTimer() {
       return this.$store.getters.getGameFlippingTimer(this.gameID) || 0;
     },
+  },
+  mounted() {
+    this.$nextTick(() => {
+      if (this.active) {
+        this.showDisplay = "";
+      } else {
+        this.showDisplay = "none";
+      }
+    });
   },
   methods: {
     playerTotalVal(skins) {

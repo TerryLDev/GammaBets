@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const jackpotGameSchema = Schema({
+const lowStakesGameSchema = Schema({
     GameID: {
         type: String,
         required: true,
@@ -10,10 +10,13 @@ const jackpotGameSchema = Schema({
     },
     TotalPotValue: Number,
     Players: Array,
+    BotID: String,
     Status: Boolean,
     Winner: String,
+    WinningsSent: String,
+    WinningsTradeID: String,
     }, {timestamps: true});
 
-const LowStakesJackpot = mongoose.model("LowStakesJackpot", jackpotGameSchema)
+const LowStakesJackpot = mongoose.model("LowStakesJackpot", lowStakesGameSchema)
 
 module.exports = LowStakesJackpot;

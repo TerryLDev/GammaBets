@@ -5,14 +5,11 @@ import highStakes from "./modules/highstakes";
 import deposit from "./modules/deposit";
 import coinflip from "./modules/coinflip";
 import request from "./modules/request";
+import lowStakes from "./modules/lowstakes";
 
 export default createStore({
   state: {
     messages: [],
-    lowStakes: {
-      active: false,
-      game: { GameID: "", Players: [], TotalPotValue: 0, Time: 120 },
-    },
   },
   getters: {
     getMessageFormat(state) {
@@ -23,6 +20,9 @@ export default createStore({
       };
 
       return messageData;
+    },
+    getMessages(state) {
+      return state.messages;
     },
   },
   mutations: {
@@ -54,5 +54,6 @@ export default createStore({
     highStakes,
     coinflip,
     request,
+    lowStakes,
   },
 });

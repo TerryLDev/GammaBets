@@ -5,7 +5,8 @@ const Schema = mongoose.Schema;
 const marketPriceSchema = Schema({
     SkinName: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     SkinPictureURL: String,
     Value: Number,

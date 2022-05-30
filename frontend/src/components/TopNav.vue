@@ -6,7 +6,19 @@
         src="@/assets/icons/bullseye.png"
         alt=""
       />
-      Jackpot
+      High Stakes
+    </router-link>
+    <router-link
+      to="/lowstakes"
+      id="jp-top-nav"
+      class="default-link top-nav-text"
+    >
+      <img
+        class="selected-icon top-nav-icon"
+        src="@/assets/icons/bullseye.png"
+        alt=""
+      />
+      Low Stakes
     </router-link>
     <router-link
       to="/coinflip"

@@ -4,7 +4,7 @@
       <h3 style="text-align: right">Min: ${{ potMin.toFixed(2) }}</h3>
       <h3>{{ potName }} Pot</h3>
       <h3 v-if="potMax == 0">Max: No Limit</h3>
-      <h3 v-else>Max: ${{ potMax }}</h3>
+      <h3 v-else>Max: ${{ potMax.toFixed(2) }}</h3>
     </div>
     <div id="jp-pot">
       <UserBetEntry

@@ -4,6 +4,7 @@ const coinflip = {
   state: {
     activeCoinflips: [],
     coinflipHistory: {},
+    isCfHistoryDefined: false,
     chosenSide: "",
     viewMenu: { isVisible: false, chosenGame: {} },
     joiningQueue: [],
@@ -67,7 +68,6 @@ const coinflip = {
       return state.joiningQueue[index];
     },
     getGamePhase: (state) => (gameID) => {
-
       const gameIndex = state.activeCoinflips.findIndex(
         (game) => game.game.gameID == gameID
       );
@@ -76,6 +76,9 @@ const coinflip = {
         return state.activeCoinflips[gameIndex].game.phase;
       }
     },
+    getIsCfHistoryDefined(state) {
+      return state.isCfHistoryDefined;
+    },
   },
   mutations: {
     setActiveCoinflips(state, games) {
@@ -83,6 +86,11 @@ const coinflip = {
     },
     setCoinflipHistory(state, history) {
       state.coinflipHistory = history;
+      if (state.coinflipHistory.history.length > 0) {
+        state.isCfHistoryDefined = true;
+      } else {
+        state.isCfHistoryDefined = false;
+      }
     },
     setCoinflipJoiningQueue(state, queue) {
       state.joiningQueue = queue;
@@ -122,7 +130,7 @@ const coinflip = {
       );
 
       state.activeCoinflips[gameIndex] = gameObj;
-      
+
       ///////////////////////////////////////
       // Update chosen View Menu, if they are looking at it
       if (
@@ -137,24 +145,44 @@ const coinflip = {
     },
     removeCFGame(state, gameID) {
       // removes game
-      const gameIndex = state.activeCoinflips.findIndex(game => game.game.gameID == gameID);
+      const gameIndex = state.activeCoinflips.findIndex(
+        (game) => game.game.gameID == gameID
+      );
 
       if (gameIndex > -1 && gameIndex != undefined) {
         state.activeCoinflips.splice(gameIndex, 1);
-      }
-
-      else {
+      } else {
         console.log("Please refresh the page, coinflip games need an update");
       }
     },
   },
   actions: {
-
     // API grabs
     getAPIActiveCoinflip({ commit }) {
-      axios.post("api/coinflip/active")
+      axios
+        .post("api/coinflip/active")
         .then((res) => {
           commit("setActiveCoinflips", res.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    getAPICoinflipHistory({ commit }) {
+      axios
+        .post("api/coinflip/history")
+        .then((res) => {
+          commit("setCoinflipHistory", res.data);
+        })
+        .catch((err) => {
+          return console.error(err);
+        });
+    },
+    getAPICoinflipJoiningQueue({ commit }) {
+      axios
+        .post("api/coinflip/joining-queue")
+        .then((res) => {
+          commit("setCoinflipJoiningQueue", res.data);
         })
         .catch((err) => {
           console.log(err);
@@ -163,16 +191,6 @@ const coinflip = {
     setCoinflipHistory({ commit }, cfHistory) {
       commit("setCoinflipHistory", cfHistory);
     },
-    getAPICoinflipJoiningQueue({ commit }) {
-      axios.post("api/coinflip/joining-queue")
-        .then((res) => {
-          commit("setCoinflipJoiningQueue", res.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    },
-
     setCoinSide({ commit }, side) {
       commit("setCoinSide", side);
     },
@@ -196,7 +214,6 @@ const coinflip = {
 
     addNewCoinFlip({ commit }, newGame) {
       commit("addNewCoinFlip", newGame);
-      commit("setGamePhase", { gameID: newGame.game.gameID, value: 0 });
     },
 
     updateCFGame({ commit }, data) {

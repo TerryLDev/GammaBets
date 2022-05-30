@@ -2,35 +2,20 @@
   <div id="history" class="primary-color default-cell accent-color">
     <h3 class="side-menu-title">{{ historyTitle }} History</h3>
     <Transition>
-      <div v-if="isCF" id="history-div">
-        <CFHistoryTop :topGame="cfHistory.topGame" />
-        <div
-          id="recent-history"
-          v-for="histObj in cfHistory.history"
-          :key="histObj.gameID"
-        >
-          <CFHistoryTile :historyObject="histObj" />
-          <div class="tile-line-break"></div>
-        </div>
-      </div>
-      <HsHistory v-else-if="isHS"/>
-      <h1 v-else>KILL ME</h1>
+      <CfHistory v-if="isCF" />
+      <HsHistory v-else-if="isHS" />
     </Transition>
   </div>
 </template>
 
 <script>
-import axios from "axios";
-
-import CFHistoryTile from "./history/CFHistoryTile.vue";
-import CFHistoryTop from "./history/CFHistoryTop.vue";
 import HsHistory from "./history/HsHistory.vue";
+import CfHistory from "./history/CfHistory.vue";
 
 export default {
   props: { historyTitle: String },
   data() {
     return {
-      cfHistory: {},
       isCF: false,
       isHS: false,
       isLS: false,
@@ -40,36 +25,18 @@ export default {
     checkHistoryTitle() {
       const title = this.historyTitle.toLowerCase();
       if (title == "coinflip") {
-        return "cf";
+        this.isCF = true;
       } else if (title == "high stakes") {
         this.isHS = true;
-        return "hs";
       }
-    },
-    getCFHistory() {
-      axios
-        .post("api/coinflip/history")
-        .then((res) => {
-          this.$store.dispatch("setCoinflipHistory", res.data);
-          this.cfHistory = res.data;
-          this.isCF = true;
-        })
-        .catch((err) => {
-          return console.error(err);
-        });
     },
   },
   beforeMount() {
-    const historyType = this.checkHistoryTitle();
-
-    if (historyType == "cf") {
-      this.getCFHistory();
-    }
+    this.checkHistoryTitle();
   },
   components: {
-    CFHistoryTile,
-    CFHistoryTop,
-    HsHistory
+    HsHistory,
+    CfHistory,
   },
   name: "GameHistory",
 };

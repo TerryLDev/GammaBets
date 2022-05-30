@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import { io } from "socket.io-client";
 // @ is an alias to /src
 import JackpotTimer from "../components/jackpot/JackpotTimer.vue";
 import JackpotPlayArea from "../components/jackpot/JackpotPlayerArea.vue";
@@ -25,16 +24,9 @@ import GameHistory from "../components/GameHistory.vue";
 import QuickPlay from "../components/QuickPlay.vue";
 import { useStore } from "vuex";
 import { computed } from "vue";
-const env = process.env.NODE_ENV;
 
 export default {
   setup() {
-    let socket;
-    if (env == "development") {
-      socket = io("http://localhost:4000");
-    } else {
-      socket = io(window.location.origin);
-    }
 
     const store = useStore();
 
@@ -42,29 +34,8 @@ export default {
     store.dispatch("getAPIHighStakesTimer");
     store.dispatch("getAPIHighStakesHistory");
 
-    const playerBets =  computed(() => store.getters.getHighStakesPlayerBets);
+    const playerBets = computed(() => store.getters.getHighStakesPlayerBets);
     const totalPotVal = computed(() => store.getters.getHighStakesTotalValue);
-
-    socket.on("newHighStakesGame", (data) => {
-      store.dispatch("newHighStakesGame", data);
-    });
-
-    socket.on("newHighStakesPlayer", (data) => {
-      store.dispatch("newHighStakesPlayer", data);
-    });
-
-    socket.on("highStakesTimer", (data) => {
-      store.dispatch("setHighStakesTimer", data);
-    });
-
-    socket.on("highStakesHistory", (data) => {
-      store.dispatch("setHighStakesHistory", data);
-      console.log(data);
-    });
-
-    socket.on("highStakesWinner", (data) => {
-      store.dispatch("setHighStakesWinner", data);
-    });
 
     return {
       playerBets,
@@ -78,9 +49,31 @@ export default {
       betMax: 0,
     };
   },
-  computed: {},
   beforeCreate() {
     document.title = "GammaBets | High Stakes Jackpot";
+  },
+  created() {
+    this.$socket.on("newHighStakesGame", (data) => {
+      this.$store.dispatch("newHighStakesGame", data);
+    });
+
+    this.$socket.off("newHighStakesPlayer").on("newHighStakesPlayer", (data) => {
+      console.log("NEW PLAYER!", data.Player.username);
+      this.$store.dispatch("newHighStakesPlayer", data);
+    });
+
+    this.$socket.on("highStakesTimer", (data) => {
+      this.$store.dispatch("setHighStakesTimer", data);
+    });
+
+    this.$socket.on("highStakesHistory", (data) => {
+      this.$store.dispatch("setHighStakesHistory", data);
+      console.log(data);
+    });
+
+    this.$socket.on("highStakesWinner", (data) => {
+      this.$store.dispatch("setHighStakesWinner", data);
+    });
   },
   name: "Home",
   components: { JackpotTimer, JackpotPlayArea, GameHistory, QuickPlay },

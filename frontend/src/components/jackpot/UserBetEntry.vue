@@ -1,6 +1,10 @@
 <template>
   <Transition name="fade-user-bet">
-    <div class="player-bet" v-bind:class="getUserBetClass(player)" v-if="player && renderBet">
+    <div
+      class="player-bet"
+      v-bind:class="getUserBetClass(player)"
+      v-if="player && renderBet"
+    >
       <img class="player-bet-profile-img" :src="player.userPicture" />
 
       <div v-if="player.skins.length > 9" class="player-bet-skins">
@@ -12,13 +16,39 @@
       </div>
 
       <div v-else class="player-bet-skins">
-        <template v-for="skin in player.skins" :key="skin">
-          <img class="player-skin-img" :src="skin.imageURL" />
-        </template>
+        <div
+          style="
+            margin: 0;
+            padding: 0;
+            position: relative;
+            vertical-align: middel;
+          "
+          v-for="skin in player.skins"
+          :key="skin"
+        >
+          <img
+            @mouseover="visibleSkinID = skin.id"
+            @mouseleave="visibleSkinID = ''"
+            class="player-skin-img"
+            :src="skin.imageURL"
+          />
+          <Transition name="showSkinInfo">
+            <div
+              class="skinInfo"
+              :class="getUserBetClass(player)"
+              v-if="visibleSkinID == skin.id"
+            >
+              <p>{{ skin.name }}</p>
+              <p>${{ skin.value.toFixed(2) }}</p>
+            </div>
+          </Transition>
+        </div>
       </div>
 
       <div class="player-bet-val-and-name">
-        <h5>${{ playerValue(player.skins) }} {{ getPlayerPercent(player) }}%</h5>
+        <h5>
+          ${{ playerValue(player.skins) }} {{ getPlayerPercent(player) }}%
+        </h5>
         <h6>{{ player.username }}</h6>
       </div>
     </div>
@@ -31,6 +61,7 @@ export default {
   data() {
     return {
       renderBet: false,
+      visibleSkinID: "",
     };
   },
   methods: {
@@ -131,16 +162,6 @@ export default {
   height: 44px;
 }
 
-.player-bet-skins p {
-  font-family: Montserrat;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 15px;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 0;
-}
-
 .player-bet-val-and-name {
   display: flex;
   flex-direction: column;
@@ -194,5 +215,26 @@ export default {
 
 .fifth-player-bet {
   background: rgba(255, 255, 255, 0.1);
+}
+.skinInfo {
+  position: absolute;
+  padding: 5px;
+  margin: 0px;
+  border-radius: 5px;
+  right: -29px;
+  bottom: 50px;
+  width: 90px;
+  text-align: center;
+  border-radius: 5px;
+  border: 1px solid rgba(14, 14, 14, 0.9);
+}
+
+.skinInfo p {
+  font-family: Montserrat;
+  font-weight: 600;
+  padding: 0px;
+  margin: 0px;
+  font-size: 10px;
+  color: rgb(0, 0, 0);
 }
 </style>

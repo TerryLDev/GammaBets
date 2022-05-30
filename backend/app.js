@@ -56,6 +56,7 @@ const cfGameHandler = new CoinFlipHandler();
 
 // Importing and Setting up Jackpot GameHandler
 const { highStakesEvents, HighStakesHandler } = require("./gammabets/handler/high-stakes-handler");
+const { lowStakesEvents, LowStakesHandler } = require("./gammabets/handler/low-stakes-handler");
 
 // Importing Alert Center
 const {AlertCenter, alertEvents} = require("./gammabets/alertcenter")
@@ -86,6 +87,7 @@ mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true },
 
 			skins = skinsList;
 			console.log("done: Skins");
+
 		});
 		
 		CoinFlipGame.find({Status: true}, (err, cfs) => {
@@ -342,6 +344,13 @@ io.on("connection", (socket) => {
 					community.getUserInventoryContents(doc["SteamID"], 252490, 2, true, (err, inv) => {
 
 							if (err) console.error(err);
+
+							else if (inv.length == 0 || inv == null || inv == undefined) {
+								const data = {
+									msg: "No Inventory",
+								}
+								socket.emit("getInventory", data);
+							}
 							
 							else {
 
@@ -392,9 +401,11 @@ io.on("connection", (socket) => {
 
 		try {
 
-			console.log("New Request: Coinflip")
+			console.log("New Request: Coinflip");
 
 			setTimeout(function() {
+
+				console.log("Go");
 
 				let gameID = cfGameHandler.createGameID();
 
@@ -474,6 +485,7 @@ io.on("connection", (socket) => {
 		
 	});
 
+	// Socket Event for Player Joining High Stakes Jackpot
 	socket.on("joinHighStakes", (data) => {
 
 		console.log(`User: ${data.steamID}, is Joining High Stakes Jackpot`);
@@ -497,7 +509,40 @@ io.on("connection", (socket) => {
 		}
 
 		else {
+
 			jpBotZero.joinHighStakesPot(data.steamID, data.tradeURL, data.skins);
+
+		}
+
+	});
+
+	// Socket Event for Player Joining Low Stakes Jackpot
+	socket.on("joinLowStakes", (data) => {
+
+		console.log(`User: ${data.steamID}, is Joining Low Stakes Jackpot`);
+
+		/*
+		data = {
+			skins: [{skin obj},],
+			steamID: **,
+			tradeURL: **
+		}
+		*/
+
+		if (jpBotZero.client.steamID == null) {
+			jpBotZero.logIntoSteam()
+			.then(() => {
+				jpBotZero.joinLowStakesPot(data.steamID, data.tradeURL, data.skins);
+			})
+			.catch(err => {
+				console.log(err);
+			})
+		}
+
+		else {
+
+			jpBotZero.joinLowStakesPot(data.steamID, data.tradeURL, data.skins);
+
 		}
 
 	});
@@ -507,11 +552,14 @@ io.on("connection", (socket) => {
 setInterval(async function () {
 
 	await updateSkinPrices();
+	
+}, 1000 * 60 * 60 * 4); // 4 hours
+
+setInterval(async function () {
 	await jpBotZero.getSkins();
 	await cfBotZero.getSkins();
 	await cfBotOne.getSkins();
-	
-}, 1000 * 60 * 60 * 6);
+}, 1000 * 60 * 30); // 30 minutes
 
 //////////////////////////////////////////////////////////////
 
@@ -777,6 +825,7 @@ highStakesEvents.on("newHighStakesPlayer", data => {
 		TotalPotValue: highStakesActiveGame.TotalPotValue
 	};
 	*/
+	console.log(data.Player.username, "NEW BET");
 
 	io.emit("newHighStakesPlayer", data);
 
@@ -856,78 +905,111 @@ highStakesEvents.on("highStakesServerProfit", data => {
 
 });
 
-setTimeout(() => {
-	const hsHandler = new HighStakesHandler;
-	hsHandler.newGame({
-		GameID: "gncqdvgi35o0jlfndovv7bqutmvsglwv",
-		Players: [
-			{
-				username:"terryluciano1",
-				steamID:"76561199211188775",
-				userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg",
-				skins: [
-					{
-						name: "Bombing Kilt",
-						id: 3704786221484486064,
-						value: 0.58,
-						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835df5GLCfCk4nReh8DEiv5dRPqo9q7c3Rf8HyYC8VA/"
-					},
-					{
-						name: "Epidemic Roadsign Vest",
-						id:"3704786221484370481",
-						value: 0.94,
-						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Fc7GLCfCk4nReh8DEiv5dYO6k6pLU-Q_28hhmLJOc/"
-					}
-				]
-			},
-			{
-				username:"Brollow",
-				steamID:"76561198157301980",
-				userPicture: "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/94/94aa675a40e4019fc6b6360163563ce4ea1177ee_full.jpg",
-				skins:[
-					{
-						name:"Forest Camo Pants",
-						id: "3704786221484425764",
-						value:0.11,
-						imageURL: "https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5GPMfCk4nReh8DEiv5daMK84rrwwQ_m6f-_bfrM/"
-					},
-					{
-						name: "Troll Daddy Chest Plate",
-						id:"3704786221484485809",
-						value: 0.62,
-						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Be42LEfCk4nReh8DEiv5dbOaE_rb0zR_mDlEHGGQ/"
-					},
-					{
-						name:"Black Hoodie",
-						id:"3704786221485435733",
-						value:0.54,
-						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Ja5WXMfCk4nReh8DEiv5daPqk5q7IxRv2_CuOfQ1k/"
-					},
-					{
-						name: "Cloth",
-						id: "3704786221484425771",
-						value:0.14,
-						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Je5GHEfCk4nReh8DEiv5dYMKA5pLYzRv6605EYJLk/"
-					}
-				]
-			},
-			{
-				username:"Daddy Disappointment",
-				steamID:"76561198072093858",
-				userPicture:"https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/34/343dab39597de5d25d02eab2b2fe48d8dde6ae0e_full.jpg",
-				skins: [
-					{
-						name:"Frostwulf Mask",
-						id:"3704786221485422419",
-						value:1.02,
-						imageURL:"https://community.cloudflare.steamstatic.com/economy/image/6TMcQ7eX6E0EZl2byXi7vaVKyDk_zQLX05x6eLCFM9neAckxGDf7qU2e2gu64OnAeQ7835Bd5GLFfCk4nReh8DEiv5ddOas3q7cwR_i-bfIrfE4/"
-					}
-				]
+//////////////////////////////////////////////////////////////
+
+// Low Stakes Events
+
+//////////////////////////////////////////////////////////////
+
+lowStakesEvents.on("newLowStakesGame", data => {
+	/*
+	const data = {
+		GameID: lowStakesActiveGame.GameID,
+		Players: lowStakesActiveGame.Players,
+		TotalPotValue: lowStakesActiveGame.TotalPotValue,
+		Winner: lowStakesActiveGame.Winner
+	};
+	*/
+
+	io.emit("newLowStakesGame", data);
+});
+
+lowStakesEvents.on("newLowStakesPlayer", data => {
+
+	/*
+	const data = {
+		Player: playerBet,
+		TotalPotValue: lowStakesActiveGame.TotalPotValue
+	};
+	*/
+	console.log(data.Player.username, "NEW BET");
+
+	io.emit("newLowStakesPlayer", data);
+
+});
+
+lowStakesEvents.on("lowStakesTimer", data => {
+
+	/*
+	data = {time: num}
+	*/
+
+	io.emit("lowStakesTimer", data);
+
+});
+
+lowStakesEvents.on("lowStakesHistoryUpdate", data => {
+
+	/*
+	const data = {
+		topGame: this.topGame,
+		history: this.history
+	}
+	*/
+
+	io.emit("lowStakesHistory", data);
+
+});
+
+lowStakesEvents.on("lowStakesWinner", data => {
+	
+	/*
+	const winnerData = {
+		winner: potWinner
+	}
+	*/
+
+	io.emit("lowStakesWinner", data);
+
+});
+
+lowStakesEvents.on("lowStakesServerProfit", data => {
+
+	/*
+	const data = {
+		serverProfit: serverProfit, // array of skins
+		playerWinnings: allSkinsInPot, // array of skins
+		winner: this.Winner,
+		botID: this.BotID,
+		gameID: this.GameID
+	};
+	*/
+
+	User.findOne({SteamID: data.winner}, (err, user) => {
+
+		if (err) return console.log(err);
+
+		else {
+
+			if (data.botID == jpBotZero.botID) {
+
+				jpBotZero.sendWithdraw(data.playerWinnings, "Low Stakes", data.gameID, user);
+			
 			}
-		],
-		TotalPotValue: 3.95,
-		BotID: 'JP0',
+
+			else {
+
+				return console.log("CAN NOT FIND JP BOT");
+
+			}
+
+			serverProfitUtils.logProfit(data.serverProfit, data.gameID, data.botID);
+			JackpotDBScripts.updateWinnerLS(data.gameID, data.winner);
+
+		}
+
 	});
-}, 10000)
+
+});
 
 module.exports = {skins};

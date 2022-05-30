@@ -1,35 +1,31 @@
 <template>
-  <Transition>
-    <div class="history-tile">
-      <img :src="getWinnerPicture()" alt="Winner's Steam Picture" />
+  <div class="history-tile">
+    <img :src="getWinnerPicture()" alt="Winner's Steam Picture" />
 
-      <div class="history-tile-left">
-        <div class="history-tile-info">
-          <p>Total Value:</p>
-          <p>{{ historyObject.TotalPotValue }}</p>
-        </div>
+    <div class="history-tile-left">
+      <div class="history-tile-info">
+        <p>Total Value:</p>
+        <p>${{ historyObject.TotalPotValue.toFixed(2) }}</p>
+      </div>
 
-        <div class="history-tile-info">
-          <p>Total Items:</p>
-          <p>{{ getPotTotalSkins() }}</p>
-        </div>
+      <div class="history-tile-info">
+        <p>Total Items:</p>
+        <p>{{ getPotTotalSkins() }}/100</p>
+      </div>
 
-        <div class="history-tile-info">
-          <p>Percentage:</p>
-          <p>{{ getWinnerPercentage() }}%</p>
-        </div>
+      <div class="history-tile-info">
+        <p>Percentage:</p>
+        <p>{{ getWinnerPercentage() }}%</p>
       </div>
     </div>
-  </Transition>
+  </div>
 </template>
 
 <script>
 export default {
   props: { historyObject: Object },
-  data() {
-    return {
-      isDefined: false,
-    };
+  mounted() {
+    console.log(this.historyObject);
   },
   methods: {
     getWinnerPicture() {
@@ -54,9 +50,12 @@ export default {
           });
         }
       });
-      return ((winnerValue / this.historyObject.TotalPotValue) * 100).toFixed(2);
+      return ((winnerValue / this.historyObject.TotalPotValue) * 100).toFixed(
+        2
+      );
     },
   },
+  name: "JPHistoryTile",
 };
 </script>
 

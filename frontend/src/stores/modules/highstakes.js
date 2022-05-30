@@ -46,12 +46,12 @@ const highStakes = {
     getHighStakesWinner(state) {
       return state.currentGame.Winner;
     },
-    getSpinnerStatus(state) {
+    getHighStakesSpinnerStatus(state) {
       return state.currentGame.readyToSpin;
     },
     getIsHighStakesHistoryDefined(state) {
       return state.pastGames.isDefinedHistory;
-    }
+    },
   },
   mutations: {
     setHighStakesCurrentGame(state, data) {
@@ -66,8 +66,7 @@ const highStakes = {
         state.currentGame.Winner != undefined
       ) {
         state.currentGame.readyToSpin = true;
-      }
-      else {
+      } else {
         state.currentGame.readyToSpin = false;
       }
     },
@@ -108,8 +107,7 @@ const highStakes = {
         state.currentGame.Winner != undefined
       ) {
         state.currentGame.readyToSpin = true;
-      }
-      else {
+      } else {
         state.currentGame.readyToSpin = false;
       }
     },

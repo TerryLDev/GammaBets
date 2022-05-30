@@ -1,9 +1,10 @@
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
-const {HighStakesHandler, highStakesActiveGame} = require("../handler/high-stakes-handler");
-// const {} = require("../handler/low-stakes-handler");
+const { HighStakesHandler } = require("../handler/high-stakes-handler");
+const { LowStakesHandler } = require("../handler/low-stakes-handler");
 const TradeHistory = require('../../models/tradehistory.model');
 const HighStakesJackpot = require("../../models/highstakes.model");
+const LowStakesJackpot = require("../../models/lowstakes.model");
 const User = require('../../models/user.model');
 
 const { GameManager } = require('./game-manager');
@@ -13,6 +14,7 @@ class JackpotManager extends GameManager {
 
         super(botID);
         this.highStakesHandler = new HighStakesHandler();
+        this.lowStakesHandler = new LowStakesHandler();
 
     }
 
@@ -41,7 +43,7 @@ class JackpotManager extends GameManager {
                     return console.log("Error Occurred while making the userbet");
                 }
 
-                if (tradeDoc.GameMode == "High Stakes") {
+                else if (tradeDoc.GameMode == "High Stakes") {
 
                     this.#acceptedHighStakesGame(tradeDoc, userBet);
 
@@ -49,9 +51,12 @@ class JackpotManager extends GameManager {
 
                 else if (tradeDoc.GameMode == "Low Stakes") {
 
-                    // come back to this later
-                    // this.#acceptedLowStakesGame();
+                    this.#acceptedLowStakesGame();
 
+                }
+
+                else {
+                    return console.log("Invalid Game Mode");
                 }
 
             }
@@ -176,8 +181,96 @@ class JackpotManager extends GameManager {
         }
     }
 
-    #acceptedLowStakesGame() {
+    #acceptedLowStakesGame(tradeDoc, userBet) {
+        // check if the pot is spinning
+        // (true) if its spinning - add to queue
+        if (this.lowStakesHandler.checkIfPotIsSpinning()) {
+            // if the queue is empty - create new queue
+            if (this.lowStakesHandler.checkIfQueueEmpty()) {
+                const newQueueID = this.lowStakesHandler.createGameID();
 
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
+
+                const query = {
+                    GameID: newQueueID,
+                    TotalPotValue: totalPlayerValue,
+                    Players: [userBet],
+                    BotID: tradeDoc.BotID,
+                    Status: true,
+                    WinningsSent: "Not Sent"
+                };
+
+                LowStakesJackpot.create(query)
+                .then(doc => {
+                    this.lowStakesHandler.newQueue(doc);
+                    this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
+                })
+                .catch(error => {
+                    return console.error(error);
+                });
+            }
+            // else - add to current queue
+            else {
+                const currentQueueID = this.lowStakesHandler.getCurrentQueueID();
+
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
+
+                LowStakesJackpot.findOneAndUpdate({GameID: currentQueueID}, {$push: { Players: userBet}, $inc: {TotalPotValue: totalPlayerValue} }, {new: true}, (err, doc) => {
+                    if (err) return console.error(err);
+
+                    else {
+                        console.log("New Player Joining Low Stakes QUEUE: " + userBet.username);
+                        this.lowStakesHandler.addPlayerToQueue(userBet, doc.TotalPotValue);
+                        this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
+                    }
+                });
+            }
+        }
+
+        // (false) else - add to pot
+        else {
+            // check if pot is empty
+            if (this.lowStakesHandler.isPotEmpty()) {
+                // (true) create new pot
+                const newGameID = this.lowStakesHandler.createGameID();
+
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
+
+                const query = {
+                    GameID: newGameID,
+                    TotalPotValue: totalPlayerValue,
+                    Players: [userBet],
+                    BotID: tradeDoc.BotID,
+                    Status: true,
+                    WinningsSent: "Not Sent"
+                }
+
+                LowStakesJackpot.create(query)
+                .then(doc => {
+                    this.lowStakesHandler.newGame(doc);
+                    this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
+                })
+                .catch(err => {
+                    return console.error(err);
+                });
+            }
+            else {
+                // (false) add to current pot
+                const currentGameID = this.lowStakesHandler.getCurrentGameID();
+                const totalPlayerValue = this.#getTotalPlayerVal(userBet.skins);
+
+                LowStakesJackpot.findOneAndUpdate({GameID: currentGameID}, {$push: { Players: userBet}, $inc: {TotalPotValue: totalPlayerValue} }, {new: true}, (err, doc) => {
+                    if (err) return console.error(err);
+
+                    else {
+                        console.log("New Player Joining Low Stakes POT: " + userBet.username);
+                        this.lowStakesHandler.addPlayerToGame(userBet, doc.TotalPotValue);
+                        this.#updateTradeDocandUserPlayerGames(tradeDoc, doc);
+                    }
+                });
+
+            }
+        }
     }
 
     tradeAccepted(tradeOfferObject, dbSkins) {
@@ -195,15 +288,13 @@ class JackpotManager extends GameManager {
 
             else if (tradeHisDoc.TransactionType == "Deposit") {
 
-                this.#callTradeAccepted(tradeHisDoc, dbSkins)
+                this.#callTradeAccepted(tradeHisDoc, dbSkins);
 
             }
 
             else if (tradeHisDoc.TransactionType == "Withdraw") {
 
-                return console.log(`Withdraw Complete: ${tradeHisDoc.TradeID}, User: ${tradeHisDoc.SteamID}`)
-
-
+                return console.log(`Withdraw Complete: ${tradeHisDoc.TradeID}, User: ${tradeHisDoc.SteamID}`);
 
             }
 

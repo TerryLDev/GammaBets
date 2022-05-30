@@ -71,49 +71,14 @@
 
 <script>
 import { useStore } from "vuex";
-import { ref, onMounted } from "vue";
 
 import ChatMessage from "./widgets/ChatMessage.vue";
-import { io } from "socket.io-client";
-
-let socket;
-const env = process.env.NODE_ENV;
-
-if (env == "development") {
-  socket = io("http://localhost:4000");
-} else {
-  socket = io(window.location.origin);
-}
 
 export default {
   setup() {
     const store = useStore();
 
-    const chatFeed = ref(null);
-
-    socket.on("message", (data) => {
-      // add it to the state
-      newMessage(data);
-    });
-
     store.dispatch("getAPIMessages");
-
-    onMounted(() => {
-      scrollDown();
-    });
-
-    function newMessage(message) {
-      store.dispatch("addNewMessage", message).then(() => scrollDown());
-    }
-
-    function scrollDown() {
-      chatFeed.value.scrollTop =
-        chatFeed.value.scrollHeight - chatFeed.value.clientHeight;
-    }
-
-    return {
-      chatFeed,
-    };
   },
   props: {
     auth: {
@@ -128,27 +93,61 @@ export default {
       required: true,
     },
   },
-  computed: {
-    messages() {
-      return this.$store.state.messages;
-    },
-  },
   data() {
     return {
       chatMessage: "",
     };
   },
+  computed: {
+    messages() {
+      return this.$store.getters.getMessages;
+    },
+    messageWait() {
+      return this.$store.getters.getMessageWait;
+    },
+    lastMessageRequest() {
+      return this.$store.getters.getLastMessageRequest;
+    },
+  },
+  created() {
+    this.$socket.on("message", (data) => {
+      // add it to the state
+      this.newMessage(data);
+    });
+  },
   methods: {
-    sendMessage() {
-      if (this.chatMessage.length > 0) {
-        const messageData = this.$store.getters.getMessageFormat;
-
-        messageData.message = this.chatMessage;
-
-        socket.emit("message", messageData);
-        this.chatMessage = "";
+    newMessage(message) {
+      this.$store.dispatch("addNewMessage", message).then(() => {
+        this.scrollDown();
+      });
+    },
+    scrollDown() {
+      this.$refs.chatFeed.scrollTop = this.$refs.chatFeed.scrollHeight;
+    },
+    checkLastMessageRequst() {
+      const difference = Date.now() - this.lastMessageRequest;
+      if (difference >= this.messageWait) {
+        return true;
       }
     },
+    sendMessage() {
+      if (
+        this.chatMessage.length > 0 &&
+        this.chatMessage.length <= 250 &&
+        this.checkLastMessageRequst()
+      ) {
+        this.$store.dispatch("setLastMessageRequest");
+        const messageData = this.$store.getters.getMessageFormat;
+        messageData.message = this.chatMessage;
+        this.$socket.emit("message", messageData);
+        this.chatMessage = "";
+      } else {
+        alert("Message too long or too soon");
+      }
+    },
+  },
+  mounted() {
+    this.scrollDown();
   },
   name: "LeftPanel",
   components: { ChatMessage },

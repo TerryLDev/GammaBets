@@ -158,8 +158,6 @@ class SteamBot {
 			setTimeout(this.logIntoSteam(), 1500);
 
 		});
-
-
 		
 	}
 
@@ -168,6 +166,17 @@ class SteamBot {
 		this.loginAttempts+=num;
 		console.log("Login Attempts: " + this.loginAttempts + " Bot: " + this.botID);
 
+	}
+
+	declineTradeOffer(offer) {
+		offer.decline((err) => {
+			if (err) {
+				return console.log(err);
+			}
+			else {
+				console.log("Trade Offer Declined: " + offer.id);
+			}
+		});
 	}
 
 	// return the trade object
@@ -220,7 +229,7 @@ class SteamBot {
 
 					else{
 						allSkinsFound = false;
-						return console.log(`Could not find ${skin} in Bot Inventory`); // ERROR
+						return console.log(`Could not find ${desired} in Player's Inventory`); // ERROR
 					}
 
 				});

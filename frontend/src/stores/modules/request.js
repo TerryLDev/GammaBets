@@ -3,29 +3,28 @@ const request = {
     lastInventoryRequest: 0,
     inventoryWait: 5000,
     lastTradeRequest: 0,
-    tradeWait: 3000,
+    tradeWait: 5000,
     lastMessageRequest: 0,
     messageWait: 5000,
   },
   getters: {
-    canSendInventoryRequest(state) {
-      const currentTime = Date.now();
-      let difference = currentTime - state.lastInventoryRequest;
-
-      if (difference >= state.inventoryWait) {
-        return true;
-      } else {
-        return false;
-      }
+    getLastInventoryRequest(state) {
+      return state.lastInventoryRequest;
     },
-    canSendTradeRequest(state) {
-      let difference = Date.now() - state.lastTradeRequest;
-
-      if (difference >= state.tradeWait) {
-        return true;
-      } else {
-        return false;
-      }
+    getlastTradeRequest(state) {
+      return state.lastTradeRequest;
+    },
+    getLastMessageRequest(state) {
+      return state.lastMessageRequest;
+    },
+    getInventoryWait(state) {
+      return state.inventoryWait;
+    },
+    getTradeWait(state) {
+      return state.tradeWait;
+    },
+    getMessageWait(state) {
+      return state.messageWait;
     },
   },
   mutations: {
@@ -35,6 +34,9 @@ const request = {
     setLastTradeRequest(state) {
       state.lastTradeRequest = Date.now();
     },
+    setLastMessageRequest(state) {
+      state.lastMessageRequest = Date.now();
+    },
   },
   actions: {
     setLastInventoryRequest({ commit }) {
@@ -42,6 +44,9 @@ const request = {
     },
     setLastTradeRequest({ commit }) {
       commit("setLastTradeRequest");
+    },
+    setLastMessageRequest({ commit }) {
+      commit("setLastMessageRequest");
     },
   },
 };

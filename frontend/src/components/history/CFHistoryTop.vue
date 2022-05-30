@@ -1,5 +1,5 @@
 <template>
-  <div id="cf-history-top">
+  <div id="history-top">
     <img class="top-history-img" :src="topGame.userPic" />
 
     <h3 class="top-history-title">Biggest Flip</h3>
@@ -23,18 +23,4 @@ export default {
 };
 </script>
 
-<style>
-#cf-history-top {
-  margin: 0 0 15px 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.top-history-img {
-  width: 100px;
-  height: 100px;
-  border-radius: 10px;
-}
-</style>
+<style></style>

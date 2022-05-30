@@ -3,6 +3,8 @@ require("dotenv").config(__dirname + "/.env");
 const MarketPrice = require("../models/marketprice.model");
 const mainApp = require("../app");
 
+let allSkinsFound = 0;
+
 function updateMainAppSkins() {
 	MarketPrice.find({}, (err, allSkins) => {
 		if(err) return console.error(err);
@@ -10,6 +12,8 @@ function updateMainAppSkins() {
 		else {
 			mainApp.skins = allSkins;
 		}
+
+		console.log("Logged All Skins");
 	});
 }
 
@@ -22,14 +26,11 @@ function updateSkinPrices() {
 	.then(res => {
 
 		let listOfSkins = res.data.data;
+		allSkinsFound = listOfSkins.length;
 
 		listOfSkins.forEach(skin => {
 			updatePrice(skin);
 		});
-
-		console.log("Logged All Skins");
-
-		updateMainAppSkins();
 		
 	})
 	.catch(err => {
@@ -39,7 +40,6 @@ function updateSkinPrices() {
 
 function updatePrice(skin) {
 
-
 	MarketPrice.exists({ SkinName: skin["market_hash_name"] })
 	.then((result) => {
 
@@ -48,8 +48,22 @@ function updatePrice(skin) {
 			MarketPrice.findOneAndUpdate(
 				{ SkinName: skin["market_hash_name"] },
 				{ Value: skin.prices.safe },
-				{ upsert: true }, (err, data) => {
-					if (err) return console.error(err);
+				{ new: true }, (err, data) => {
+					if (err) {
+						allSkinsFound--;
+						if(allSkinsFound == 0) {
+							updateMainAppSkins();
+						}
+						return console.error(err);
+					}
+
+					else {
+						allSkinsFound--;
+						if(allSkinsFound == 0) {
+							updateMainAppSkins();
+						}
+					}
+
 				});
 		}
 		
@@ -60,12 +74,27 @@ function updatePrice(skin) {
 					SkinName: skin["market_hash_name"],
 					SkinPictureURL: skin.image,
 					Value: skin.prices.safe,
-				}, (err, data) => {
-					if (err) return console.error(err);
+				})
+				.then((result) => {
+					allSkinsFound--;
+					if(allSkinsFound == 0) {
+						updateMainAppSkins();
+					}
+				})
+				.catch((err) => {
+						allSkinsFound--;
+						if(allSkinsFound == 0) {
+							updateMainAppSkins();
+						}
+						return console.error(err);
 				});
 		}
 	})
 	.catch(err => {
+		allSkinsFound--;
+		if(allSkinsFound == 0) {
+			updateMainAppSkins();
+		}
 		return console.error(err);
 	});
 

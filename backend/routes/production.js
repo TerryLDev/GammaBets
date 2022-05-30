@@ -6,6 +6,10 @@ router.get("/", (req, res) => {
     res.sendFile(path.resolve('backend/public/index.html'));
 });
 
+router.get("/lowstakes", (req, res) => {
+    res.sendFile(path.resolve('backend/public/index.html'));
+});
+
 router.get("/coinflip", (req, res) => {
     res.sendFile(path.resolve('backend/public/index.html'));
 });

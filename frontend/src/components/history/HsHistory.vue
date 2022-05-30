@@ -1,19 +1,17 @@
 <template>
-  <div>
-    <div v-if="histDef">
-      <JPHistoryTop :topGame="history.topGame"/>
+  <div v-if="histDef" id="history-div">
+    <JPHistoryTop :topGame="history.topGame" />
+    <div class="tile-line-break"></div>
+    <div
+      id="recent-history"
+      v-for="histObj in history.history"
+      :key="histObj.gameID"
+    >
+      <JPHistoryTile :historyObject="histObj" />
       <div class="tile-line-break"></div>
-      <div
-          id="recent-history"
-          v-for="histObj in history.history"
-          :key="histObj.gameID"
-        >
-          <JPHistoryTile :historyObject="histObj"/>
-          <div class="tile-line-break"></div>
-      </div>
     </div>
-    <div v-else></div>
   </div>
+  <div v-else></div>
 </template>
 
 <script>
@@ -25,9 +23,9 @@ import JPHistoryTile from "./JPHistoryTile.vue";
 export default {
   setup() {
     const store = useStore();
-    
+
     const histDef = computed(() => store.getters.getIsHighStakesHistoryDefined);
-    const history = computed (() => store.getters.getHighStakesHistory);
+    const history = computed(() => store.getters.getHighStakesHistory);
 
     return {
       history,
@@ -39,8 +37,7 @@ export default {
     JPHistoryTop,
     JPHistoryTile,
   },
-}
+};
 </script>
 
-<style>
-</style>
+<style></style>

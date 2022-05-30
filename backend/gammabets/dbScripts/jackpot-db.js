@@ -1,4 +1,5 @@
 const HighStakesJackpot = require("../../models/highstakes.model");
+const LowStakesJackpot = require("../../models/lowstakes.model");
 
 function withdrawSentAndConfirmedHS(gameID, withdrawState, winningsTradeID) {
 
@@ -24,4 +25,16 @@ function updateWinnerHS(gameID, winnerSteamID) {
   });
 }
 
-module.exports = {updateWinnerHS, withdrawSentAndConfirmedHS};
+function updateWinnerLS(gameID, winnerSteamID) {
+  LowStakesJackpot.updateOne({GameID: gameID}, {Winner: winnerSteamID, Status: false}, (err) => {
+
+    if (err) return console.log(err);
+
+    else {
+      return console.log(`Updated HS Game with Winner: ${winnerSteamID}`);
+    }
+
+  });
+}
+
+module.exports = {updateWinnerHS, updateWinnerLS, withdrawSentAndConfirmedHS};
