@@ -14,7 +14,6 @@ class AlertCenter {
 
         alertEvents.emit("tradeLink", data)
     }
-
     failedTradeOffer(steamID) {
         const data = {steamID: steamID};
 

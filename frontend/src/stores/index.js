@@ -6,6 +6,7 @@ import deposit from "./modules/deposit";
 import coinflip from "./modules/coinflip";
 import request from "./modules/request";
 import lowStakes from "./modules/lowstakes";
+import trading from "./modules/trading";
 
 export default createStore({
   state: {
@@ -55,5 +56,6 @@ export default createStore({
     coinflip,
     request,
     lowStakes,
+    trading,
   },
 });

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Home from "../views/Home.vue";
 import LowStakes from "../views/LowStakes.vue";
 import Coinflip from "../views/Coinflip.vue";
+import Trading from "../views/Trade.vue";
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
     path: "/coinflip",
     name: "Coinflip",
     component: Coinflip,
+  },
+  {
+    path: "/trading",
+    name: "Trading",
+    component: Trading,
   },
 ];
 

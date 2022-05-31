@@ -51,7 +51,7 @@ class JackpotManager extends GameManager {
 
                 else if (tradeDoc.GameMode == "Low Stakes") {
 
-                    this.#acceptedLowStakesGame();
+                    this.#acceptedLowStakesGame(tradeDoc, userBet);
 
                 }
 

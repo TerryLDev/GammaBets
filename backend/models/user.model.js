@@ -15,10 +15,6 @@ const userSchema = new Schema({
     ProfilePictureURL: String,
     ProfileURL: String,
     TradeURL: String,
-    DateJoined: {
-        type: Date,
-        required: true
-    },
     Trades: Array,
     Profit: Number,
     BetAmount: Number,

@@ -1,5 +1,8 @@
-const express = require("express");
 require("dotenv").config(__dirname + "/.env");
+const express = require("express");
+const https = require("https");
+const http = require("http");
+const fs = require("fs");
 const passport = require("passport");
 const session = require("express-session");
 const passportSteam = require("passport-steam");
@@ -185,6 +188,9 @@ passport.use(
 				$set: {
 					Username: profile.displayName,
 					ProfilePictureURL: profile._json.avatarfull,
+					ProfileURL: profile._json.profileurl,
+					// Also add one to check if their profile is public 
+					// you can find it in profile._json.communityvisibilitystate
 				}
 			}, {upsert: true, new: true}, (err, doc) => {
 				if (err) {
@@ -217,12 +223,11 @@ if (process.env.DEV_ENV == "false") {
 app.get('/auth/steam',
   passport.authenticate('steam'),
   function(req, res) {
-    // The request will be redirected to Steam for authentication, so
-    // this function will not be called.
+    // The request will be redirected to Steam for authentication
+    // This function will not be called
   });
 
-app.get('/auth/steam/return',
-  passport.authenticate('steam', { failureRedirect: '/login' }),
+app.get('/auth/steam/return', passport.authenticate('steam', { failureRedirect: '/' }), // find a better soltuon of faliure redirect
   function(req, res) {
     // Successful authentication, redirect home.
 	if (process.env.DEV_ENV == "false") {
@@ -232,14 +237,29 @@ app.get('/auth/steam/return',
 	else {
 		res.redirect('http://localhost:8080/');
 	}
-  });
-
-const server = app.listen(port, (err) => {
-
-	if (err) return console.error(err);
-	console.log(`Port: ${port}, Server Running...`);
-
 });
+
+
+//////////////////////////////////////////
+
+// Come here when the server is ready to go for HTTPS
+
+//////////////////////////////////////////
+
+/*
+// Lisnening to port
+const server = https
+	.createServer(app)
+	.listen(port, () => {
+		console.log(`Server is Running on port ${port}`);
+	});
+*/
+
+const server = http
+	.createServer(app)
+	.listen(port, () => {
+		console.log(`Server is Running on port ${port}`);
+	});
 
 const io = socket(server, {cors: {
 	origin: "http://localhost:8080"

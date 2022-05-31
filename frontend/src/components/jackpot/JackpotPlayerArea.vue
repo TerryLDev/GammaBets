@@ -11,6 +11,7 @@
         v-for="player in bets"
         v-bind:key="player"
         :player="player"
+        :potTotalValue="totalPotVal"
       />
     </div>
   </div>
@@ -25,6 +26,7 @@ export default {
     potName: { type: String },
     potMax: { type: Number },
     bets: { type: Array },
+    totalPotVal: { type: Number },
   },
   name: "JackpotPlayerArea",
   components: { UserBetEntry },

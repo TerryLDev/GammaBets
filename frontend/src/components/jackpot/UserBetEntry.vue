@@ -57,7 +57,7 @@
 
 <script>
 export default {
-  props: { player: Object },
+  props: { player: Object, potTotalValue: Number },
   data() {
     return {
       renderBet: false,
@@ -75,9 +75,8 @@ export default {
       return totalVal.toFixed(2);
     },
     getPlayerPercent(player) {
-      const total = this.$store.getters.getHighStakesTotalValue;
 
-      let percent = ((this.playerValue(player.skins) / total) * 100).toFixed(2);
+      let percent = ((this.playerValue(player.skins) / this.potTotalValue) * 100).toFixed(2);
 
       return percent;
     },

@@ -5,7 +5,8 @@ const Schema = mongoose.Schema;
 const tradeHistorySchema = Schema({
     TradeID: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     SteamID: {
         type: String,

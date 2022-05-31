@@ -4,6 +4,7 @@
     <Transition>
       <CfHistory v-if="isCF" />
       <HsHistory v-else-if="isHS" />
+      <LsHistory v-else-if="isLS" />
     </Transition>
   </div>
 </template>
@@ -11,6 +12,7 @@
 <script>
 import HsHistory from "./history/HsHistory.vue";
 import CfHistory from "./history/CfHistory.vue";
+import LsHistory from "./history/LsHistory.vue";
 
 export default {
   props: { historyTitle: String },
@@ -29,6 +31,9 @@ export default {
       } else if (title == "high stakes") {
         this.isHS = true;
       }
+      else if (title  == "low stakes") {
+        this.isLS = true;
+      }
     },
   },
   beforeMount() {
@@ -37,6 +42,7 @@ export default {
   components: {
     HsHistory,
     CfHistory,
+    LsHistory,
   },
   name: "GameHistory",
 };
