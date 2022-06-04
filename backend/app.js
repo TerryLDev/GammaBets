@@ -70,8 +70,10 @@ const {AlertCenter, alertEvents} = require("./gammabets/alertcenter")
 
 const { CoinFlipBot } = require("./gammabets/steam/coinflip-bot");
 const { JackpotBot } = require("./gammabets/steam/jackpot-bot");
+const {TradeBot} = require("./gammabets/steam/trade-bot");
 
-let lastUsedCFBot = "none";
+// USE THIS ONCE YOU HAVE MORE BOTS
+// let lastUsedCFBot = "none";
 
 let mongo_uri = process.env.MONGO_URI;
 
@@ -153,7 +155,7 @@ const jpBotZero = new JackpotBot(process.env.JP_BOT_0_USERNAME, process.env.JP_B
 // CF Bot(s)
 const cfBotZero = new CoinFlipBot(process.env.CF_BOT_0_USERNAME, process.env.CF_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_0_SHARED_SECRET), process.env.CF_BOT_0_IDENTITY_SECRET, process.env.CF_BOT_0_SHARED_SECRET, process.env.CF_BOT_0_SERVER_ID);
 
-const cfBotOne = new CoinFlipBot(process.env.CF_BOT_1_USERNAME, process.env.CF_BOT_1_PASSWORD, SteamTotp.generateAuthCode(process.env.CF_BOT_1_SHARED_SECRET), process.env.CF_BOT_1_IDENTITY_SECRET, process.env.CF_BOT_1_SHARED_SECRET, process.env.CF_BOT_1_SERVER_ID);
+const tradeBotZero = new TradeBot(process.env.TRADE_BOT_0_USERNAME, process.env.TRADE_BOT_0_PASSWORD, SteamTotp.generateAuthCode(process.env.TRADE_BOT_0_SHARED_SECRET), process.env.TRADE_BOT_0_IDENTITY_SECRET, process.env.TRADE_BOT_0_SHARED_SECRET, process.env.TRADE_BOT_0_SERVER_ID);
 
 // Authentcation startegy for Passport
 const SteamStrategy = passportSteam.Strategy;
@@ -429,6 +431,10 @@ io.on("connection", (socket) => {
 
 				let gameID = cfGameHandler.createGameID();
 
+				cfBotZero.newCoinflip(data.steamID, data.skins, data.tradeURL, data.side, gameID);
+
+				/* CHANGE ONCE THERE'S MORE BOTS
+
 				if (lastUsedCFBot == cfBotZero.botID) {
 
 					cfBotOne.newCoinflip(data.steamID, data.skins, data.tradeURL, data.side, gameID);
@@ -444,6 +450,8 @@ io.on("connection", (socket) => {
 					lastUsedCFBot = cfBotZero.botID;
 
 				}
+
+				*/
 
 			}, 2000);
 
@@ -565,6 +573,31 @@ io.on("connection", (socket) => {
 
 		}
 
+	});
+
+	socket.on("createTradeListing", async (data) => {
+		console.log(`User: ${data.steamID}, is creating a Trade Listing`);
+
+		/*
+		data = {
+			steamID: **,
+			tradeURL: **,
+			skins: [{skin obj},],
+			dayToExpire: **,
+			listingMessage:
+			minPrice: **,
+		}
+		*/
+		
+		try {
+
+		}
+
+		catch(err) {
+
+			return console.log(err);
+
+		}
 	});
 
 });

@@ -74,7 +74,7 @@ class CoinFlipBot extends SteamBot{
 				// Trade sent was countered
 				else if (TradeOfferManager.ETradeOfferState[offer.state] == "Countered") {
 					console.log("Steam User: " + offer.partner + "\nCountered Trade: " + offer.id);
-					TradeHistory.updateOne({TradeID: offer.id}, (err) => {
+					TradeHistory.updateOne({TradeID: offer.id}, {State: TradeOfferManager.ETradeOfferState[offer.state]}, (err) => {
 						if (err) {
 							console.error(err);
 						}
