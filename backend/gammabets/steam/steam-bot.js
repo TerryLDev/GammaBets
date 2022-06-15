@@ -203,7 +203,6 @@ class SteamBot {
 			
 			if (err)  {
 				console.log(err);
-				return false;
 			}
 
 			else {

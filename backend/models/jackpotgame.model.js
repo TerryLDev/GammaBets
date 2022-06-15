@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const jackpotGameSchema = Schema({
+const jackpotGameSchema = new Schema({
     GameID: {
         type: String,
         required: true,

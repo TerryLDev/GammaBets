@@ -29,6 +29,7 @@ const MarketPrice = require("./models/marketprice.model");
 const CoinFlipGame = require("./models/coinflipgame.model");
 const HighStakesJackpot = require("./models/highstakes.model");
 const LowStakesJackpot = require("./models/lowstakes.model");
+const TradeService = require("./models/tradeservice.model");
 
 // Router
 const mainRoutes = require("./routes/main");
@@ -81,7 +82,7 @@ let mongo_uri = process.env.MONGO_URI;
 let skins;
 
 // Connect to MongoDB
-mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err) => {
 	if (err) throw err;
 
 	else {
@@ -580,21 +581,25 @@ io.on("connection", (socket) => {
 
 		/*
 		data = {
-			steamID: **,
-			tradeURL: **,
-			skins: [{skin obj},],
-			dayToExpire: **,
-			listingMessage:
-			minPrice: **,
+			steamID: **, required
+			tradeURL: **, required
+			listingSkins: [{skin obj},], required
+			wantedSkins: [{skin obj},],
+			expireAfterDays: number 1, 2, 3, 4, 5, 6, 7 
+			message: **,
+			minPrice: **, required
 		}
 		*/
 		
 		try {
 
+			tradeBotZero.newListing(data);
+
 		}
 
 		catch(err) {
 
+			// send alert to user
 			return console.log(err);
 
 		}
@@ -1063,6 +1068,16 @@ lowStakesEvents.on("lowStakesServerProfit", data => {
 
 	});
 
+});
+
+//////////////////////////////////////////////////////////////
+
+// Trade Service Events
+
+//////////////////////////////////////////////////////////////
+
+TradeService.watch().on("change", (change) => {
+	console.log(change);
 });
 
 module.exports = {skins};

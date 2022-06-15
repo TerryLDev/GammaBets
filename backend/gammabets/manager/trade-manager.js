@@ -1,5 +1,5 @@
 const Events = require('events');
-const TradeService = require("../models/tradeservice.model");
+const TradeService = require("../../models/tradeservice.model");
 const tradeEvents = new Events.EventEmitter();
 
 class TradeManager {
@@ -16,16 +16,52 @@ class TradeManager {
 
     return listingID;
   }
-  validateNewListing(listingData) {
+  
+  validateNewListing(listingData, dbSkins, userDB) {
     // does it have at least one skin
     // does the listing minimum value 5% less of the total value
-    // does the listing have a valid expiration date
+    // does the listing have a valid expiration date 
+      // max of 7 days
+      // min of 1 day
     // have they reached listing limit
+      // max of 3 listings
+    
+      const totalListingValue = this.getListingValue(listingData.listingSkins, dbSkins);
+
+    if (listingData.listingSkins.length < 1) {
+      return false;
+    }
+
+    else if (listingData.minPrice < totalListingValue * 0.95 || listingData.minPrice > totalListingValue) {
+      return false;
+    }
+
+    else if (listingData.dayToExpire < 24 * 60 * 60 * 1000 || listingData.dayToExpire > 7 * 24 * 60 * 60 * 1000) {
+      return false;
+    }
+
+    else if (userDB.TradeListings.length >= 3) {
+      return false;
+    }
+
+    else {
+      return true;
+    }
+
   }
   validateNewOffer(offerData, listingID) {}
   #getListingQuery(listingData) {}
   #getOfferQuery(offerData, listingID) {}
   createNewListing(listingData) {}
+
+  getListingValue(skins, dbSkins) {
+    let totalListingValue = 0
+    skins.forEach(skin => {
+      const skinIndex = dbSkins.findIndex(dbSkin => skin.name == dbSkin["SkinName"]);
+      totalListingValue += dbSkins[skinIndex]["Value"];
+    });
+    return totalListingValue;
+  }
   
 }
 

@@ -15,16 +15,24 @@ const userSchema = new Schema({
     ProfilePictureURL: String,
     ProfileURL: String,
     TradeURL: String,
-    Trades: Array,
+    Trades: {
+        type: Array,
+        default: []
+    },
     Profit: Number,
     BetAmount: Number,
     GamesPlayed: {
         type: Array
-    }
-}, {
-    timestamps: true
-}
-);
+    },
+    TradeListings: {
+        type: Array,
+        default: []
+    },
+    Currency: {
+        type: Number,
+        default: 0,
+    },
+}, {timestamps: true});
 
 const User = mongoose.model('User', userSchema);
 

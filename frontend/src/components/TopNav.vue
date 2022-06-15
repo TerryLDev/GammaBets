@@ -3,7 +3,7 @@
     <router-link to="/" id="jp-top-nav" class="default-link top-nav-text">
       <img
         class="selected-icon top-nav-icon"
-        src="@/assets/icons/bullseye.png"
+        src="@/assets/icons/jpIconFixed.png"
         alt=""
       />
       High Stakes
@@ -15,7 +15,7 @@
     >
       <img
         class="selected-icon top-nav-icon"
-        src="@/assets/icons/bullseye.png"
+        src="@/assets/icons/jpIconFixed.png"
         alt=""
       />
       Low Stakes
@@ -26,14 +26,14 @@
       class="default-link top-nav-text"
       ><img
         class="top-nav-icon top-nav-text"
-        src="@/assets/icons/coinflipIcon.png"
+        src="@/assets/icons/coinflipIconFixed.png"
         alt=""
       />Coin Flip</router-link
     >
     <router-link to="/trading" class="default-link top-nav-text"
       ><img
         class="top-nav-icon top-nav-text"
-        src="@/assets/icons/tradev2.png"
+        src="@/assets/icons/tradeingAKIconFixed.png"
         alt=""
       />Trading</router-link
     >
@@ -45,10 +45,10 @@
       style="margin-right: auto"
     />
     <!-- Divider -->
-    <router-link to="/" class="default-link">
+    <router-link to="/twitter" class="default-link">
       <img class="top-nav-text" src="@/assets/icons/twitter.png"
     /></router-link>
-    <router-link to="/"
+    <router-link to="/discord" class="default-link"
       ><img
         class="default-link top-nav-icon top-nav-text"
         src="@/assets/icons/discord.png"

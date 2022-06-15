@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const marketPriceSchema = Schema({
+const marketPriceSchema = new Schema({
     SkinName: {
         type: String,
         required: true,

@@ -1,6 +1,9 @@
 const { SteamBot } = require("./steam-bot");
-const { TradeService } = require("../models/tradeservice.model");
 const TradeManager = require("../manager/trade-manager");
+const User = require("../../models/user.model");
+const TradeHistory = require("../../models/tradehistory.model");
+const TradeService = require("../../models/tradeservice.model");
+const TradeOfferManager = require("steam-tradeoffer-manager");
 
 class TradeBot extends SteamBot {
   constructor(username, password, twoFactorCode, indentitySecret, sharedSecret, botID) {
@@ -72,18 +75,152 @@ class TradeBot extends SteamBot {
 
   async newListing(listingObject) {
 		// validate listing
-		// push listing to listing queue
 		// send trade offer to creator
 		// if any error, send alert
 
 		try {
-			const validateOffer = await this.trManager.validateNewListing(listingObject);
+
+			const userDB = await User.findOne({SteamID: listingObject.steamID});
+			const validateOffer = await this.trManager.validateNewListing(listingObject, this.skins, await userDB);
 
 			if (await validateOffer) {
 
+				const totalValue = this.trManager.getListingValue(listingObject.listingSkins, this.skins);
+
+				const listingID = await this.trManager.generateNewListingID();
+
+				// send trade offer to creator
+				// log to db
+				const offer = await this.manager.createOffer(listingObject.tradeURL);
+				this.manager.getUserInventoryContents(listingObject.steamID, 252490, 2, true, (err, inv) => {
+
+					let allSkinsFound = true;
+
+					if (err) {
+						return console.error(err);
+					}
+
+					else {
+
+						const items = [];
+
+						listingObject.skins.forEach(listSkin => {
+							const item = inv.find(item => item.id == listSkin.id);
+
+							if (item) {
+								items.push({name: item.market_hash_name, id: item.id});
+								offer.addTheirItem(item);
+							}
+
+							else {
+								allSkinsFound = false;
+								return console.log(`Could not find ${desired} in Player's Inventory`);
+							}
+
+						});
+
+						offer.setMessage(`Creating Trade Listing on GammaBets.com with ID: ${listingID}`);
+
+						if (allSkinsFound) {
+							offer.getUserDetails((err, details) => {
+								if (err) {
+									// alert user
+									return console.error(err);
+								}
+
+								else {
+									offer.send((err, status) => {
+										if (err) {
+											// alert user
+											return console.error(err);
+										}
+
+										else {
+											console.log(status, offer.id);
+
+											// log to TradeHistory
+											const queryHist = {
+												TradeID: offer.id,
+												SteamID: listingObject.steamID,
+												Skins: items,
+												TransactionType: 'Deposit',
+												State: TradeOfferManager.ETradeOfferState[offer.state],
+												GameMode: "Trade Service",
+												GameID: listingID,
+												BotID: this.botID,
+												Action: "Creating",
+											};
+											TradeHistory.create(queryHist)
+											.then(() => {
+												return console.log(`Logged Trade History with ID: ${listingID}`);
+											})
+											.catch(err => {
+												return console.error(err);
+											});
+
+											// log to TradeService
+											const queryService = {
+												ListingID: listingID,
+												TradeID: offer.id,
+												CreatorSteamID: listingObject.steamID,
+												BotID: this.botID,
+												ExpiradeAfterDays: listingObject.expireAfterDays,
+												ListingMessage: listingObject.message,
+												ListingValue: totalValue,
+												ListingSkins: items,
+												WantedSkins: listingObject.wantedSkins,
+												ListingStatus: "Waiting",
+											};
+											
+											TradeService.create(queryService)
+											.then(() => {
+												return console.log(`Logged Trade Listing with ID: ${listingID}`);
+											})
+											.catch(err => {
+												return console.error(err);
+											});
+
+											// log to User
+											User.updateOne({SteamID: listingObject.steamID}, {$push: {Trades: offer.id}}, {new: true}, (err, result) => {
+												if(err){
+													return console.error(err);
+												}
+												else {
+													if(result == null || result == undefined) {
+														return console.log("User Doesn't Exist");
+													}
+
+													else {
+														return console.log(`Pushed New Trade Offer to User with ID: ${offer.id}`);
+													}
+												}
+											})
+
+										}
+
+									})
+								}
+							});
+						}
+
+						else {
+							// send alert
+							return console.log("Could not find all skins in Player's Inventory");
+						}
+
+					}
+
+				});
+			}
+
+			else {
+				console.log("Listing Failed Validation");
+				return false;
 			}
 		}
 		catch(err) {
+
+			return console.error(err);
 
 		}
 	}

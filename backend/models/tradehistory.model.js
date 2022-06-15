@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const tradeHistorySchema = Schema({
+const tradeHistorySchema = new Schema({
     TradeID: {
         type: String,
         required: true,
