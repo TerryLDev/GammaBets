@@ -122,84 +122,85 @@ class TradeBot extends SteamBot {
 						offer.setMessage(`Creating Trade Listing on GammaBets.com with ID: ${listingID}`);
 
 						if (allSkinsFound) {
+							
 							offer.getUserDetails((err, details) => {
+								
+								// if the getUserDeails function returns an error, return the error and alert the user
 								if (err) {
 									// alert user
 									return console.error(err);
 								}
+								
+								// if the getUserDeails function returns no error, continue
+								offer.send((err, status) => {
 
-								else {
-									offer.send((err, status) => {
-										if (err) {
-											// alert user
+									if (err) {
+										// alert user
+										return console.error(err);
+									}
+
+									console.log(status, offer.id);
+
+									// log to TradeHistory
+									const queryTradeHist = {
+										TradeID: offer.id,
+										SteamID: listingObject.steamID,
+										Skins: items,
+										TransactionType: 'Deposit',
+										State: TradeOfferManager.ETradeOfferState[offer.state],
+										GameMode: "Trade Service",
+										GameID: listingID,
+										BotID: this.botID,
+										Action: "Creating",
+									};
+
+									TradeHistory.create(queryTradeHist)
+									.then(() => {
+										return console.log(`Logged Trade History with ID: ${listingID}`);
+									})
+									.catch(err => {
+										return console.error(err);
+									});
+
+									// log to TradeService
+									const queryService = {
+										ListingID: listingID,
+										TradeID: offer.id,
+										CreatorSteamID: listingObject.steamID,
+										BotID: this.botID,
+										ExpiradeAfterDays: listingObject.expireAfterDays,
+										ListingMessage: listingObject.message,
+										ListingValue: totalValue,
+										ListingSkins: items,
+										WantedSkins: listingObject.wantedSkins,
+										ListingStatus: "Waiting",
+									};
+									
+									TradeService.create(queryService)
+									.then(() => {
+										return console.log(`Logged Trade Listing with ID: ${listingID}`);
+									})
+									.catch(err => {
+										return console.error(err);
+									});
+
+									// push tradeoffer to User
+									User.updateOne({SteamID: listingObject.steamID}, {$push: {Trades: offer.id}}, {new: true}, (err, result) => {
+										if(err){
 											return console.error(err);
 										}
-
 										else {
-											console.log(status, offer.id);
+											if(result == null || result == undefined) {
+												return console.log("User Doesn't Exist");
+											}
 
-											// log to TradeHistory
-											const queryHist = {
-												TradeID: offer.id,
-												SteamID: listingObject.steamID,
-												Skins: items,
-												TransactionType: 'Deposit',
-												State: TradeOfferManager.ETradeOfferState[offer.state],
-												GameMode: "Trade Service",
-												GameID: listingID,
-												BotID: this.botID,
-												Action: "Creating",
-											};
-											TradeHistory.create(queryHist)
-											.then(() => {
-												return console.log(`Logged Trade History with ID: ${listingID}`);
-											})
-											.catch(err => {
-												return console.error(err);
-											});
-
-											// log to TradeService
-											const queryService = {
-												ListingID: listingID,
-												TradeID: offer.id,
-												CreatorSteamID: listingObject.steamID,
-												BotID: this.botID,
-												ExpiradeAfterDays: listingObject.expireAfterDays,
-												ListingMessage: listingObject.message,
-												ListingValue: totalValue,
-												ListingSkins: items,
-												WantedSkins: listingObject.wantedSkins,
-												ListingStatus: "Waiting",
-											};
-											
-											TradeService.create(queryService)
-											.then(() => {
-												return console.log(`Logged Trade Listing with ID: ${listingID}`);
-											})
-											.catch(err => {
-												return console.error(err);
-											});
-
-											// log to User
-											User.updateOne({SteamID: listingObject.steamID}, {$push: {Trades: offer.id}}, {new: true}, (err, result) => {
-												if(err){
-													return console.error(err);
-												}
-												else {
-													if(result == null || result == undefined) {
-														return console.log("User Doesn't Exist");
-													}
-
-													else {
-														return console.log(`Pushed New Trade Offer to User with ID: ${offer.id}`);
-													}
-												}
-											})
-
+											else {
+												return console.log(`Pushed New Trade Offer to User with ID: ${offer.id}`);
+											}
 										}
+									});
 
-									})
-								}
+								});
 							});
 						}
 

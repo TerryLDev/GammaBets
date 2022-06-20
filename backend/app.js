@@ -82,7 +82,7 @@ let mongo_uri = process.env.MONGO_URI;
 let skins;
 
 // Connect to MongoDB
-mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err) => {
+mongoose.connect(mongo_uri, { useNewUrlParser: true, useUnifiedTopology: true, autoIndex: true }, (err) => {
 	if (err) throw err;
 
 	else {
